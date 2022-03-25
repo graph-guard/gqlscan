@@ -20,27 +20,16 @@ jobs:
 
     # TEST COVERAGE
 
-    # Install tools/cmd/cover
-    - name: Install tools/cmd/cover
-      run: go get golang.org/x/tools/cmd/cover
-
-    # Install overalls
-    - name: Install overalls
-      run: go get github.com/go-playground/overalls
-
-    # Overalls
-    - name: overalls
-      run: $(go env GOPATH)/bin/overalls -project /home/runner/work/gqlscan/gqlscan -covermode atomic -debug -- -race -v -coverpkg ./...
-
-    # Install goveralls
-    - name: Install goveralls
-      run: go get github.com/mattn/goveralls
-
-    # Goveralls
-    - name: goveralls
-      env:
-        COVERALLS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: $(go env GOPATH)/bin/goveralls -coverprofile overalls.coverprofile -service=github -repotoken=$COVERALLS_TOKEN
+    - name: Calculate coverage
+      run: |
+        go test -v -covermode=count -coverprofile=coverage.out
+    - name: Convert coverage.out to coverage.lcov
+      uses: jandelgado/gcov2lcov-action@v1.0.6
+    - name: Coveralls
+      uses: coverallsapp/github-action@v1.1.2
+      with:
+        github-token: ${{ secrets.github_token }}
+        path-to-lcov: coverage.lcov
 
     # LINT
 
