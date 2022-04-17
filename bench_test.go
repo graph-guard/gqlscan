@@ -3,7 +3,7 @@ package gqlscan_test
 import (
 	"testing"
 
-	"github.com/romshark/gqlscan"
+	"github.com/graph-guard/gqlscan"
 )
 
 func BenchmarkScan(b *testing.B) {

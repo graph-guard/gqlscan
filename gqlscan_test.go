@@ -4,7 +4,7 @@ import (
 	_ "embed"
 	"testing"
 
-	"github.com/romshark/gqlscan"
+	"github.com/graph-guard/gqlscan"
 
 	"github.com/stretchr/testify/require"
 )
