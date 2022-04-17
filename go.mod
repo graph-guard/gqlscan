@@ -1,4 +1,4 @@
-module github.com/romshark/gqlscan
+module github.com/graph-guard/gqlscan
 
 go 1.18
 
