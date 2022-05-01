@@ -22,6 +22,21 @@ func BenchmarkScan(b *testing.B) {
 	}
 }
 
+func BenchmarkScanWrite(b *testing.B) {
+	for _, td := range testdata {
+		b.Run("", func(b *testing.B) {
+			buf := make([]gqlscan.TokenRef, 1024)
+			in := []byte(td.input)
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
+				if _, err := gqlscan.ScanWrite(in, buf); err.IsErr() {
+					panic(err)
+				}
+			}
+		})
+	}
+}
+
 func BenchmarkScanErr(b *testing.B) {
 	for _, td := range testdataErr {
 		b.Run("", func(b *testing.B) {

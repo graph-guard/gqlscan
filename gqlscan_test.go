@@ -2,6 +2,7 @@ package gqlscan_test
 
 import (
 	_ "embed"
+	"strings"
 	"testing"
 
 	"github.com/graph-guard/gqlscan"
@@ -847,43 +848,72 @@ var testdata = []struct {
 func TestScan(t *testing.T) {
 	for ti, td := range testdata {
 		t.Run("", func(t *testing.T) {
-			require.Equal(t, ti, td.index)
-			tName := t.Name()
-			t.Log(tName)
-			j := 0
-			prevHead := 0
-			err := gqlscan.Scan(
-				[]byte(td.input),
-				func(i *gqlscan.Iterator) (err bool) {
-					require.True(
-						t, j < len(td.expect),
-						"exceeding expectation set at: %d {T: %s; V: %s}",
-						j, i.Token().String(), i.Value(),
+			t.Run("Scan", func(t *testing.T) {
+				require := require.New(t)
+				require.Equal(ti, td.index)
+				tName := t.Name()
+				t.Log(tName)
+				j := 0
+				prevHead := 0
+				err := gqlscan.Scan(
+					[]byte(td.input),
+					func(i *gqlscan.Iterator) (err bool) {
+						require.True(
+							j < len(td.expect),
+							"exceeding expectation set at: %d {T: %s; V: %s}",
+							j, i.Token().String(), i.Value(),
+						)
+						require.Equal(
+							td.expect[j].Type.String(), i.Token().String(),
+							"unexpected type at index %d", j,
+						)
+						require.Equal(
+							td.expect[j].Value, string(i.Value()),
+							"unexpected value at index %d", j,
+						)
+						require.GreaterOrEqual(i.IndexHead(), prevHead)
+						prevHead = i.IndexHead()
+						require.GreaterOrEqual(i.IndexHead(), i.IndexTail())
+						require.Equal(j, td.expect[j].Index)
+						j++
+						return false
+					},
+				)
+				require.Zero(err.Error())
+				require.False(err.IsErr())
+				for _, e := range td.expect[j:] {
+					t.Errorf(
+						"missing {T: %s; V: %s}",
+						e.Type, e.Value,
 					)
+				}
+			})
+
+			t.Run("ScanWrite", func(t *testing.T) {
+				require := require.New(t)
+				buffer := make([]gqlscan.TokenRef, len(td.expect))
+				in := []byte(td.input)
+				written, err := gqlscan.ScanWrite(in, buffer)
+				require.Zero(err.Error())
+				require.False(err.IsErr())
+				require.Equal(len(td.expect), written)
+
+				prevHead := 0
+				for j, a := range buffer {
 					require.Equal(
-						t, td.expect[j].Type.String(), i.Token().String(),
+						td.expect[j].Type.String(), a.Type.String(),
 						"unexpected type at index %d", j,
 					)
 					require.Equal(
-						t, td.expect[j].Value, string(i.Value()),
+						td.expect[j].Value, string(a.Value(in)),
 						"unexpected value at index %d", j,
 					)
-					require.GreaterOrEqual(t, i.IndexHead(), prevHead)
-					require.GreaterOrEqual(t, i.IndexHead(), i.IndexTail())
-					i.Value()
-					require.Equal(t, j, td.expect[j].Index)
-					j++
-					return false
-				},
-			)
-			require.Zero(t, err.Error())
-			require.False(t, err.IsErr())
-			for _, e := range td.expect[j:] {
-				t.Errorf(
-					"missing {T: %s; V: %s}",
-					e.Type, e.Value,
-				)
-			}
+					require.GreaterOrEqual(a.IndexHead, prevHead)
+					prevHead = a.IndexHead
+					require.GreaterOrEqual(a.IndexHead, a.IndexTail)
+					require.Equal(j, td.expect[j].Index)
+				}
+			})
 		})
 	}
 }
@@ -1964,4 +1994,94 @@ func TestZeroValueToString(t *testing.T) {
 
 	var token gqlscan.Token
 	require.Zero(t, token.String())
+}
+
+func TestBufferOverflow(t *testing.T) {
+	require := require.New(t)
+	const input = `query Q($variable: Foo, $v: [ [ Bar ] ]) {
+		foo(x: null) {
+			foo_bar
+		}
+		bar
+		baz {
+			baz_fuzz {
+				... on A {
+					baz_fuzz_taz_A
+					...namedFragment1
+					... namedFragment2
+				}
+				... on B {
+					baz_fuzz_taz_B
+				}
+				baz_fuzz_taz1(bool: false)
+				baz_fuzz_taz2(bool: true)
+				baz_fuzz_taz3(string: "okay")
+				baz_fuzz_taz4(array: [])
+				baz_fuzz_taz5(variable: $variable)
+				baz_fuzz_taz6(variable: $v)
+				baz_fuzz_taz7(object: {
+					number0: 0
+					number1: 2
+					number2: 123456789.1234e2
+					arr0: [[] [{x:null}]]
+				})
+			}
+		}
+	} mutation M($variable: Foo, $v: [ [ Bar ] ]) {
+		foo(x: null) {
+			foo_bar
+		}
+		bar
+		baz {
+			baz_fuzz {
+				... on A {
+					baz_fuzz_taz_A
+					...namedFragment1
+					... namedFragment2
+				}
+				... on B {
+					baz_fuzz_taz_B
+				}
+				baz_fuzz_taz1(bool: false)
+				baz_fuzz_taz2(bool: true)
+				baz_fuzz_taz3(string: "okay")
+				baz_fuzz_taz4(array: [])
+				baz_fuzz_taz5(variable: $variable)
+				baz_fuzz_taz6(variable: $v)
+				baz_fuzz_taz7(object: {
+					number0: 0
+					number1: 2
+					number2: 123456789.1234e2
+					arr0: [[] [{x:null}]]
+				})
+			}
+		}
+	}
+	fragment f1 on Query { todos { ...f2 } }
+	query Todos { ...f1 }
+	fragment f2 on Todo { id text(
+		foo: 2,
+		bar: "ok",
+		baz: null,
+	) done }`
+
+	const expected = 216
+	buf := make([]gqlscan.TokenRef, expected)
+	written, err := gqlscan.ScanWrite([]byte(input), buf)
+	require.Zero(err.Error())
+	require.False(err.IsErr())
+	require.Equal(expected, written)
+
+	for diff := 1; diff < expected; diff++ {
+		expected := len(buf) - diff
+		buf := buf[:expected]
+		written, err := gqlscan.ScanWrite([]byte(input), buf)
+		require.True(err.IsErr())
+		require.True(
+			strings.HasSuffix(err.Error(), "buffer overflow"),
+			"unexpected error message: %q",
+			err.Error(),
+		)
+		require.Equal(expected, written)
+	}
 }

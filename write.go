@@ -5,14 +5,15 @@ import (
 	"unicode/utf8"
 )
 
-// Scan calls fn for every token it scans in str.
-// If fn returns true then an error with code ErrCallbackFn is returned.
-// *Iterator passed to fn should never be aliased and used after Scan returns.
-func Scan(str []byte, fn func(*Iterator) (err bool)) Error {
+// ScanWrite writes every token it scans in str to buffer.
+// Returns the number of tokens written to the buffer.
+// Returns ErrBufferOverflow if the buffer is too small.
+func ScanWrite(str []byte, buffer []TokenRef) (int, Error) {
 	i := acquireIterator(str)
 	defer iteratorPool.Put(i)
 
 	var typeArrLvl int
+	bufferIndex := 0
 
 	i.skipSTNRC()
 
@@ -29,41 +30,61 @@ DEFINITION:
 		i.expect = ExpectDef
 		goto COMMENT
 	} else if i.str[i.head] == '{' {
-		i.token = TokenDefQry
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenDefQry,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.expect = ExpectSelSet
 		goto SELECTION_SET
 	} else if i.isHeadKeywordQuery() {
 		// Query
-		i.token = TokenDefQry
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenDefQry,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.head += len("query")
 		i.expect = ExpectAfterKeywordQuery
 		goto AFTER_KEYWORD_QUERY
 	} else if i.isHeadKeywordMutation() {
 		// Mutation
-		i.token = TokenDefMut
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenDefMut,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.head += len("mutation")
 		i.expect = ExpectAfterKeywordMutation
 		goto AFTER_KEYWORD_MUTATION
 	} else if i.isHeadKeywordFragment() {
 		// Fragment
 		i.tail = -1
-		i.token = TokenDefFrag
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenDefFrag,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.head += len("fragment")
 		i.expect = ExpectFragName
 		goto AFTER_KEYWORD_FRAGMENT
@@ -86,11 +107,16 @@ AFTER_KEYWORD_QUERY:
 	} else if i.str[i.head] == '(' {
 		// Query variable list
 		i.tail = -1
-		i.token = TokenVarList
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenVarList,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.head++
 		i.expect = ExpectVarName
 		goto QUERY_VAR
@@ -111,11 +137,16 @@ AFTER_KEYWORD_MUTATION:
 	} else if i.str[i.head] == '(' {
 		// Mutation variable list
 		i.tail = -1
-		i.token = TokenVarList
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenVarList,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.head++
 		i.expect = ExpectVarName
 		goto QUERY_VAR
@@ -171,11 +202,16 @@ AFTER_VAR_TYPE:
 	}
 	// End of query variable list
 	i.tail = -1
-	i.token = TokenVarListEnd
-	if fn(i) {
-		i.errc = ErrCallbackFn
-		goto ERROR
+	if bufferIndex >= len(buffer) {
+		goto ERROR_BUFFER_OVERFLOW
 	}
+	buffer[bufferIndex] = TokenRef{
+		Type:        TokenVarListEnd,
+		IndexTail:   i.tail,
+		IndexHead:   i.head,
+		LevelSelect: i.levelSel,
+	}
+	bufferIndex++
 	i.head++
 	i.expect = ExpectSelSet
 	goto SELECTION_SET
@@ -192,11 +228,16 @@ SELECTION_SET:
 		goto ERROR
 	}
 	i.tail = -1
-	i.token = TokenSel
-	if fn(i) {
-		i.errc = ErrCallbackFn
-		goto ERROR
+	if bufferIndex >= len(buffer) {
+		goto ERROR_BUFFER_OVERFLOW
 	}
+	buffer[bufferIndex] = TokenRef{
+		Type:        TokenSel,
+		IndexTail:   i.tail,
+		IndexHead:   i.head,
+		LevelSelect: i.levelSel,
+	}
+	bufferIndex++
 	i.levelSel++
 	i.head++
 	i.expect = ExpectSel
@@ -211,11 +252,16 @@ AFTER_SELECTION:
 		goto COMMENT
 	} else if i.str[i.head] == '}' {
 		i.tail = -1
-		i.token = TokenSelEnd
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenSelEnd,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.levelSel--
 		i.head++
 		i.skipSTNRC()
@@ -238,11 +284,16 @@ VALUE:
 		// Object begin
 		i.tail = -1
 		// Callback for argument
-		i.token = TokenObj
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenObj,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.stackPush(TokenObj)
 		i.head++
 		i.skipSTNRC()
@@ -252,11 +303,16 @@ VALUE:
 	} else if i.str[i.head] == '[' {
 		i.tail = -1
 		// Callback for argument
-		i.token = TokenArr
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenArr,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.head++
 		i.skipSTNRC()
 
@@ -266,11 +322,16 @@ VALUE:
 			i.expect = ExpectVal
 			goto ERROR
 		} else if i.str[i.head] == ']' {
-			i.token = TokenArrEnd
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
+			if bufferIndex >= len(buffer) {
+				goto ERROR_BUFFER_OVERFLOW
 			}
+			buffer[bufferIndex] = TokenRef{
+				Type:        TokenArrEnd,
+				IndexTail:   i.tail,
+				IndexHead:   i.head,
+				LevelSelect: i.levelSel,
+			}
+			bufferIndex++
 			i.head++
 			i.expect = ExpectAfterValue
 			goto AFTER_VALUE_COMMENT
@@ -305,11 +366,16 @@ VALUE:
 
 	AFTER_STR_VAL:
 		// Callback for argument
-		i.token = TokenStr
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenStr,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		// Advance head index to include the closing double-quotes
 		i.head++
 	} else if i.str[i.head] == '$' {
@@ -339,11 +405,16 @@ VALUE:
 		i.head += len("null")
 
 		// Callback for argument
-		i.token = TokenNull
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenNull,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 	} else if i.str[i.head] == 't' {
 		// Boolean true
 		if i.head+3 >= len(i.str) {
@@ -363,11 +434,16 @@ VALUE:
 		i.head += len("true")
 
 		// Callback for argument
-		i.token = TokenTrue
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenTrue,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 	} else if i.str[i.head] == 'f' {
 		// Boolean false
 		if i.head+4 >= len(i.str) {
@@ -388,11 +464,16 @@ VALUE:
 		i.head += len("false")
 
 		// Callback for argument
-		i.token = TokenFalse
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenFalse,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 	} else if i.isHeadNumberStart() {
 		// Number
 		i.tail = i.head
@@ -530,11 +611,16 @@ VALUE:
 
 	ON_NUM_VAL:
 		// Callback for argument
-		i.token = TokenNum
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenNum,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 	} else {
 		// Invalid value
 		i.errc = ErrInvalVal
@@ -558,11 +644,16 @@ AFTER_VALUE_COMMENT:
 			i.stackPop()
 
 			// Callback for end of object
-			i.token = TokenObjEnd
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
+			if bufferIndex >= len(buffer) {
+				goto ERROR_BUFFER_OVERFLOW
 			}
+			buffer[bufferIndex] = TokenRef{
+				Type:        TokenObjEnd,
+				IndexTail:   i.tail,
+				IndexHead:   i.head,
+				LevelSelect: i.levelSel,
+			}
+			bufferIndex++
 
 			i.head++
 			i.skipSTNRC()
@@ -581,11 +672,16 @@ AFTER_VALUE_COMMENT:
 			i.stackPop()
 
 			// Callback for end of array
-			i.token = TokenArrEnd
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
+			if bufferIndex >= len(buffer) {
+				goto ERROR_BUFFER_OVERFLOW
 			}
+			buffer[bufferIndex] = TokenRef{
+				Type:        TokenArrEnd,
+				IndexTail:   i.tail,
+				IndexHead:   i.head,
+				LevelSelect: i.levelSel,
+			}
+			bufferIndex++
 			i.head++
 			i.skipSTNRC()
 			if i.stackLen() > 0 {
@@ -599,11 +695,16 @@ AFTER_VALUE_COMMENT:
 	}
 	if i.str[i.head] == ')' {
 		i.tail = -1
-		i.token = TokenArgListEnd
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenArgListEnd,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		// End of argument list
 		i.head++
 		i.expect = ExpectAfterArgList
@@ -722,11 +823,16 @@ VAR_TYPE:
 		goto COMMENT
 	} else if i.str[i.head] == '[' {
 		i.tail = -1
-		i.token = TokenVarTypeArr
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenVarTypeArr,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.head++
 		typeArrLvl++
 		goto VAR_TYPE
@@ -798,11 +904,16 @@ AFTER_VAR_TYPE_NAME:
 			goto ERROR
 		}
 		i.tail = -1
-		i.token = TokenVarTypeArrEnd
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenVarTypeArrEnd,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.head++
 		typeArrLvl--
 
@@ -817,11 +928,16 @@ AFTER_NAME:
 	switch i.expect {
 	case ExpectFieldName:
 		// Callback for field name
-		i.token = TokenField
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenField,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 
 		// Lookahead
 		i.skipSTNRC()
@@ -832,11 +948,16 @@ AFTER_NAME:
 		} else if i.str[i.head] == '(' {
 			// Argument list
 			i.tail = -1
-			i.token = TokenArgList
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
+			if bufferIndex >= len(buffer) {
+				goto ERROR_BUFFER_OVERFLOW
 			}
+			buffer[bufferIndex] = TokenRef{
+				Type:        TokenArgList,
+				IndexTail:   i.tail,
+				IndexHead:   i.head,
+				LevelSelect: i.levelSel,
+			}
+			bufferIndex++
 			i.head++
 			i.skipSTNRC()
 			i.expect = ExpectArgName
@@ -851,22 +972,32 @@ AFTER_NAME:
 
 	case ExpectArgName:
 		// Callback for argument name
-		i.token = TokenArg
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenArg,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.skipSTNRC()
 		i.expect = ExpectColumnAfterArg
 		goto COLUMN_AFTER_ARG_NAME
 
 	case ExpectObjFieldName:
 		// Callback for object field
-		i.token = TokenObjField
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenObjField,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 
 		i.skipSTNRC()
 		if i.head >= len(i.str) {
@@ -884,38 +1015,58 @@ AFTER_NAME:
 		goto VALUE
 
 	case ExpectVarRefName:
-		i.token = TokenVarRef
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenVarRef,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.expect = ExpectAfterValue
 		goto AFTER_VALUE_COMMENT
 
 	case ExpectVarType:
-		i.token = TokenVarTypeName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenVarTypeName,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.expect = ExpectAfterVarTypeName
 		goto AFTER_VAR_TYPE_NAME
 
 	case ExpectVarName, ExpectAfterVarType:
-		i.token = TokenVarName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenVarName,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.expect = ExpectColumnAfterVar
 		goto AFTER_DECL_VAR_NAME
 
 	case ExpectQryName:
-		i.token = TokenQryName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenQryName,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.skipSTNRC()
 
 		if i.head >= len(i.str) {
@@ -928,11 +1079,16 @@ AFTER_NAME:
 		} else if i.str[i.head] == '(' {
 			// Query variable list
 			i.tail = -1
-			i.token = TokenVarList
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
+			if bufferIndex >= len(buffer) {
+				goto ERROR_BUFFER_OVERFLOW
 			}
+			buffer[bufferIndex] = TokenRef{
+				Type:        TokenVarList,
+				IndexTail:   i.tail,
+				IndexHead:   i.head,
+				LevelSelect: i.levelSel,
+			}
+			bufferIndex++
 			i.head++
 			i.expect = ExpectVarName
 			goto QUERY_VAR
@@ -942,11 +1098,16 @@ AFTER_NAME:
 		goto ERROR
 
 	case ExpectMutName:
-		i.token = TokenMutName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenMutName,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.skipSTNRC()
 
 		if i.head >= len(i.str) {
@@ -959,11 +1120,16 @@ AFTER_NAME:
 		} else if i.str[i.head] == '(' {
 			// Mutation variable list
 			i.tail = -1
-			i.token = TokenVarList
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
+			if bufferIndex >= len(buffer) {
+				goto ERROR_BUFFER_OVERFLOW
 			}
+			buffer[bufferIndex] = TokenRef{
+				Type:        TokenVarList,
+				IndexTail:   i.tail,
+				IndexHead:   i.head,
+				LevelSelect: i.levelSel,
+			}
+			bufferIndex++
 			i.head++
 			i.expect = ExpectVarName
 			goto QUERY_VAR
@@ -973,38 +1139,58 @@ AFTER_NAME:
 		goto ERROR
 
 	case ExpectFragInlined:
-		i.token = TokenFragInline
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenFragInline,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.expect = ExpectSelSet
 		goto SELECTION_SET
 
 	case ExpectFragRef:
-		i.token = TokenFragRef
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenFragRef,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.expect = ExpectAfterSelection
 		goto AFTER_SELECTION
 
 	case ExpectFragName:
-		i.token = TokenFragName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenFragName,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.expect = ExpectFragKeywordOn
 		goto FRAG_KEYWORD_ON
 
 	case ExpectFragTypeCond:
-		i.token = TokenFragTypeCond
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
+		if bufferIndex >= len(buffer) {
+			goto ERROR_BUFFER_OVERFLOW
 		}
+		buffer[bufferIndex] = TokenRef{
+			Type:        TokenFragTypeCond,
+			IndexTail:   i.tail,
+			IndexHead:   i.head,
+			LevelSelect: i.levelSel,
+		}
+		bufferIndex++
 		i.expect = ExpectSelSet
 		goto SELECTION_SET
 	default:
@@ -1095,7 +1281,7 @@ DEFINITION_END:
 	if i.head < len(i.str) {
 		goto DEFINITION
 	}
-	return Error{}
+	return bufferIndex, Error{}
 
 ERROR:
 	{
@@ -1103,11 +1289,25 @@ ERROR:
 		if i.head < len(i.str) {
 			atIndex, _ = utf8.DecodeRune(i.str[i.head:])
 		}
-		return Error{
+		return bufferIndex, Error{
 			Index:       i.head,
 			AtIndex:     atIndex,
 			Code:        i.errc,
 			Expectation: i.expect,
+		}
+	}
+
+ERROR_BUFFER_OVERFLOW:
+	{
+		var atIndex rune
+		if i.head < len(i.str) {
+			atIndex, _ = utf8.DecodeRune(i.str[i.head:])
+		}
+		return bufferIndex, Error{
+			Index:       i.head,
+			AtIndex:     atIndex,
+			Code:        ErrBufferOverflow,
+			Expectation: 0,
 		}
 	}
 }
