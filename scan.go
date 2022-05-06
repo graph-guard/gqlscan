@@ -181,6 +181,7 @@ func (i *Iterator) isHeadNumEnd() bool {
 		i.str[i.head] == ',' ||
 		i.str[i.head] == ')' ||
 		i.str[i.head] == '}' ||
+		i.str[i.head] == ']' ||
 		i.str[i.head] == '#'
 }
 

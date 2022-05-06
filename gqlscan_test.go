@@ -822,6 +822,18 @@ var testdata = []struct {
 		{13, gqlscan.TokenArgListEnd, ""},
 		{14, gqlscan.TokenSelEnd, ""},
 	}},
+	{52, `{f(a:[0])}`, []Expect{
+		{0, gqlscan.TokenDefQry, ""},
+		{1, gqlscan.TokenSel, ""},
+		{2, gqlscan.TokenField, "f"},
+		{3, gqlscan.TokenArgList, ""},
+		{4, gqlscan.TokenArg, "a"},
+		{5, gqlscan.TokenArr, ""},
+		{6, gqlscan.TokenNum, "0"},
+		{7, gqlscan.TokenArrEnd, ""},
+		{8, gqlscan.TokenArgListEnd, ""},
+		{9, gqlscan.TokenSelEnd, ""},
+	}},
 }
 
 func TestScan(t *testing.T) {
