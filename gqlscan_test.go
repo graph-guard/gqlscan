@@ -99,27 +99,7 @@ var testdata = []struct {
 		{9, gqlscan.TokenArgListEnd, ""},
 		{10, gqlscan.TokenSelEnd, ""},
 	}},
-	{8, `{f(f: [null "" [[] 42 false] true])}`, []Expect{
-		{0, gqlscan.TokenDefQry, ""},
-		{1, gqlscan.TokenSel, ""},
-		{2, gqlscan.TokenField, "f"},
-		{3, gqlscan.TokenArgList, ""},
-		{4, gqlscan.TokenArg, "f"},
-		{5, gqlscan.TokenArr, ""},
-		{6, gqlscan.TokenNull, "null"},
-		{7, gqlscan.TokenStr, ""},
-		{8, gqlscan.TokenArr, ""},
-		{9, gqlscan.TokenArr, ""},
-		{10, gqlscan.TokenArrEnd, ""},
-		{11, gqlscan.TokenNum, "42"},
-		{12, gqlscan.TokenFalse, "false"},
-		{13, gqlscan.TokenArrEnd, ""},
-		{14, gqlscan.TokenTrue, "true"},
-		{15, gqlscan.TokenArrEnd, ""},
-		{16, gqlscan.TokenArgListEnd, ""},
-		{17, gqlscan.TokenSelEnd, ""},
-	}},
-	{9, `{f(f: 0)}`, []Expect{
+	{8, `{f(f: 0)}`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "f"},
@@ -129,7 +109,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{10, `{f(f: 0.0)}`, []Expect{
+	{9, `{f(f: 0.0)}`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "f"},
@@ -139,7 +119,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{11, `{f(f: 42)}`, []Expect{
+	{10, `{f(f: 42)}`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "f"},
@@ -149,7 +129,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{12, `{f(f: -42)}`, []Expect{
+	{11, `{f(f: -42)}`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "f"},
@@ -159,7 +139,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{13, `{f(f: -42.5678)}`, []Expect{
+	{12, `{f(f: -42.5678)}`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "f"},
@@ -169,7 +149,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{14, `{f(f: -42.5678e2)}`, []Expect{
+	{13, `{f(f: -42.5678e2)}`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "f"},
@@ -179,7 +159,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{15, `{ f (f: {x: 2}) }`, []Expect{
+	{14, `{ f (f: {x: 2}) }`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "f"},
@@ -192,7 +172,7 @@ var testdata = []struct {
 		{9, gqlscan.TokenArgListEnd, ""},
 		{10, gqlscan.TokenSelEnd, ""},
 	}},
-	{16, `fragment f1 on Query { todos { ...f2 } }
+	{15, `fragment f1 on Query { todos { ...f2 } }
 	query Todos { ...f1 }
 	fragment f2 on Todo { id text done }`, []Expect{
 		// Fragment f1
@@ -223,7 +203,7 @@ var testdata = []struct {
 		{20, gqlscan.TokenField, "done"},
 		{21, gqlscan.TokenSelEnd, ""},
 	}},
-	{17, `query Q($variable: Foo, $v: [ [ Bar ] ]) {
+	{16, `query Q($variable: Foo, $v: [ [ Bar ] ]) {
 		foo(x: null) {
 			foo_bar
 		}
@@ -521,31 +501,31 @@ var testdata = []struct {
 	}},
 
 	// Comments
-	{18, "  #comment1\n  #comment2\n  {x}", []Expect{
+	{17, "  #comment1\n  #comment2\n  {x}", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
 		{3, gqlscan.TokenSelEnd, ""},
 	}},
-	{19, "{  #comment1\n  #comment2\n  x}", []Expect{
+	{18, "{  #comment1\n  #comment2\n  x}", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
 		{3, gqlscan.TokenSelEnd, ""},
 	}},
-	{20, "{x  #comment1\n  #comment2\n  }", []Expect{
+	{19, "{x  #comment1\n  #comment2\n  }", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
 		{3, gqlscan.TokenSelEnd, ""},
 	}},
-	{21, "{x}  #comment1\n  #comment2\n", []Expect{
+	{20, "{x}  #comment1\n  #comment2\n", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
 		{3, gqlscan.TokenSelEnd, ""},
 	}},
-	{22, "{x(  #comment1\n  #comment2\n  y:0)}", []Expect{
+	{21, "{x(  #comment1\n  #comment2\n  y:0)}", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
@@ -555,7 +535,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{23, "{x(y  #comment1\n  #comment2\n  :0)}", []Expect{
+	{22, "{x(y  #comment1\n  #comment2\n  :0)}", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
@@ -565,7 +545,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{24, "{x(y:  #comment1\n  #comment2\n  0)}", []Expect{
+	{23, "{x(y:  #comment1\n  #comment2\n  0)}", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
@@ -575,7 +555,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{25, "{x(y:0  #comment1\n  #comment2\n  )}", []Expect{
+	{24, "{x(y:0  #comment1\n  #comment2\n  )}", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
@@ -585,7 +565,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{26, "{x(y:0)  #comment1\n  #comment2\n  }", []Expect{
+	{25, "{x(y:0)  #comment1\n  #comment2\n  }", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
@@ -595,19 +575,19 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{27, "query  #comment1\n  #comment2\n  {x}", []Expect{
+	{26, "query  #comment1\n  #comment2\n  {x}", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
 		{3, gqlscan.TokenSelEnd, ""},
 	}},
-	{28, "mutation  #comment1\n  #comment2\n  {x}", []Expect{
+	{27, "mutation  #comment1\n  #comment2\n  {x}", []Expect{
 		{0, gqlscan.TokenDefMut, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
 		{3, gqlscan.TokenSelEnd, ""},
 	}},
-	{29, "fragment  #comment1\n  #comment2\n  f on X{x}", []Expect{
+	{28, "fragment  #comment1\n  #comment2\n  f on X{x}", []Expect{
 		{0, gqlscan.TokenDefFrag, ""},
 		{1, gqlscan.TokenFragName, "f"},
 		{2, gqlscan.TokenFragTypeCond, "X"},
@@ -615,7 +595,7 @@ var testdata = []struct {
 		{4, gqlscan.TokenField, "x"},
 		{5, gqlscan.TokenSelEnd, ""},
 	}},
-	{30, "fragment f  #comment1\n  #comment2\n  on X{x}", []Expect{
+	{29, "fragment f  #comment1\n  #comment2\n  on X{x}", []Expect{
 		{0, gqlscan.TokenDefFrag, ""},
 		{1, gqlscan.TokenFragName, "f"},
 		{2, gqlscan.TokenFragTypeCond, "X"},
@@ -623,7 +603,7 @@ var testdata = []struct {
 		{4, gqlscan.TokenField, "x"},
 		{5, gqlscan.TokenSelEnd, ""},
 	}},
-	{31, "fragment f on  #comment1\n  #comment2\n  X{x}", []Expect{
+	{30, "fragment f on  #comment1\n  #comment2\n  X{x}", []Expect{
 		{0, gqlscan.TokenDefFrag, ""},
 		{1, gqlscan.TokenFragName, "f"},
 		{2, gqlscan.TokenFragTypeCond, "X"},
@@ -631,7 +611,7 @@ var testdata = []struct {
 		{4, gqlscan.TokenField, "x"},
 		{5, gqlscan.TokenSelEnd, ""},
 	}},
-	{32, "fragment f on X  #comment1\n  #comment2\n  {x}", []Expect{
+	{31, "fragment f on X  #comment1\n  #comment2\n  {x}", []Expect{
 		{0, gqlscan.TokenDefFrag, ""},
 		{1, gqlscan.TokenFragName, "f"},
 		{2, gqlscan.TokenFragTypeCond, "X"},
@@ -639,19 +619,19 @@ var testdata = []struct {
 		{4, gqlscan.TokenField, "x"},
 		{5, gqlscan.TokenSelEnd, ""},
 	}},
-	{33, "{  ...  #comment1\n  #comment2\n  f  }", []Expect{
+	{32, "{  ...  #comment1\n  #comment2\n  f  }", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenFragRef, "f"},
 		{3, gqlscan.TokenSelEnd, ""},
 	}},
-	{34, "{  ...  f  #comment1\n  #comment2\n  }", []Expect{
+	{33, "{  ...  f  #comment1\n  #comment2\n  }", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenFragRef, "f"},
 		{3, gqlscan.TokenSelEnd, ""},
 	}},
-	{35, "query(  #comment1\n  #comment2\n  $x: T){x}", []Expect{
+	{34, "query(  #comment1\n  #comment2\n  $x: T){x}", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenVarList, ""},
 		{2, gqlscan.TokenVarName, "x"},
@@ -661,7 +641,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenField, "x"},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{36, "query($x  #comment1\n  #comment2\n  : T){x}", []Expect{
+	{35, "query($x  #comment1\n  #comment2\n  : T){x}", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenVarList, ""},
 		{2, gqlscan.TokenVarName, "x"},
@@ -671,7 +651,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenField, "x"},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{37, "query($x:  #comment1\n  #comment2\n  T){x}", []Expect{
+	{36, "query($x:  #comment1\n  #comment2\n  T){x}", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenVarList, ""},
 		{2, gqlscan.TokenVarName, "x"},
@@ -681,7 +661,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenField, "x"},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{38, "query($x:[  #comment1\n  #comment2\n  T]){x}", []Expect{
+	{37, "query($x:[  #comment1\n  #comment2\n  T]){x}", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenVarList, ""},
 		{2, gqlscan.TokenVarName, "x"},
@@ -693,7 +673,7 @@ var testdata = []struct {
 		{8, gqlscan.TokenField, "x"},
 		{9, gqlscan.TokenSelEnd, ""},
 	}},
-	{39, "query($x:[T  #comment1\n  #comment2\n  ]){x}", []Expect{
+	{38, "query($x:[T  #comment1\n  #comment2\n  ]){x}", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenVarList, ""},
 		{2, gqlscan.TokenVarName, "x"},
@@ -705,7 +685,7 @@ var testdata = []struct {
 		{8, gqlscan.TokenField, "x"},
 		{9, gqlscan.TokenSelEnd, ""},
 	}},
-	{40, "query($x:[T]  #comment1\n  #comment2\n  ){x}", []Expect{
+	{39, "query($x:[T]  #comment1\n  #comment2\n  ){x}", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenVarList, ""},
 		{2, gqlscan.TokenVarName, "x"},
@@ -717,7 +697,7 @@ var testdata = []struct {
 		{8, gqlscan.TokenField, "x"},
 		{9, gqlscan.TokenSelEnd, ""},
 	}},
-	{41, "query($x:[T])  #comment1\n  #comment2\n  {x}", []Expect{
+	{40, "query($x:[T])  #comment1\n  #comment2\n  {x}", []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenVarList, ""},
 		{2, gqlscan.TokenVarName, "x"},
@@ -731,7 +711,7 @@ var testdata = []struct {
 	}},
 
 	// String escape
-	{42, `{x(s:"\"")}`, []Expect{
+	{41, `{x(s:"\"")}`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
@@ -741,7 +721,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{43, `{x(s:"\\")}`, []Expect{
+	{42, `{x(s:"\\")}`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
@@ -751,7 +731,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{44, `{x(s:"\\\"")}`, []Expect{
+	{43, `{x(s:"\\\"")}`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
@@ -762,7 +742,7 @@ var testdata = []struct {
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
 
-	{45, `{x(y:1e8)}`, []Expect{
+	{44, `{x(y:1e8)}`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
@@ -772,7 +752,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{46, `{x(y:0e8)}`, []Expect{
+	{45, `{x(y:0e8)}`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
@@ -782,7 +762,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{47, `{x(y:0e+8)}`, []Expect{
+	{46, `{x(y:0e+8)}`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
@@ -792,7 +772,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{48, `{x(y:0e-8)}`, []Expect{
+	{47, `{x(y:0e-8)}`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
@@ -802,13 +782,13 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{49, `mutation{x}`, []Expect{
+	{48, `mutation{x}`, []Expect{
 		{0, gqlscan.TokenDefMut, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "x"},
 		{3, gqlscan.TokenSelEnd, ""},
 	}},
-	{50, `mutation($x:T){x}`, []Expect{
+	{49, `mutation($x:T){x}`, []Expect{
 		{0, gqlscan.TokenDefMut, ""},
 		{1, gqlscan.TokenVarList, ""},
 		{2, gqlscan.TokenVarName, "x"},
@@ -818,14 +798,14 @@ var testdata = []struct {
 		{6, gqlscan.TokenField, "x"},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
-	{51, `mutation M{x}`, []Expect{
+	{50, `mutation M{x}`, []Expect{
 		{0, gqlscan.TokenDefMut, ""},
 		{1, gqlscan.TokenMutName, "M"},
 		{2, gqlscan.TokenSel, ""},
 		{3, gqlscan.TokenField, "x"},
 		{4, gqlscan.TokenSelEnd, ""},
 	}},
-	{52, `{f(o:{o2:{x:[]}})}`, []Expect{
+	{51, `{f(o:{o2:{x:[]}})}`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "f"},
