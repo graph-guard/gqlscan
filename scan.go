@@ -301,6 +301,12 @@ AFTER_KEYWORD_QUERY:
 		goto SELECTION_SET
 	} else if i.str[i.head] == '(' {
 		// Query variable list
+		i.tail = -1
+		i.token = TokenVarList
+		if fn(i) {
+			i.errc = ErrCallbackFn
+			goto ERROR
+		}
 		i.head++
 		i.expect = ExpectVarName
 		goto QUERY_VAR
@@ -320,6 +326,12 @@ AFTER_KEYWORD_MUTATION:
 		goto SELECTION_SET
 	} else if i.str[i.head] == '(' {
 		// Mutation variable list
+		i.tail = -1
+		i.token = TokenVarList
+		if fn(i) {
+			i.errc = ErrCallbackFn
+			goto ERROR
+		}
 		i.head++
 		i.expect = ExpectVarName
 		goto QUERY_VAR
@@ -374,6 +386,12 @@ AFTER_VAR_TYPE:
 		goto QUERY_VAR
 	}
 	// End of query variable list
+	i.tail = -1
+	i.token = TokenVarListEnd
+	if fn(i) {
+		i.errc = ErrCallbackFn
+		goto ERROR
+	}
 	i.head++
 	i.expect = ExpectSelSet
 	goto SELECTION_SET
@@ -796,6 +814,12 @@ AFTER_VALUE_COMMENT:
 		}
 	}
 	if i.str[i.head] == ')' {
+		i.tail = -1
+		i.token = TokenArgListEnd
+		if fn(i) {
+			i.errc = ErrCallbackFn
+			goto ERROR
+		}
 		// End of argument list
 		i.head++
 		i.expect = ExpectAfterArgList
@@ -1023,6 +1047,12 @@ AFTER_NAME:
 			goto ERROR
 		} else if i.str[i.head] == '(' {
 			// Argument list
+			i.tail = -1
+			i.token = TokenArgList
+			if fn(i) {
+				i.errc = ErrCallbackFn
+				goto ERROR
+			}
 			i.head++
 			i.skipSTNRC()
 			i.expect = ExpectArgName
@@ -1113,6 +1143,12 @@ AFTER_NAME:
 			goto SELECTION_SET
 		} else if i.str[i.head] == '(' {
 			// Query variable list
+			i.tail = -1
+			i.token = TokenVarList
+			if fn(i) {
+				i.errc = ErrCallbackFn
+				goto ERROR
+			}
 			i.head++
 			i.expect = ExpectVarName
 			goto QUERY_VAR
@@ -1138,6 +1174,12 @@ AFTER_NAME:
 			goto SELECTION_SET
 		} else if i.str[i.head] == '(' {
 			// Mutation variable list
+			i.tail = -1
+			i.token = TokenVarList
+			if fn(i) {
+				i.errc = ErrCallbackFn
+				goto ERROR
+			}
 			i.head++
 			i.expect = ExpectVarName
 			goto QUERY_VAR
@@ -1398,6 +1440,10 @@ const (
 	TokenDefFrag
 	TokenQryName
 	TokenMutName
+	TokenVarList
+	TokenVarListEnd
+	TokenArgList
+	TokenArgListEnd
 	TokenSel
 	TokenSelEnd
 	TokenFragTypeCond
@@ -1435,6 +1481,14 @@ func (t Token) String() string {
 		return "query name"
 	case TokenMutName:
 		return "mutation name"
+	case TokenVarList:
+		return "variable list"
+	case TokenVarListEnd:
+		return "variable list end"
+	case TokenArgList:
+		return "argument list"
+	case TokenArgListEnd:
+		return "argument list end"
 	case TokenSel:
 		return "selection set"
 	case TokenSelEnd:
