@@ -834,6 +834,42 @@ var testdata = []struct {
 		{8, gqlscan.TokenArgListEnd, ""},
 		{9, gqlscan.TokenSelEnd, ""},
 	}},
+	{53, `query($v:T ! ){x(a:$v)}`, []Expect{
+		{0, gqlscan.TokenDefQry, ""},
+		{1, gqlscan.TokenVarList, ""},
+		{2, gqlscan.TokenVarName, "v"},
+		{3, gqlscan.TokenVarTypeName, "T"},
+		{4, gqlscan.TokenVarTypeNotNull, ""},
+		{5, gqlscan.TokenVarListEnd, ""},
+		{6, gqlscan.TokenSel, ""},
+		{7, gqlscan.TokenField, "x"},
+		{8, gqlscan.TokenArgList, ""},
+		{9, gqlscan.TokenArg, "a"},
+		{10, gqlscan.TokenVarRef, "v"},
+		{11, gqlscan.TokenArgListEnd, ""},
+		{12, gqlscan.TokenSelEnd, ""},
+	}},
+	{54, `query ($v: [ [ T ! ] ! ] ! ) {x(a:$v)}`, []Expect{
+		{0, gqlscan.TokenDefQry, ""},
+		{1, gqlscan.TokenVarList, ""},
+		{2, gqlscan.TokenVarName, "v"},
+		{3, gqlscan.TokenVarTypeArr, ""},
+		{4, gqlscan.TokenVarTypeArr, ""},
+		{5, gqlscan.TokenVarTypeName, "T"},
+		{6, gqlscan.TokenVarTypeNotNull, ""},
+		{7, gqlscan.TokenVarTypeArrEnd, ""},
+		{8, gqlscan.TokenVarTypeNotNull, ""},
+		{9, gqlscan.TokenVarTypeArrEnd, ""},
+		{10, gqlscan.TokenVarTypeNotNull, ""},
+		{11, gqlscan.TokenVarListEnd, ""},
+		{12, gqlscan.TokenSel, ""},
+		{13, gqlscan.TokenField, "x"},
+		{14, gqlscan.TokenArgList, ""},
+		{15, gqlscan.TokenArg, "a"},
+		{16, gqlscan.TokenVarRef, "v"},
+		{17, gqlscan.TokenArgListEnd, ""},
+		{18, gqlscan.TokenSelEnd, ""},
+	}},
 }
 
 func TestScan(t *testing.T) {
@@ -1487,12 +1523,18 @@ var testdataErr = []struct {
 		"error at index 3 ('f'): unexpected token; " +
 			"expected fragment",
 	},
-	// {104,
-	// 	"unexpected token",
-	// 	"{f(o:{o2:{x:[]}})}",
-	// 	"error at index 3 ('f'): unexpected token; " +
-	// 		"expected fragment",
-	// },
+	{104,
+		"unexpected token",
+		"query($v:T ! !){x(a:$v)}",
+		"error at index 13 ('!'): unexpected token; " +
+			"expected variable list closure or variable name",
+	},
+	{105,
+		"unexpected token",
+		"query($v: [ T ! ] ! ! ){x(a:$v)}",
+		"error at index 20 ('!'): unexpected token; " +
+			"expected variable list closure or variable name",
+	},
 }
 
 func TestScanErr(t *testing.T) {
@@ -1514,8 +1556,8 @@ func TestScanErr(t *testing.T) {
 func TestScanFuncErr(t *testing.T) {
 	const input = `
 		{x}
-		query($v: T) {x}
-		mutation($v: T) {x}
+		query($v: [T!]!) {x}
+		mutation($v: [T!]!) {x}
 		query Q($variable: Foo, $v: [ [ Bar ] ]) {
 		foo(x: null) {
 			foo_bar

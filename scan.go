@@ -1002,6 +1002,19 @@ ARG_LIST:
 
 AFTER_VAR_TYPE_NAME:
 	i.skipSTNRC()
+	if i.head < len(i.str) && i.str[i.head] == '!' {
+		i.tail = -1
+		i.token = TokenVarTypeNotNull
+		if fn(i) {
+			i.errc = ErrCallbackFn
+			goto ERROR
+		}
+		i.head++
+	}
+	goto AFTER_VAR_TYPE_NOT_NULL
+
+AFTER_VAR_TYPE_NOT_NULL:
+	i.skipSTNRC()
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -1021,6 +1034,17 @@ AFTER_VAR_TYPE_NAME:
 		}
 		i.head++
 		typeArrLvl--
+
+		i.skipSTNRC()
+		if i.head < len(i.str) && i.str[i.head] == '!' {
+			i.tail = -1
+			i.token = TokenVarTypeNotNull
+			if fn(i) {
+				i.errc = ErrCallbackFn
+				goto ERROR
+			}
+			i.head++
+		}
 
 		if typeArrLvl > 0 {
 			goto AFTER_VAR_TYPE_NAME
@@ -1463,6 +1487,7 @@ const (
 	TokenVarTypeName
 	TokenVarTypeArr
 	TokenVarTypeArrEnd
+	TokenVarTypeNotNull
 	TokenVarRef
 	TokenObj
 	TokenObjEnd
@@ -1527,6 +1552,8 @@ func (t Token) String() string {
 		return "variable array type"
 	case TokenVarTypeArrEnd:
 		return "variable array type end"
+	case TokenVarTypeNotNull:
+		return "variable type not null"
 	case TokenVarRef:
 		return "variable reference"
 	case TokenObj:
