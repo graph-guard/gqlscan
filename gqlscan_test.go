@@ -1522,6 +1522,8 @@ func TestScanErr(t *testing.T) {
 func TestScanFuncErr(t *testing.T) {
 	const input = `
 		{x}
+		query($v: T) {x}
+		mutation($v: T) {x}
 		query Q($variable: Foo, $v: [ [ Bar ] ]) {
 		foo(x: null) {
 			foo_bar
@@ -1589,12 +1591,18 @@ func TestScanFuncErr(t *testing.T) {
 		baz: null,
 	) done }`
 
-	const NumOfTokensInInput = 197
-	for i := 0; i <= NumOfTokensInInput; i++ {
+	numOfTokensInInput := 0
+	err := gqlscan.Scan([]byte(input), func(*gqlscan.Iterator) (err bool) {
+		numOfTokensInInput++
+		return false
+	})
+	require.False(t, err.IsErr())
+
+	for i := 0; i < numOfTokensInInput; i++ {
 		c := 0
 		err := gqlscan.Scan(
 			[]byte(input),
-			func(*gqlscan.Iterator) (err bool) {
+			func(j *gqlscan.Iterator) (err bool) {
 				if c == i {
 					return true
 				}
