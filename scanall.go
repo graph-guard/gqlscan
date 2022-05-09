@@ -680,7 +680,53 @@ NAME:
 		i.errc = ErrUnexpToken
 		goto ERROR
 	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			goto NAME_LOOP
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+	if i.isHeadSNTRC() {
+		goto AFTER_NAME
+	} else if i.isHeadCtrl() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	goto AFTER_NAME
 
+NAME_LOOP:
 	for ; i.head < len(i.str); i.head++ {
 		if i.isHeadNameBody() {
 			continue
