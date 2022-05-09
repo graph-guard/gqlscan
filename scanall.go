@@ -5,10 +5,9 @@ import (
 	"unicode/utf8"
 )
 
-// Scan calls fn for every token it scans in str.
-// If fn returns true then an error with code ErrCallbackFn is returned.
+// ScanAll calls fn for every token it scans in str.
 // *Iterator passed to fn should never be aliased and used after Scan returns!
-func Scan(str []byte, fn func(*Iterator) (err bool)) Error {
+func ScanAll(str []byte, fn func(*Iterator)) Error {
 	i := acquireIterator(str)
 	defer iteratorPool.Put(i)
 
@@ -30,29 +29,20 @@ DEFINITION:
 		goto COMMENT
 	} else if i.str[i.head] == '{' {
 		i.token = TokenDefQry
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.expect = ExpectSelSet
 		goto SELECTION_SET
 	} else if i.isHeadKeywordQuery() {
 		// Query
 		i.token = TokenDefQry
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.head += len("query")
 		i.expect = ExpectAfterKeywordQuery
 		goto AFTER_KEYWORD_QUERY
 	} else if i.isHeadKeywordMutation() {
 		// Mutation
 		i.token = TokenDefMut
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.head += len("mutation")
 		i.expect = ExpectAfterKeywordMutation
 		goto AFTER_KEYWORD_MUTATION
@@ -60,10 +50,7 @@ DEFINITION:
 		// Fragment
 		i.tail = -1
 		i.token = TokenDefFrag
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.head += len("fragment")
 		i.expect = ExpectFragName
 		goto AFTER_KEYWORD_FRAGMENT
@@ -87,10 +74,7 @@ AFTER_KEYWORD_QUERY:
 		// Query variable list
 		i.tail = -1
 		i.token = TokenVarList
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.head++
 		i.expect = ExpectVarName
 		goto QUERY_VAR
@@ -112,10 +96,7 @@ AFTER_KEYWORD_MUTATION:
 		// Mutation variable list
 		i.tail = -1
 		i.token = TokenVarList
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.head++
 		i.expect = ExpectVarName
 		goto QUERY_VAR
@@ -172,10 +153,7 @@ AFTER_VAR_TYPE:
 	// End of query variable list
 	i.tail = -1
 	i.token = TokenVarListEnd
-	if fn(i) {
-		i.errc = ErrCallbackFn
-		goto ERROR
-	}
+	fn(i)
 	i.head++
 	i.expect = ExpectSelSet
 	goto SELECTION_SET
@@ -193,10 +171,7 @@ SELECTION_SET:
 	}
 	i.tail = -1
 	i.token = TokenSel
-	if fn(i) {
-		i.errc = ErrCallbackFn
-		goto ERROR
-	}
+	fn(i)
 	i.levelSel++
 	i.head++
 	i.expect = ExpectSel
@@ -212,10 +187,7 @@ AFTER_SELECTION:
 	} else if i.str[i.head] == '}' {
 		i.tail = -1
 		i.token = TokenSelEnd
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.levelSel--
 		i.head++
 		i.skipSTNRC()
@@ -239,10 +211,7 @@ VALUE:
 		i.tail = -1
 		// Callback for argument
 		i.token = TokenObj
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.stackPush(TokenObj)
 		i.head++
 		i.skipSTNRC()
@@ -253,10 +222,7 @@ VALUE:
 		i.tail = -1
 		// Callback for argument
 		i.token = TokenArr
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.head++
 		i.skipSTNRC()
 
@@ -267,10 +233,7 @@ VALUE:
 			goto ERROR
 		} else if i.str[i.head] == ']' {
 			i.token = TokenArrEnd
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
-			}
+			fn(i)
 			i.head++
 			i.expect = ExpectAfterValue
 			goto AFTER_VALUE_COMMENT
@@ -306,10 +269,7 @@ VALUE:
 	AFTER_STR_VAL:
 		// Callback for argument
 		i.token = TokenStr
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		// Advance head index to include the closing double-quotes
 		i.head++
 	} else if i.str[i.head] == '$' {
@@ -340,10 +300,7 @@ VALUE:
 
 		// Callback for argument
 		i.token = TokenNull
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 	} else if i.str[i.head] == 't' {
 		// Boolean true
 		if i.head+3 >= len(i.str) {
@@ -364,10 +321,7 @@ VALUE:
 
 		// Callback for argument
 		i.token = TokenTrue
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 	} else if i.str[i.head] == 'f' {
 		// Boolean false
 		if i.head+4 >= len(i.str) {
@@ -389,10 +343,7 @@ VALUE:
 
 		// Callback for argument
 		i.token = TokenFalse
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 	} else if i.isHeadNumberStart() {
 		// Number
 		i.tail = i.head
@@ -531,10 +482,7 @@ VALUE:
 	ON_NUM_VAL:
 		// Callback for argument
 		i.token = TokenNum
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 	} else {
 		// Invalid value
 		i.errc = ErrInvalVal
@@ -559,10 +507,7 @@ AFTER_VALUE_COMMENT:
 
 			// Callback for end of object
 			i.token = TokenObjEnd
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
-			}
+			fn(i)
 
 			i.head++
 			i.skipSTNRC()
@@ -582,10 +527,7 @@ AFTER_VALUE_COMMENT:
 
 			// Callback for end of array
 			i.token = TokenArrEnd
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
-			}
+			fn(i)
 			i.head++
 			i.skipSTNRC()
 			if i.stackLen() > 0 {
@@ -600,10 +542,7 @@ AFTER_VALUE_COMMENT:
 	if i.str[i.head] == ')' {
 		i.tail = -1
 		i.token = TokenArgListEnd
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		// End of argument list
 		i.head++
 		i.expect = ExpectAfterArgList
@@ -723,10 +662,7 @@ VAR_TYPE:
 	} else if i.str[i.head] == '[' {
 		i.tail = -1
 		i.token = TokenVarTypeArr
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.head++
 		typeArrLvl++
 		goto VAR_TYPE
@@ -789,10 +725,7 @@ AFTER_VAR_TYPE_NAME:
 	if i.head < len(i.str) && i.str[i.head] == '!' {
 		i.tail = -1
 		i.token = TokenVarTypeNotNull
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.head++
 	}
 	goto AFTER_VAR_TYPE_NOT_NULL
@@ -812,10 +745,7 @@ AFTER_VAR_TYPE_NOT_NULL:
 		}
 		i.tail = -1
 		i.token = TokenVarTypeArrEnd
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.head++
 		typeArrLvl--
 
@@ -823,10 +753,7 @@ AFTER_VAR_TYPE_NOT_NULL:
 		if i.head < len(i.str) && i.str[i.head] == '!' {
 			i.tail = -1
 			i.token = TokenVarTypeNotNull
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
-			}
+			fn(i)
 			i.head++
 		}
 
@@ -842,10 +769,7 @@ AFTER_NAME:
 	case ExpectFieldName:
 		// Callback for field name
 		i.token = TokenField
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 
 		// Lookahead
 		i.skipSTNRC()
@@ -857,10 +781,7 @@ AFTER_NAME:
 			// Argument list
 			i.tail = -1
 			i.token = TokenArgList
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
-			}
+			fn(i)
 			i.head++
 			i.skipSTNRC()
 			i.expect = ExpectArgName
@@ -876,10 +797,7 @@ AFTER_NAME:
 	case ExpectArgName:
 		// Callback for argument name
 		i.token = TokenArg
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.skipSTNRC()
 		i.expect = ExpectColumnAfterArg
 		goto COLUMN_AFTER_ARG_NAME
@@ -887,10 +805,7 @@ AFTER_NAME:
 	case ExpectObjFieldName:
 		// Callback for object field
 		i.token = TokenObjField
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 
 		i.skipSTNRC()
 		if i.head >= len(i.str) {
@@ -909,37 +824,25 @@ AFTER_NAME:
 
 	case ExpectVarRefName:
 		i.token = TokenVarRef
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.expect = ExpectAfterValue
 		goto AFTER_VALUE_COMMENT
 
 	case ExpectVarType:
 		i.token = TokenVarTypeName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.expect = ExpectAfterVarTypeName
 		goto AFTER_VAR_TYPE_NAME
 
 	case ExpectVarName, ExpectAfterVarType:
 		i.token = TokenVarName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.expect = ExpectColumnAfterVar
 		goto AFTER_DECL_VAR_NAME
 
 	case ExpectQryName:
 		i.token = TokenQryName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.skipSTNRC()
 
 		if i.head >= len(i.str) {
@@ -953,10 +856,7 @@ AFTER_NAME:
 			// Query variable list
 			i.tail = -1
 			i.token = TokenVarList
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
-			}
+			fn(i)
 			i.head++
 			i.expect = ExpectVarName
 			goto QUERY_VAR
@@ -967,10 +867,7 @@ AFTER_NAME:
 
 	case ExpectMutName:
 		i.token = TokenMutName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.skipSTNRC()
 
 		if i.head >= len(i.str) {
@@ -984,10 +881,7 @@ AFTER_NAME:
 			// Mutation variable list
 			i.tail = -1
 			i.token = TokenVarList
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
-			}
+			fn(i)
 			i.head++
 			i.expect = ExpectVarName
 			goto QUERY_VAR
@@ -998,37 +892,25 @@ AFTER_NAME:
 
 	case ExpectFragInlined:
 		i.token = TokenFragInline
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.expect = ExpectSelSet
 		goto SELECTION_SET
 
 	case ExpectFragRef:
 		i.token = TokenFragRef
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.expect = ExpectAfterSelection
 		goto AFTER_SELECTION
 
 	case ExpectFragName:
 		i.token = TokenFragName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.expect = ExpectFragKeywordOn
 		goto FRAG_KEYWORD_ON
 
 	case ExpectFragTypeCond:
 		i.token = TokenFragTypeCond
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		fn(i)
 		i.expect = ExpectSelSet
 		goto SELECTION_SET
 	default:

@@ -875,43 +875,84 @@ var testdata = []struct {
 func TestScan(t *testing.T) {
 	for ti, td := range testdata {
 		t.Run("", func(t *testing.T) {
-			require.Equal(t, ti, td.index)
-			tName := t.Name()
-			t.Log(tName)
-			j := 0
-			prevHead := 0
-			err := gqlscan.Scan(
-				[]byte(td.input),
-				func(i *gqlscan.Iterator) (err bool) {
-					require.True(
-						t, j < len(td.expect),
-						"exceeding expectation set at: %d {T: %s; V: %s}",
-						j, i.Token().String(), i.Value(),
-					)
-					require.Equal(
-						t, td.expect[j].Type.String(), i.Token().String(),
-						"unexpected type at index %d", j,
-					)
-					require.Equal(
-						t, td.expect[j].Value, string(i.Value()),
-						"unexpected value at index %d", j,
-					)
-					require.GreaterOrEqual(t, i.IndexHead(), prevHead)
-					require.GreaterOrEqual(t, i.IndexHead(), i.IndexTail())
-					i.Value()
-					require.Equal(t, j, td.expect[j].Index)
-					j++
-					return false
-				},
-			)
-			require.Zero(t, err.Error())
-			require.False(t, err.IsErr())
-			for _, e := range td.expect[j:] {
-				t.Errorf(
-					"missing {T: %s; V: %s}",
-					e.Type, e.Value,
+			t.Run("Scan", func(t *testing.T) {
+				require.Equal(t, ti, td.index)
+				tName := t.Name()
+				t.Log(tName)
+				j := 0
+				prevHead := 0
+				err := gqlscan.Scan(
+					[]byte(td.input),
+					func(i *gqlscan.Iterator) (err bool) {
+						require.True(
+							t, j < len(td.expect),
+							"exceeding expectation set at: %d {T: %s; V: %s}",
+							j, i.Token().String(), i.Value(),
+						)
+						require.Equal(
+							t, td.expect[j].Type.String(), i.Token().String(),
+							"unexpected type at index %d", j,
+						)
+						require.Equal(
+							t, td.expect[j].Value, string(i.Value()),
+							"unexpected value at index %d", j,
+						)
+						require.GreaterOrEqual(t, i.IndexHead(), prevHead)
+						require.GreaterOrEqual(t, i.IndexHead(), i.IndexTail())
+						i.Value()
+						require.Equal(t, j, td.expect[j].Index)
+						j++
+						return false
+					},
 				)
-			}
+				require.Zero(t, err.Error())
+				require.False(t, err.IsErr())
+				for _, e := range td.expect[j:] {
+					t.Errorf(
+						"missing {T: %s; V: %s}",
+						e.Type, e.Value,
+					)
+				}
+			})
+
+			t.Run("ScanAll", func(t *testing.T) {
+				require.Equal(t, ti, td.index)
+				tName := t.Name()
+				t.Log(tName)
+				j := 0
+				prevHead := 0
+				err := gqlscan.ScanAll(
+					[]byte(td.input),
+					func(i *gqlscan.Iterator) {
+						require.True(
+							t, j < len(td.expect),
+							"exceeding expectation set at: %d {T: %s; V: %s}",
+							j, i.Token().String(), i.Value(),
+						)
+						require.Equal(
+							t, td.expect[j].Type.String(), i.Token().String(),
+							"unexpected type at index %d", j,
+						)
+						require.Equal(
+							t, td.expect[j].Value, string(i.Value()),
+							"unexpected value at index %d", j,
+						)
+						require.GreaterOrEqual(t, i.IndexHead(), prevHead)
+						require.GreaterOrEqual(t, i.IndexHead(), i.IndexTail())
+						i.Value()
+						require.Equal(t, j, td.expect[j].Index)
+						j++
+					},
+				)
+				require.Zero(t, err.Error())
+				require.False(t, err.IsErr())
+				for _, e := range td.expect[j:] {
+					t.Errorf(
+						"missing {T: %s; V: %s}",
+						e.Type, e.Value,
+					)
+				}
+			})
 		})
 	}
 }
@@ -1540,15 +1581,27 @@ var testdataErr = []struct {
 func TestScanErr(t *testing.T) {
 	for ti, td := range testdataErr {
 		t.Run("", func(t *testing.T) {
-			require.Equal(t, ti, td.index)
-			err := gqlscan.Scan(
-				[]byte(td.input),
-				func(*gqlscan.Iterator) (err bool) {
-					return false
-				},
-			)
-			require.Equal(t, td.expectErr, err.Error())
-			require.True(t, err.IsErr())
+			t.Run("Scan", func(t *testing.T) {
+				require.Equal(t, ti, td.index)
+				err := gqlscan.Scan(
+					[]byte(td.input),
+					func(*gqlscan.Iterator) (err bool) {
+						return false
+					},
+				)
+				require.Equal(t, td.expectErr, err.Error())
+				require.True(t, err.IsErr())
+			})
+
+			t.Run("ScanAll", func(t *testing.T) {
+				require.Equal(t, ti, td.index)
+				err := gqlscan.ScanAll(
+					[]byte(td.input),
+					func(*gqlscan.Iterator) {},
+				)
+				require.Equal(t, td.expectErr, err.Error())
+				require.True(t, err.IsErr())
+			})
 		})
 	}
 }
@@ -1963,41 +2016,80 @@ func TestLevel(t *testing.T) {
 		{215, gqlscan.TokenSelEnd, "", 1},
 	}
 
-	j := 0
-	err := gqlscan.Scan(
-		[]byte(input),
-		func(i *gqlscan.Iterator) (err bool) {
-			require.True(
-				t, j < len(expect),
-				"exceeding expectation set at: %d {T: %s; V: %s}",
-				j, i.Token().String(), i.Value(),
-			)
-			require.Equal(
-				t, expect[j].Type.String(), i.Token().String(),
-				"unexpected type at index %d", j,
-			)
-			require.Equal(
-				t, expect[j].Value, string(i.Value()),
-				"unexpected value at index %d", j,
-			)
-			require.Equal(
-				t, expect[j].Level, i.LevelSelect(),
-				"unexpected selection level at index %d", j,
-			)
-			i.Value()
-			require.Equal(t, j, expect[j].Index)
-			j++
-			return false
-		},
-	)
-	require.Zero(t, err.Error())
-	require.False(t, err.IsErr())
-	for _, e := range expect[j:] {
-		t.Errorf(
-			"missing {T: %s; V: %s}",
-			e.Type, e.Value,
+	t.Run("Scan", func(t *testing.T) {
+		j := 0
+		err := gqlscan.Scan(
+			[]byte(input),
+			func(i *gqlscan.Iterator) (err bool) {
+				require.True(
+					t, j < len(expect),
+					"exceeding expectation set at: %d {T: %s; V: %s}",
+					j, i.Token().String(), i.Value(),
+				)
+				require.Equal(
+					t, expect[j].Type.String(), i.Token().String(),
+					"unexpected type at index %d", j,
+				)
+				require.Equal(
+					t, expect[j].Value, string(i.Value()),
+					"unexpected value at index %d", j,
+				)
+				require.Equal(
+					t, expect[j].Level, i.LevelSelect(),
+					"unexpected selection level at index %d", j,
+				)
+				i.Value()
+				require.Equal(t, j, expect[j].Index)
+				j++
+				return false
+			},
 		)
-	}
+		require.Zero(t, err.Error())
+		require.False(t, err.IsErr())
+		for _, e := range expect[j:] {
+			t.Errorf(
+				"missing {T: %s; V: %s}",
+				e.Type, e.Value,
+			)
+		}
+	})
+
+	t.Run("ScanAll", func(t *testing.T) {
+		j := 0
+		err := gqlscan.ScanAll(
+			[]byte(input),
+			func(i *gqlscan.Iterator) {
+				require.True(
+					t, j < len(expect),
+					"exceeding expectation set at: %d {T: %s; V: %s}",
+					j, i.Token().String(), i.Value(),
+				)
+				require.Equal(
+					t, expect[j].Type.String(), i.Token().String(),
+					"unexpected type at index %d", j,
+				)
+				require.Equal(
+					t, expect[j].Value, string(i.Value()),
+					"unexpected value at index %d", j,
+				)
+				require.Equal(
+					t, expect[j].Level, i.LevelSelect(),
+					"unexpected selection level at index %d", j,
+				)
+				i.Value()
+				require.Equal(t, j, expect[j].Index)
+				j++
+			},
+		)
+		require.Zero(t, err.Error())
+		require.False(t, err.IsErr())
+		for _, e := range expect[j:] {
+			t.Errorf(
+				"missing {T: %s; V: %s}",
+				e.Type, e.Value,
+			)
+		}
+	})
 }
 
 func TestZeroValueToString(t *testing.T) {
