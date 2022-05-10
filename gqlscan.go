@@ -234,6 +234,7 @@ const (
 	ExpectArgName
 	ExpectEndOfString
 	ExpectColumnAfterArg
+	ExpectFieldNameOrAlias
 	ExpectFieldName
 	ExpectSel
 	ExpectVarName
@@ -275,6 +276,8 @@ func (e Expect) String() string {
 		return "end of string"
 	case ExpectColumnAfterArg:
 		return "column after argument name"
+	case ExpectFieldNameOrAlias:
+		return "field name or alias"
 	case ExpectFieldName:
 		return "field name"
 	case ExpectSel:
@@ -342,6 +345,7 @@ const (
 	TokenFragName
 	TokenFragInline
 	TokenFragRef
+	TokenFieldAlias
 	TokenField
 	TokenArg
 	TokenArr
@@ -394,6 +398,8 @@ func (t Token) String() string {
 		return "fragment inline"
 	case TokenFragRef:
 		return "fragment reference"
+	case TokenFieldAlias:
+		return "field alias"
 	case TokenField:
 		return "field"
 	case TokenArg:

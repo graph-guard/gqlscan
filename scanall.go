@@ -580,7 +580,7 @@ SELECTION:
 		goto COMMENT
 	} else if i.str[i.head] != '.' {
 		// Field selection
-		i.expect = ExpectFieldName
+		i.expect = ExpectFieldNameOrAlias
 		goto NAME
 	}
 
@@ -812,6 +812,27 @@ AFTER_VAR_TYPE_NOT_NULL:
 
 AFTER_NAME:
 	switch i.expect {
+	case ExpectFieldNameOrAlias:
+		head := i.head
+		i.skipSTNRC()
+		if i.head >= len(i.str) {
+			i.errc = ErrUnexpEOF
+			goto ERROR
+		} else if i.str[i.head] == ':' {
+			h2 := i.head
+			i.head = head
+			// Callback for field alias name
+			i.token = TokenFieldAlias
+			fn(i)
+
+			i.head = h2 + 1
+			i.skipSTNRC()
+			i.expect = ExpectFieldName
+			goto NAME
+		}
+		i.head = head
+		fallthrough
+
 	case ExpectFieldName:
 		// Callback for field name
 		i.token = TokenField
@@ -821,7 +842,6 @@ AFTER_NAME:
 		i.skipSTNRC()
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
-			i.expect = ExpectFieldName
 			goto ERROR
 		} else if i.str[i.head] == '(' {
 			// Argument list
