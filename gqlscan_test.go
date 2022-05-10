@@ -1594,6 +1594,18 @@ var testdataErr = []struct {
 		"error at index 16 (':'): unexpected token; " +
 			"expected field name or alias",
 	},
+	{107,
+		"unexpected EOF",
+		"{f:",
+		"error at index 3: unexpected end of file; " +
+			"expected field name",
+	},
+	{108,
+		"unexpected EOF",
+		"{f: ",
+		"error at index 4: unexpected end of file; " +
+			"expected field name",
+	},
 }
 
 func TestScanErr(t *testing.T) {
