@@ -14,4 +14,4 @@
 # gqlscan
 GraphQL lexical scanner for Go
 
-https://go.dev/play/p/TscUm5PKq00
+https://go.dev/play/p/hWgkDaNqrPr
