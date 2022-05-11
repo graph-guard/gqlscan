@@ -348,7 +348,7 @@ VALUE:
 						i.expect = ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
-					if !i.isHeadDigit() {
+					if !i.isHeadHexDigit() {
 						i.errc = ErrUnexpToken
 						i.expect = ExpectEscapedUnicodeSequence
 						goto ERROR
@@ -359,7 +359,7 @@ VALUE:
 						i.expect = ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
-					if !i.isHeadDigit() {
+					if !i.isHeadHexDigit() {
 						i.errc = ErrUnexpToken
 						i.expect = ExpectEscapedUnicodeSequence
 						goto ERROR
@@ -370,7 +370,7 @@ VALUE:
 						i.expect = ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
-					if !i.isHeadDigit() {
+					if !i.isHeadHexDigit() {
 						i.errc = ErrUnexpToken
 						i.expect = ExpectEscapedUnicodeSequence
 						goto ERROR
@@ -381,7 +381,7 @@ VALUE:
 						i.expect = ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
-					if !i.isHeadDigit() {
+					if !i.isHeadHexDigit() {
 						i.errc = ErrUnexpToken
 						i.expect = ExpectEscapedUnicodeSequence
 						goto ERROR

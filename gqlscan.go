@@ -164,6 +164,18 @@ func (i *Iterator) isHeadDigit() bool {
 	return false
 }
 
+// isHeadDigit returns true if the current head is
+// a number start character, otherwise returns false.
+func (i *Iterator) isHeadHexDigit() bool {
+	switch i.str[i.head] {
+	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		'a', 'b', 'c', 'd', 'e', 'f',
+		'A', 'B', 'C', 'D', 'E', 'F':
+		return true
+	}
+	return false
+}
+
 // isHeadNumEnd returns true if the current head is a space, line-feed,
 // horizontal tab, carriage-return, comma, right parenthesis or
 // right curly brace, otherwise returns false.
