@@ -154,16 +154,6 @@ func (i *Iterator) isHeadCtrl() bool {
 	return i.str[i.head] < 0x20
 }
 
-// isHeadNumberStart returns true if the current head is
-// a number start character, otherwise returns false.
-func (i *Iterator) isHeadNumberStart() bool {
-	switch i.str[i.head] {
-	case '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-		return true
-	}
-	return false
-}
-
 // isHeadDigit returns true if the current head is
 // a number start character, otherwise returns false.
 func (i *Iterator) isHeadDigit() bool {

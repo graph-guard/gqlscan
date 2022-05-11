@@ -232,9 +232,11 @@ VALUE:
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	switch i.str[i.head] {
+	case '#':
 		goto COMMENT
-	} else if i.str[i.head] == '{' {
+	case '{':
 		// Object begin
 		i.tail = -1
 		// Callback for argument
@@ -249,7 +251,7 @@ VALUE:
 
 		i.expect = ExpectObjFieldName
 		goto NAME
-	} else if i.str[i.head] == '[' {
+	case '[':
 		i.tail = -1
 		// Callback for argument
 		i.token = TokenArr
@@ -279,7 +281,7 @@ VALUE:
 		i.expect = ExpectAfterValue
 		goto AFTER_VALUE_COMMENT
 
-	} else if i.str[i.head] == '"' {
+	case '"':
 		// String value
 		i.tail = i.head + 1
 		escaped := false
@@ -312,7 +314,7 @@ VALUE:
 		}
 		// Advance head index to include the closing double-quotes
 		i.head++
-	} else if i.str[i.head] == '$' {
+	case '$':
 		// Variable reference
 		i.head++
 
@@ -320,7 +322,7 @@ VALUE:
 		i.expect = ExpectVarRefName
 		goto NAME
 
-	} else if i.str[i.head] == 'n' {
+	case 'n':
 		// Null
 		if i.head+3 >= len(i.str) {
 			i.head += len(i.str) - i.head
@@ -344,7 +346,7 @@ VALUE:
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
-	} else if i.str[i.head] == 't' {
+	case 't':
 		// Boolean true
 		if i.head+3 >= len(i.str) {
 			i.head += len(i.str) - i.head
@@ -368,7 +370,7 @@ VALUE:
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
-	} else if i.str[i.head] == 'f' {
+	case 'f':
 		// Boolean false
 		if i.head+4 >= len(i.str) {
 			i.head += len(i.str) - i.head
@@ -393,7 +395,7 @@ VALUE:
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
-	} else if i.isHeadNumberStart() {
+	case '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		// Number
 		i.tail = i.head
 
@@ -535,7 +537,7 @@ VALUE:
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
-	} else {
+	default:
 		// Invalid value
 		i.errc = ErrInvalVal
 		i.expect = ExpectVal
