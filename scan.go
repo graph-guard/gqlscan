@@ -1144,7 +1144,7 @@ FRAG_TYPE_COND:
 COMMENT:
 	i.head++
 	for {
-		if i.head+8 >= len(i.str) {
+		if i.head+7 >= len(i.str) {
 			for ; i.str[i.head] != '\n'; i.head++ {
 			}
 			break
