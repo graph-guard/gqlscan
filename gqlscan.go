@@ -157,30 +157,32 @@ func (i *Iterator) isHeadCtrl() bool {
 // isHeadNumberStart returns true if the current head is
 // a number start character, otherwise returns false.
 func (i *Iterator) isHeadNumberStart() bool {
-	return i.str[i.head] == '+' ||
-		i.str[i.head] == '-' ||
-		(i.str[i.head] >= '0' && i.str[i.head] <= '9')
+	switch i.str[i.head] {
+	case '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		return true
+	}
+	return false
 }
 
 // isHeadDigit returns true if the current head is
 // a number start character, otherwise returns false.
 func (i *Iterator) isHeadDigit() bool {
-	return i.str[i.head] >= '0' && i.str[i.head] <= '9'
+	switch i.str[i.head] {
+	case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+		return true
+	}
+	return false
 }
 
 // isHeadNumEnd returns true if the current head is a space, line-feed,
 // horizontal tab, carriage-return, comma, right parenthesis or
 // right curly brace, otherwise returns false.
 func (i *Iterator) isHeadNumEnd() bool {
-	return i.str[i.head] == ' ' ||
-		i.str[i.head] == '\t' ||
-		i.str[i.head] == '\r' ||
-		i.str[i.head] == '\n' ||
-		i.str[i.head] == ',' ||
-		i.str[i.head] == ')' ||
-		i.str[i.head] == '}' ||
-		i.str[i.head] == ']' ||
-		i.str[i.head] == '#'
+	switch i.str[i.head] {
+	case ' ', '\t', '\r', '\n', ',', ')', '}', ']', '#':
+		return true
+	}
+	return false
 }
 
 // isHeadKeywordQuery returns true if the current head equals 'query'.
