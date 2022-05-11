@@ -885,6 +885,37 @@ AFTER_VAR_TYPE_NOT_NULL:
 	i.expect = ExpectAfterVarType
 	goto AFTER_VAR_TYPE
 
+AFTER_FIELD_NAME:
+	i.skipSTNRC()
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	// Lookahead
+	switch i.str[i.head] {
+	case '(':
+		// Argument list
+		i.tail = -1
+		i.token = TokenArgList
+		if fn(i) {
+			i.errc = ErrCallbackFn
+			goto ERROR
+		}
+		i.head++
+		i.skipSTNRC()
+		i.expect = ExpectArgName
+		goto ARG_LIST
+	case '{':
+		// Field selector expands without arguments
+		i.expect = ExpectSelSet
+		goto SELECTION_SET
+	case '#':
+		i.expect = ExpectAfterFieldName
+		goto COMMENT
+	}
+	i.expect = ExpectAfterSelection
+	goto AFTER_SELECTION
+
 AFTER_NAME:
 	switch i.expect {
 	case ExpectFieldNameOrAlias:
@@ -918,31 +949,7 @@ AFTER_NAME:
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
-
-		// Lookahead
-		i.skipSTNRC()
-		if i.head >= len(i.str) {
-			i.errc = ErrUnexpEOF
-			goto ERROR
-		} else if i.str[i.head] == '(' {
-			// Argument list
-			i.tail = -1
-			i.token = TokenArgList
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
-			}
-			i.head++
-			i.skipSTNRC()
-			i.expect = ExpectArgName
-			goto ARG_LIST
-		} else if i.str[i.head] == '{' {
-			// Field selector expands without arguments
-			i.expect = ExpectSelSet
-			goto SELECTION_SET
-		}
-		i.expect = ExpectAfterSelection
-		goto AFTER_SELECTION
+		goto AFTER_FIELD_NAME
 
 	case ExpectArgName:
 		// Callback for argument name
@@ -1157,6 +1164,8 @@ COMMENT:
 		goto COLUMN_AFTER_ARG_NAME
 	case ExpectVal:
 		goto VALUE
+	case ExpectAfterFieldName:
+		goto AFTER_FIELD_NAME
 	case ExpectAfterValue:
 		goto AFTER_VALUE_COMMENT
 	case ExpectAfterArgList:

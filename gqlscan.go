@@ -240,6 +240,7 @@ const (
 	ExpectFrag
 	ExpectFragRef
 	ExpectFragInlined
+	ExpectAfterFieldName
 	ExpectAfterSelection
 	ExpectAfterValue
 	ExpectAfterArgList
@@ -297,6 +298,8 @@ func (e Expect) String() string {
 		return "fragment reference"
 	case ExpectFragInlined:
 		return "inlined fragment"
+	case ExpectAfterFieldName:
+		return "selection, selection set or end of selection set"
 	case ExpectAfterSelection:
 		return "selection or end of selection set"
 	case ExpectAfterValue:
