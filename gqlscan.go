@@ -111,14 +111,13 @@ func (i *Iterator) Value() []byte {
 // skipSTNRC advances the iterator until the end of a sequence of spaces,
 // tabs, line-feeds, carriage-returns and commas.
 func (i *Iterator) skipSTNRC() {
-	if i.head >= len(i.str) {
-		return
-	}
-	for ; i.head < len(i.str) && (i.str[i.head] == ',' ||
-		i.str[i.head] == ' ' ||
-		i.str[i.head] == '\n' ||
-		i.str[i.head] == '\t' ||
-		i.str[i.head] == '\r'); i.head++ {
+	for i.head < len(i.str) {
+		switch i.str[i.head] {
+		case ',', ' ', '\n', '\t', '\r':
+			i.head++
+		default:
+			return
+		}
 	}
 }
 
