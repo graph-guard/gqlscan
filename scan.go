@@ -1145,7 +1145,7 @@ COMMENT:
 	i.head++
 	for {
 		if i.head+7 >= len(i.str) {
-			for ; i.str[i.head] != '\n'; i.head++ {
+			for ; i.head < len(i.str) && i.str[i.head] != '\n'; i.head++ {
 			}
 			break
 		}
