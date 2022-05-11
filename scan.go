@@ -1191,7 +1191,6 @@ COMMENT:
 		if i.str[i.head] == '\n' {
 			break
 		}
-		i.head++
 	}
 	i.tail = -1
 	i.skipSTNRC()
