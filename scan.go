@@ -1143,7 +1143,55 @@ FRAG_TYPE_COND:
 
 COMMENT:
 	i.head++
-	for i.tail = i.head; i.str[i.head] != '\n'; i.head++ {
+	for {
+		if i.head+8 >= len(i.str) {
+			for ; i.str[i.head] != '\n'; i.head++ {
+			}
+			break
+		}
+		if i.str[i.head] != '\n' &&
+			i.str[i.head+1] != '\n' &&
+			i.str[i.head+2] != '\n' &&
+			i.str[i.head+3] != '\n' &&
+			i.str[i.head+4] != '\n' &&
+			i.str[i.head+5] != '\n' &&
+			i.str[i.head+6] != '\n' &&
+			i.str[i.head+7] != '\n' {
+			i.head += 8
+			continue
+		}
+		if i.str[i.head] == '\n' {
+			break
+		}
+		i.head++
+		if i.str[i.head] == '\n' {
+			break
+		}
+		i.head++
+		if i.str[i.head] == '\n' {
+			break
+		}
+		i.head++
+		if i.str[i.head] == '\n' {
+			break
+		}
+		i.head++
+		if i.str[i.head] == '\n' {
+			break
+		}
+		i.head++
+		if i.str[i.head] == '\n' {
+			break
+		}
+		i.head++
+		if i.str[i.head] == '\n' {
+			break
+		}
+		i.head++
+		if i.str[i.head] == '\n' {
+			break
+		}
+		i.head++
 	}
 	i.tail = -1
 	i.skipSTNRC()

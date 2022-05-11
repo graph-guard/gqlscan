@@ -888,6 +888,54 @@ var testdata = []struct {
 		{3, gqlscan.TokenField, "alice"},
 		{4, gqlscan.TokenSelEnd, ""},
 	}},
+	{57, `query # This is a test with many comments
+	# sample comment text line
+	{  #sample comment text line
+		# sample comment text line
+		a  #sample comment text line
+		# sample comment text line
+		{  #sample comment text line
+			# sample comment text line
+			b  #sample comment text line
+			# sample comment text line
+			(  #sample comment text line
+				# sample comment text line
+				x  #sample comment text line
+				# sample comment text line
+				:  #sample comment text line
+				# sample comment text line
+				1  #sample comment text line
+			# sample comment text line
+			)  #sample comment text line
+			# sample comment text line
+			{  #sample comment text line
+				# sample comment text line
+				c  #sample comment text line
+				# sample comment text line
+				d  #sample comment text line
+			# sample comment text line
+			}  #sample comment text line
+		# sample comment text line
+		}  #sample comment text line
+	# sample comment text line
+	}  #sample comment text line
+	`, []Expect{
+		{0, gqlscan.TokenDefQry, ""},
+		{1, gqlscan.TokenSel, ""},
+		{2, gqlscan.TokenField, "a"},
+		{3, gqlscan.TokenSel, ""},
+		{4, gqlscan.TokenField, "b"},
+		{5, gqlscan.TokenArgList, ""},
+		{6, gqlscan.TokenArg, "x"},
+		{7, gqlscan.TokenNum, "1"},
+		{8, gqlscan.TokenArgListEnd, ""},
+		{9, gqlscan.TokenSel, ""},
+		{10, gqlscan.TokenField, "c"},
+		{11, gqlscan.TokenField, "d"},
+		{12, gqlscan.TokenSelEnd, ""},
+		{13, gqlscan.TokenSelEnd, ""},
+		{14, gqlscan.TokenSelEnd, ""},
+	}},
 }
 
 func TestScan(t *testing.T) {
