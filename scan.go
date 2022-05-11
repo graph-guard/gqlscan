@@ -285,23 +285,157 @@ VALUE:
 
 	case '"':
 		// String value
-		i.tail = i.head + 1
 		escaped := false
-		for i.head++; i.head < len(i.str); i.head++ {
+		i.head++
+		i.tail = i.head
+		if i.head < len(i.str) && i.str[i.head] == '"' {
+			goto AFTER_STR_VAL
+		}
+		for {
+			for !escaped && i.head+7 < len(i.str) {
+				// Fast path
+				if i.str[i.head] == '"' ||
+					i.str[i.head] == '\\' ||
+					i.str[i.head] < 0x20 {
+					break
+				}
+				i.head++
+				if i.str[i.head] == '"' ||
+					i.str[i.head] == '\\' ||
+					i.str[i.head] < 0x20 {
+					break
+				}
+				i.head++
+				if i.str[i.head] == '"' ||
+					i.str[i.head] == '\\' ||
+					i.str[i.head] < 0x20 {
+					break
+				}
+				i.head++
+				if i.str[i.head] == '"' ||
+					i.str[i.head] == '\\' ||
+					i.str[i.head] < 0x20 {
+					break
+				}
+				i.head++
+				if i.str[i.head] == '"' ||
+					i.str[i.head] == '\\' ||
+					i.str[i.head] < 0x20 {
+					break
+				}
+				i.head++
+				if i.str[i.head] == '"' ||
+					i.str[i.head] == '\\' ||
+					i.str[i.head] < 0x20 {
+					break
+				}
+				i.head++
+				if i.str[i.head] == '"' ||
+					i.str[i.head] == '\\' ||
+					i.str[i.head] < 0x20 {
+					break
+				}
+				i.head++
+				if i.str[i.head] == '"' ||
+					i.str[i.head] == '\\' ||
+					i.str[i.head] < 0x20 {
+					break
+				}
+				i.head++
+			}
+			if i.head >= len(i.str) {
+				break
+			}
 			if i.isHeadCtrl() {
 				i.errc = ErrUnexpToken
 				i.expect = ExpectEndOfString
 				goto ERROR
 			}
-			if i.str[i.head] == '"' {
-				if escaped {
-					escaped = false
-				} else {
-					goto AFTER_STR_VAL
+			if escaped {
+				switch i.str[i.head] {
+				case '\\':
+					// Backslash
+					i.head++
+				case '/':
+					// Solidus
+					i.head++
+				case '"':
+					// Double-quotes
+					i.head++
+				case 'b':
+					// Backspace
+					i.head++
+				case 'f':
+					// Form-feed
+					i.head++
+				case 'r':
+					// Carriage-return
+					i.head++
+				case 'n':
+					// Line-break
+					i.head++
+				case 't':
+					// Tab
+					i.head++
+				case 'u':
+					// Unicode sequence
+					i.head++
+					if i.head >= len(i.str) {
+						i.errc = ErrUnexpEOF
+						i.expect = ExpectEscapedUnicodeSequence
+						goto ERROR
+					}
+					if !i.isHeadDigit() {
+						i.errc = ErrUnexpToken
+						i.expect = ExpectEscapedUnicodeSequence
+						goto ERROR
+					}
+					i.head++
+					if i.head >= len(i.str) {
+						i.errc = ErrUnexpEOF
+						i.expect = ExpectEscapedUnicodeSequence
+						goto ERROR
+					}
+					if !i.isHeadDigit() {
+						i.errc = ErrUnexpToken
+						i.expect = ExpectEscapedUnicodeSequence
+						goto ERROR
+					}
+					i.head++
+					if i.head >= len(i.str) {
+						i.errc = ErrUnexpEOF
+						i.expect = ExpectEscapedUnicodeSequence
+						goto ERROR
+					}
+					if !i.isHeadDigit() {
+						i.errc = ErrUnexpToken
+						i.expect = ExpectEscapedUnicodeSequence
+						goto ERROR
+					}
+					i.head++
+					if i.head >= len(i.str) {
+						i.errc = ErrUnexpEOF
+						i.expect = ExpectEscapedUnicodeSequence
+						goto ERROR
+					}
+					if !i.isHeadDigit() {
+						i.errc = ErrUnexpToken
+						i.expect = ExpectEscapedUnicodeSequence
+						goto ERROR
+					}
+				default:
+					i.errc = ErrUnexpToken
+					i.expect = ExpectEscapedSequence
+					goto ERROR
 				}
+				escaped = false
+				continue
+			} else if i.str[i.head] == '"' {
+				goto AFTER_STR_VAL
 			} else if i.str[i.head] == '\\' {
-				escaped = !escaped
+				escaped = true
 			}
+			i.head++
 		}
 		i.errc = ErrUnexpEOF
 		i.expect = ExpectEndOfString

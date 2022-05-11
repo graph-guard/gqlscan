@@ -957,7 +957,32 @@ var testdata = []struct {
 		{2, gqlscan.TokenField, "f"},
 		{3, gqlscan.TokenSelEnd, ""},
 	}},
+	{59, `{f(a:"\b\t\r\n\f\/\"\u1234" b:123456789)}`, []Expect{
+		{0, gqlscan.TokenDefQry, ""},
+		{1, gqlscan.TokenSel, ""},
+		{2, gqlscan.TokenField, "f"},
+		{3, gqlscan.TokenArgList, ""},
+		{4, gqlscan.TokenArg, "a"},
+		{5, gqlscan.TokenStr, `\b\t\r\n\f\/\"\u1234`},
+		{6, gqlscan.TokenArg, "b"},
+		{7, gqlscan.TokenNum, "123456789"},
+		{8, gqlscan.TokenArgListEnd, ""},
+		{9, gqlscan.TokenSelEnd, ""},
+	}},
+	{60, "{f(a:" + string_2695b + ")}", []Expect{
+		{0, gqlscan.TokenDefQry, ""},
+		{1, gqlscan.TokenSel, ""},
+		{2, gqlscan.TokenField, "f"},
+		{3, gqlscan.TokenArgList, ""},
+		{4, gqlscan.TokenArg, "a"},
+		{5, gqlscan.TokenStr, string_2695b[1 : len(string_2695b)-1]},
+		{6, gqlscan.TokenArgListEnd, ""},
+		{7, gqlscan.TokenSelEnd, ""},
+	}},
 }
+
+//go:embed string_2695b.txt
+var string_2695b string
 
 func TestScan(t *testing.T) {
 	for ti, td := range testdata {
@@ -1683,6 +1708,36 @@ var testdataErr = []struct {
 		"{f: ",
 		"error at index 4: unexpected end of file; " +
 			"expected field name",
+	},
+	{109,
+		"invalid escape sequence",
+		`{f(a:"\a")}`,
+		"error at index 7 ('a'): unexpected token; " +
+			"expected escaped sequence",
+	},
+	{110,
+		"invalid escape sequence",
+		`{f(a:"\u")}`,
+		"error at index 8 ('\"'): unexpected token; " +
+			"expected escaped unicode sequence",
+	},
+	{111,
+		"invalid escape sequence",
+		`{f(a:"\u1")}`,
+		"error at index 9 ('\"'): unexpected token; " +
+			"expected escaped unicode sequence",
+	},
+	{112,
+		"invalid escape sequence",
+		`{f(a:"\u12")}`,
+		"error at index 10 ('\"'): unexpected token; " +
+			"expected escaped unicode sequence",
+	},
+	{113,
+		"invalid escape sequence",
+		`{f(a:"\u123")}`,
+		"error at index 11 ('\"'): unexpected token; " +
+			"expected escaped unicode sequence",
 	},
 }
 

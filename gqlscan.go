@@ -223,6 +223,8 @@ const (
 	ExpectMutName
 	ExpectSelSet
 	ExpectArgName
+	ExpectEscapedSequence
+	ExpectEscapedUnicodeSequence
 	ExpectEndOfString
 	ExpectColumnAfterArg
 	ExpectFieldNameOrAlias
@@ -264,6 +266,10 @@ func (e Expect) String() string {
 		return "selection set"
 	case ExpectArgName:
 		return "argument name"
+	case ExpectEscapedSequence:
+		return "escaped sequence"
+	case ExpectEscapedUnicodeSequence:
+		return "escaped unicode sequence"
 	case ExpectEndOfString:
 		return "end of string"
 	case ExpectColumnAfterArg:
