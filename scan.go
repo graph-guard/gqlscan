@@ -7,7 +7,9 @@ import (
 
 // Scan calls fn for every token it scans in str.
 // If fn returns true then an error with code ErrCallbackFn is returned.
-// *Iterator passed to fn should never be aliased and used after Scan returns!
+//
+// WARNING: *Iterator passed to fn should never be aliased and
+// used after Scan returns!
 func Scan(str []byte, fn func(*Iterator) (err bool)) Error {
 	i := acquireIterator(str)
 	defer iteratorPool.Put(i)

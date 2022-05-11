@@ -6,7 +6,9 @@ import (
 )
 
 // ScanAll calls fn for every token it scans in str.
-// *Iterator passed to fn should never be aliased and used after Scan returns!
+//
+// WARNING: *Iterator passed to fn should never be aliased and
+// used after ScanAll returns!
 func ScanAll(str []byte, fn func(*Iterator)) Error {
 	i := acquireIterator(str)
 	defer iteratorPool.Put(i)
