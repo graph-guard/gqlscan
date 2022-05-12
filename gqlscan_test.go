@@ -957,13 +957,17 @@ var testdata = []struct {
 		{2, gqlscan.TokenField, "f"},
 		{3, gqlscan.TokenSelEnd, ""},
 	}},
-	{59, `{f(a:"\b\t\r\n\f\/\"\u12fA" b:123456789)}`, []Expect{
+	{59, `{f(a:
+		"\b\t\r\n\f\/\"\u1234\u5678\u9abc\udefA\uBCDE\uF000"
+		b:123456789
+	)}`, []Expect{
 		{0, gqlscan.TokenDefQry, ""},
 		{1, gqlscan.TokenSel, ""},
 		{2, gqlscan.TokenField, "f"},
 		{3, gqlscan.TokenArgList, ""},
 		{4, gqlscan.TokenArg, "a"},
-		{5, gqlscan.TokenStr, `\b\t\r\n\f\/\"\u12fA`},
+		{5, gqlscan.TokenStr,
+			`\b\t\r\n\f\/\"\u1234\u5678\u9abc\udefA\uBCDE\uF000`},
 		{6, gqlscan.TokenArg, "b"},
 		{7, gqlscan.TokenNum, "123456789"},
 		{8, gqlscan.TokenArgListEnd, ""},
