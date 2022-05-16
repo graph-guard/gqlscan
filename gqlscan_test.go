@@ -2400,6 +2400,28 @@ func TestScanInterpreted(t *testing.T) {
 				[]byte("e"),
 			},
 		},
+		{index: 9,
+			input: `{f(a:"""
+						a
+						 b
+						"
+						\
+					""")}`,
+			tokenIndex: 5,
+			buffer:     make([]byte, 1),
+			expectWrites: [][]byte{
+				[]byte("a"),
+				[]byte("\n"),
+				[]byte(" "),
+				[]byte("b"),
+				[]byte("\n"),
+				[]byte(`\`),
+				[]byte(`"`),
+				[]byte("\n"),
+				[]byte(`\`),
+				[]byte(`\`),
+			},
+		},
 	} {
 		t.Run("", func(t *testing.T) {
 			require := require.New(t)
