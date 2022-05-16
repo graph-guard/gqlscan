@@ -2422,6 +2422,12 @@ func TestScanInterpreted(t *testing.T) {
 				[]byte(`\`),
 			},
 		},
+		{index: 10,
+			input:        `{f(a:"""\"""""")}`,
+			tokenIndex:   5,
+			buffer:       make([]byte, 6),
+			expectWrites: [][]byte{[]byte(`\"\"\"`)},
+		},
 	} {
 		t.Run("", func(t *testing.T) {
 			require := require.New(t)
@@ -2460,10 +2466,10 @@ func TestScanInterpreted(t *testing.T) {
 
 func TestScanInterpretedReturnTrue(t *testing.T) {
 	require := require.New(t)
-	const s = "\n\t\t\tfirst line\n\t\t\t second\\tline\n\t\t"
+	const s = "\n\t\t\tfirst line\\\"\"\"\n\t\t\t second\\tline\n\t\t"
 	/*
 		`{f(a:"""
-			first line
+			first line\"""
 			 second\tline
 		""")}`
 	*/
@@ -2481,10 +2487,7 @@ func TestScanInterpretedReturnTrue(t *testing.T) {
 			buf, callCount := make([]byte, bufLen), 0
 			i.ScanInterpreted(buf, func(buffer []byte) (stop bool) {
 				callCount++
-				if callCount > stopAt {
-					return true
-				}
-				return false
+				return callCount > stopAt
 			})
 			require.Equal(stopAt+1, callCount)
 		}

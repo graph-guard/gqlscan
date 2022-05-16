@@ -202,6 +202,61 @@ func (i *Iterator) ScanInterpreted(
 				}
 			}
 			if v[i] == '\\' {
+				if i+3 <= len(v) &&
+					v[i+3] == '"' &&
+					v[i+2] == '"' &&
+					v[i+1] == '"' {
+					buffer[bi] = '\\'
+					bi++
+					if bi >= len(buffer) {
+						if fn(buffer) {
+							return
+						}
+						bi = 0
+					}
+					buffer[bi] = '"'
+					bi++
+					if bi >= len(buffer) {
+						if fn(buffer) {
+							return
+						}
+						bi = 0
+					}
+					buffer[bi] = '\\'
+					bi++
+					if bi >= len(buffer) {
+						if fn(buffer) {
+							return
+						}
+						bi = 0
+					}
+					buffer[bi] = '"'
+					bi++
+					if bi >= len(buffer) {
+						if fn(buffer) {
+							return
+						}
+						bi = 0
+					}
+					buffer[bi] = '\\'
+					bi++
+					if bi >= len(buffer) {
+						if fn(buffer) {
+							return
+						}
+						bi = 0
+					}
+					buffer[bi] = '"'
+					bi++
+					if bi >= len(buffer) {
+						if fn(buffer) {
+							return
+						}
+						bi = 0
+					}
+					i += 4
+					continue
+				}
 				// Escape backslashes
 				buffer[bi] = '\\'
 				bi++

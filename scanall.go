@@ -642,6 +642,13 @@ VALUE:
 BLOCK_STRING:
 	i.expect = ExpectEndOfBlockString
 	for ; i.head < len(i.str); i.head++ {
+		if i.str[i.head] == '\\' &&
+			i.str[i.head+3] == '"' &&
+			i.str[i.head+2] == '"' &&
+			i.str[i.head+1] == '"' {
+			i.head += 3
+			continue
+		}
 		if i.str[i.head] == '"' &&
 			i.str[i.head+1] == '"' &&
 			i.str[i.head+2] == '"' {
