@@ -986,7 +986,7 @@ var testdata = []struct {
 	{61, `{f(
 		a:""""""
 		b:"""abc"""
-		c:"""\n\t"""
+		c:"""\n\t" """
 		d:"""
 			foo
 				bar
@@ -1001,7 +1001,7 @@ var testdata = []struct {
 		{6, gqlscan.TokenArg, "b"},
 		{7, gqlscan.TokenStrBlock, "abc"},
 		{8, gqlscan.TokenArg, "c"},
-		{9, gqlscan.TokenStrBlock, `\n\t`},
+		{9, gqlscan.TokenStrBlock, `\n\t" `},
 		{10, gqlscan.TokenArg, "d"},
 		{11, gqlscan.TokenStrBlock,
 			"\n\t\t\tfoo\n\t\t\t\tbar\n\t\t"},
@@ -2361,11 +2361,11 @@ func TestScanInterpreted(t *testing.T) {
 			},
 		},
 		{index: 6,
-			input:      `{f(a:"""\n\t""")}`,
+			input:      `{f(a:"""\n\t" """)}`,
 			tokenIndex: 5,
-			buffer:     make([]byte, 8),
+			buffer:     make([]byte, 10),
 			expectWrites: [][]byte{
-				[]byte(`\\n\\t`),
+				[]byte(`\\n\\t\" `),
 			},
 		},
 		{index: 7,

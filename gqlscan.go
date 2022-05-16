@@ -148,10 +148,15 @@ func (i *Iterator) ScanInterpreted(
 				break
 			}
 		}
+	FIND_END:
 		for i := len(v) - 1; i >= 0; i-- {
-			if v[i] != '\n' && v[i] != ' ' && v[i] != '\t' {
-				end = i + 1
-				break
+			if v[i] == '\n' {
+				for ; i >= 0; i-- {
+					if v[i] != '\n' && v[i] != ' ' && v[i] != '\t' {
+						end = i + 1
+						break FIND_END
+					}
+				}
 			}
 		}
 		v = v[start:end]
@@ -198,6 +203,16 @@ func (i *Iterator) ScanInterpreted(
 			}
 			if v[i] == '\\' {
 				// Escape backslashes
+				buffer[bi] = '\\'
+				bi++
+				if bi >= len(buffer) {
+					if fn(buffer) {
+						return
+					}
+					bi = 0
+				}
+			} else if v[i] == '"' {
+				// Escape double quotes
 				buffer[bi] = '\\'
 				bi++
 				if bi >= len(buffer) {
