@@ -2406,20 +2406,18 @@ func TestScanInterpreted(t *testing.T) {
 						 b
 						"
 						\
+						\"""
 					""")}`,
 			tokenIndex: 5,
 			buffer:     make([]byte, 1),
 			expectWrites: [][]byte{
-				[]byte("a"),
-				[]byte("\n"),
-				[]byte(" "),
-				[]byte("b"),
-				[]byte("\n"),
-				[]byte(`\`),
-				[]byte(`"`),
-				[]byte("\n"),
-				[]byte(`\`),
-				[]byte(`\`),
+				[]byte("a"), []byte("\n"),
+				[]byte(" "), []byte("b"), []byte("\n"),
+				[]byte(`\`), []byte(`"`), []byte("\n"),
+				[]byte(`\`), []byte(`\`), []byte("\n"),
+				[]byte(`\`), []byte(`"`),
+				[]byte(`\`), []byte(`"`),
+				[]byte(`\`), []byte(`"`),
 			},
 		},
 		{index: 10,
