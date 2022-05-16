@@ -284,10 +284,19 @@ VALUE:
 		goto AFTER_VALUE_COMMENT
 
 	case '"':
-		// String value
-		escaped := false
 		i.head++
 		i.tail = i.head
+
+		if i.head+1 < len(i.str) &&
+			i.str[i.head] == '"' &&
+			i.str[i.head+1] == '"' {
+			i.head += 2
+			i.tail = i.head
+			goto BLOCK_STRING
+		}
+
+		// String value
+		escaped := false
 		if i.head < len(i.str) && i.str[i.head] == '"' {
 			goto AFTER_STR_VAL
 		}
@@ -681,6 +690,22 @@ VALUE:
 	}
 	i.expect = ExpectAfterValue
 	goto AFTER_VALUE_COMMENT
+
+BLOCK_STRING:
+	i.expect = ExpectEndOfBlockString
+	for ; i.head < len(i.str); i.head++ {
+		if i.str[i.head] == '"' &&
+			i.str[i.head+1] == '"' &&
+			i.str[i.head+2] == '"' {
+			i.token = TokenStrBlock
+			if fn(i) {
+				i.errc = ErrCallbackFn
+				goto ERROR
+			}
+			i.head += 3
+			goto AFTER_VALUE_COMMENT
+		}
+	}
 
 AFTER_VALUE_COMMENT:
 	i.skipSTNRC()

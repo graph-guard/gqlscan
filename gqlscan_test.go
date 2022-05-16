@@ -983,6 +983,31 @@ var testdata = []struct {
 		{6, gqlscan.TokenArgListEnd, ""},
 		{7, gqlscan.TokenSelEnd, ""},
 	}},
+	{61, `{f(
+		a:""""""
+		b:"""abc"""
+		c:"""\n\t"""
+		d:"""
+			foo
+				bar
+		"""
+	)}`, []Expect{
+		{0, gqlscan.TokenDefQry, ""},
+		{1, gqlscan.TokenSel, ""},
+		{2, gqlscan.TokenField, "f"},
+		{3, gqlscan.TokenArgList, ""},
+		{4, gqlscan.TokenArg, "a"},
+		{5, gqlscan.TokenStrBlock, ""},
+		{6, gqlscan.TokenArg, "b"},
+		{7, gqlscan.TokenStrBlock, "abc"},
+		{8, gqlscan.TokenArg, "c"},
+		{9, gqlscan.TokenStrBlock, `\n\t`},
+		{10, gqlscan.TokenArg, "d"},
+		{11, gqlscan.TokenStrBlock,
+			"\n\t\t\tfoo\n\t\t\t\tbar\n\t\t"},
+		{12, gqlscan.TokenArgListEnd, ""},
+		{13, gqlscan.TokenSelEnd, ""},
+	}},
 }
 
 //go:embed string_2695b.txt
@@ -1743,6 +1768,18 @@ var testdataErr = []struct {
 		"error at index 11 ('\"'): unexpected token; " +
 			"expected escaped unicode sequence",
 	},
+	{114,
+		"unexpected EOF",
+		`{f(a:"""`,
+		`error at index 8: unexpected end of file; ` +
+			"expected end of block string",
+	},
+	{115,
+		"unexpected EOF",
+		`{f(a:""" `,
+		"error at index 9: unexpected end of file; " +
+			"expected end of block string",
+	},
 }
 
 func TestScanErr(t *testing.T) {
@@ -1783,6 +1820,7 @@ func TestScanFuncErr(t *testing.T) {
 			foo_bar
 		}
 		bar
+		tar(x: """block string""")
 		baz {
 			baz_fuzz {
 				... on A {
@@ -2267,4 +2305,163 @@ func TestZeroValueToString(t *testing.T) {
 
 	var token gqlscan.Token
 	require.Zero(t, token.String())
+}
+
+func TestScanInterpreted(t *testing.T) {
+	for ti, td := range []struct {
+		index        int
+		input        string
+		tokenIndex   int
+		buffer       []byte
+		expectWrites [][]byte
+	}{
+		{index: 0,
+			input:        `{f(a:"0")}`,
+			tokenIndex:   5,
+			buffer:       nil,
+			expectWrites: [][]byte{},
+		},
+		{index: 1,
+			input:      `{f(a:"0")}`,
+			tokenIndex: 5,
+			buffer:     make([]byte, 8),
+			expectWrites: [][]byte{
+				[]byte("0"),
+			},
+		},
+		{index: 2,
+			input:      `{f(a:"01234567")}`,
+			tokenIndex: 5,
+			buffer:     make([]byte, 8),
+			expectWrites: [][]byte{
+				[]byte("01234567"),
+			},
+		},
+		{index: 3,
+			input:      `{f(a:"0123456789ab")}`,
+			tokenIndex: 5,
+			buffer:     make([]byte, 8),
+			expectWrites: [][]byte{
+				[]byte("01234567"),
+				[]byte("89ab"),
+			},
+		},
+		{index: 4,
+			input:        `{f(a:"""""")}`,
+			tokenIndex:   5,
+			buffer:       make([]byte, 8),
+			expectWrites: [][]byte{},
+		},
+		{index: 5,
+			input:      `{f(a:"""abc""")}`,
+			tokenIndex: 5,
+			buffer:     make([]byte, 8),
+			expectWrites: [][]byte{
+				[]byte("abc"),
+			},
+		},
+		{index: 6,
+			input:      `{f(a:"""\n\t""")}`,
+			tokenIndex: 5,
+			buffer:     make([]byte, 8),
+			expectWrites: [][]byte{
+				[]byte(`\\n\\t`),
+			},
+		},
+		{index: 7,
+			input: `{f(a:"""
+						1234567
+						12345678
+					""")}`,
+			tokenIndex: 5,
+			buffer:     make([]byte, 8),
+			expectWrites: [][]byte{
+				[]byte("1234567\n"),
+				[]byte("12345678"),
+			},
+		},
+		{index: 8,
+			input: `{f(a:"""
+						first line
+						 second\tline
+					 """)}`,
+			tokenIndex: 5,
+			buffer:     make([]byte, 8),
+			expectWrites: [][]byte{
+				[]byte("first li"),
+				[]byte("ne\n seco"),
+				[]byte(`nd\\tlin`),
+				[]byte("e"),
+			},
+		},
+	} {
+		t.Run("", func(t *testing.T) {
+			require := require.New(t)
+			require.Equal(ti, td.index)
+			writes, c := [][]byte{}, 0
+			err := gqlscan.Scan(
+				[]byte(td.input),
+				func(i *gqlscan.Iterator) (err bool) {
+					if c != td.tokenIndex {
+						c++
+						return false
+					}
+					i.ScanInterpreted(td.buffer, func(b []byte) (stop bool) {
+						w := make([]byte, len(b))
+						copy(w, b)
+						writes = append(writes, w)
+						return false
+					})
+					return true
+				},
+			)
+			require.Equal(
+				gqlscan.ErrCallbackFn, err.Code,
+				"unexpected error: %s", err.Error(),
+			)
+			require.Len(writes, len(td.expectWrites))
+			for i, e := range td.expectWrites {
+				require.Equal(
+					string(e), string(writes[i]),
+					"unexpected write at index %d", i,
+				)
+			}
+		})
+	}
+}
+
+func TestScanInterpretedReturnTrue(t *testing.T) {
+	require := require.New(t)
+	const s = "\n\t\t\tfirst line\n\t\t\t second\\tline\n\t\t"
+	/*
+		`{f(a:"""
+			first line
+			 second\tline
+		""")}`
+	*/
+
+	const q = `{f(a:"""` + s + `""")}`
+	c := -1
+	in := []byte(q)
+	err := gqlscan.Scan(in, func(i *gqlscan.Iterator) (err bool) {
+		c++
+		if c != 5 {
+			return false
+		}
+		const bufLen = 8
+		for stopAt := 0; stopAt < len(s)/bufLen; stopAt++ {
+			buf, callCount := make([]byte, bufLen), 0
+			i.ScanInterpreted(buf, func(buffer []byte) (stop bool) {
+				callCount++
+				if callCount > stopAt {
+					return true
+				}
+				return false
+			})
+			require.Equal(stopAt+1, callCount)
+		}
+		return false
+	})
+	require.False(err.IsErr())
+	require.Equal(q, string(in), "making sure input isn't mutated")
 }

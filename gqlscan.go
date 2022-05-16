@@ -95,17 +95,134 @@ func (i *Iterator) Token() Token {
 	return i.token
 }
 
-// Value returns value of the current token.
-// For TokenQry, TokenMut, TokenSel, TokenArr, TokenTrue,
-// TokenFalse and TokenNull it the textual representation of the token.
-// For TokenField it's the name of the field.
-// For TokenStr it's the body of the string.
-// For TokenNum it's the number.
+// Value returns the raw value of the current token.
+// For TokenStrBlock it's the raw uninterpreted body of the string.
 func (i *Iterator) Value() []byte {
 	if i.tail < 0 {
 		return nil
 	}
 	return i.str[i.tail:i.head]
+}
+
+// ScanInterpreted calls fn writing the interpreted part of
+// the value to buffer as long as fn doesn't return true and
+// the scan didn't reach the end of the interpreted value.
+func (i *Iterator) ScanInterpreted(
+	buffer []byte,
+	fn func(buffer []byte) (stop bool),
+) {
+	if len(buffer) < 1 {
+		return
+	}
+	if i.token != TokenStrBlock {
+		offset := 0
+		for offset < len(i.Value()) {
+			b := buffer
+			v := i.Value()[offset:]
+			if len(v) > len(b) {
+				v = v[:len(b)]
+			} else {
+				b = b[:len(v)]
+			}
+			copy(b, v)
+			if fn(b) {
+				return
+			}
+			offset += len(v)
+		}
+		return
+	}
+
+	// Determine block prefix
+	shortestPrefixLen := 0
+	v := i.Value()
+	start, end := 0, len(v)
+	{
+		lastLineBreak := 0
+		for i := range v {
+			if v[i] == '\n' {
+				lastLineBreak = i
+			}
+			if v[i] != '\n' && v[i] != ' ' && v[i] != '\t' {
+				start = lastLineBreak
+				break
+			}
+		}
+		for i := len(v) - 1; i >= 0; i-- {
+			if v[i] != '\n' && v[i] != ' ' && v[i] != '\t' {
+				end = i + 1
+				break
+			}
+		}
+		v = v[start:end]
+	COUNT_LOOP:
+		for len(v) > 0 {
+			if v[0] == '\n' {
+				// Count prefix length
+				l := 0
+				for v = v[1:]; ; l++ {
+					if l >= len(v) {
+						break COUNT_LOOP
+					} else if v[l] != ' ' && v[l] != '\t' {
+						v = v[l:]
+						if shortestPrefixLen == 0 || shortestPrefixLen > l {
+							shortestPrefixLen = l
+						}
+						break
+					}
+				}
+				continue
+			}
+			v = v[1:]
+		}
+	}
+
+	{
+		v, bi := i.Value()[start:end], 0
+		for i := 0; i < len(v); {
+			if v[i] == '\n' {
+				if i != 0 {
+					buffer[bi] = v[i]
+					bi++
+					if bi >= len(buffer) {
+						if fn(buffer) {
+							return
+						}
+						bi = 0
+					}
+				}
+				// Ignore prefix
+				if shortestPrefixLen+1 <= len(v) {
+					i += shortestPrefixLen + 1
+				}
+			}
+			if v[i] == '\\' {
+				// Escape backslashes
+				buffer[bi] = '\\'
+				bi++
+				if bi >= len(buffer) {
+					if fn(buffer) {
+						return
+					}
+					bi = 0
+				}
+			}
+			buffer[bi] = v[i]
+			bi++
+			i++
+			if bi >= len(buffer) {
+				if fn(buffer) {
+					return
+				}
+				bi = 0
+			}
+		}
+		if b := buffer[:bi]; len(b) > 0 {
+			if fn(buffer[:bi]) {
+				return
+			}
+		}
+	}
 }
 
 // skipSTNRC advances the iterator until the end of a sequence of spaces,
@@ -238,6 +355,7 @@ const (
 	ExpectEscapedSequence
 	ExpectEscapedUnicodeSequence
 	ExpectEndOfString
+	ExpectEndOfBlockString
 	ExpectColumnAfterArg
 	ExpectFieldNameOrAlias
 	ExpectFieldName
@@ -284,6 +402,8 @@ func (e Expect) String() string {
 		return "escaped unicode sequence"
 	case ExpectEndOfString:
 		return "end of string"
+	case ExpectEndOfBlockString:
+		return "end of block string"
 	case ExpectColumnAfterArg:
 		return "column after argument name"
 	case ExpectFieldNameOrAlias:
@@ -363,6 +483,7 @@ const (
 	TokenArr
 	TokenArrEnd
 	TokenStr
+	TokenStrBlock
 	TokenNum
 	TokenTrue
 	TokenFalse
@@ -422,6 +543,8 @@ func (t Token) String() string {
 		return "array end"
 	case TokenStr:
 		return "string"
+	case TokenStrBlock:
+		return "block string"
 	case TokenNum:
 		return "number"
 	case TokenTrue:
