@@ -2370,8 +2370,14 @@ func TestScanInterpreted(t *testing.T) {
 		},
 		{index: 7,
 			input: `{f(a:"""
+						
+   
+
 						1234567
 						12345678
+						
+   
+
 					""")}`,
 			tokenIndex: 5,
 			buffer:     make([]byte, 8),
