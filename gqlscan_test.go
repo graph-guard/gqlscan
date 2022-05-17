@@ -1810,6 +1810,12 @@ var testdataErr = []struct {
 		"error at index 13 (0x0): unexpected token; " +
 			"expected end of string",
 	},
+	{121,
+		"unexpected EOF",
+		`{f #c`,
+		"error at index 5: unexpected end of file; " +
+			"expected selection, selection set or end of selection set",
+	},
 }
 
 func TestScanErr(t *testing.T) {
