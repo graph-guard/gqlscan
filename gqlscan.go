@@ -184,16 +184,22 @@ func (i *Iterator) ScanInterpreted(
 
 	{
 		v, bi := i.Value()[start:end], 0
+
+		write := func(b byte) (stop bool) {
+			buffer[bi] = b
+			bi++
+			if bi >= len(buffer) {
+				bi = 0
+				return fn(buffer)
+			}
+			return false
+		}
+
 		for i := 0; i < len(v); {
 			if v[i] == '\n' {
 				if i != 0 {
-					buffer[bi] = v[i]
-					bi++
-					if bi >= len(buffer) {
-						if fn(buffer) {
-							return
-						}
-						bi = 0
+					if write(v[i]) {
+						return
 					}
 				}
 				// Ignore prefix
@@ -206,86 +212,41 @@ func (i *Iterator) ScanInterpreted(
 					v[i+3] == '"' &&
 					v[i+2] == '"' &&
 					v[i+1] == '"' {
-					buffer[bi] = '\\'
-					bi++
-					if bi >= len(buffer) {
-						if fn(buffer) {
-							return
-						}
-						bi = 0
+					if write('\\') {
+						return
 					}
-					buffer[bi] = '"'
-					bi++
-					if bi >= len(buffer) {
-						if fn(buffer) {
-							return
-						}
-						bi = 0
+					if write('"') {
+						return
 					}
-					buffer[bi] = '\\'
-					bi++
-					if bi >= len(buffer) {
-						if fn(buffer) {
-							return
-						}
-						bi = 0
+					if write('\\') {
+						return
 					}
-					buffer[bi] = '"'
-					bi++
-					if bi >= len(buffer) {
-						if fn(buffer) {
-							return
-						}
-						bi = 0
+					if write('"') {
+						return
 					}
-					buffer[bi] = '\\'
-					bi++
-					if bi >= len(buffer) {
-						if fn(buffer) {
-							return
-						}
-						bi = 0
+					if write('\\') {
+						return
 					}
-					buffer[bi] = '"'
-					bi++
-					if bi >= len(buffer) {
-						if fn(buffer) {
-							return
-						}
-						bi = 0
+					if write('"') {
+						return
 					}
 					i += 4
 					continue
 				}
 				// Escape backslashes
-				buffer[bi] = '\\'
-				bi++
-				if bi >= len(buffer) {
-					if fn(buffer) {
-						return
-					}
-					bi = 0
+				if write('\\') {
+					return
 				}
 			} else if v[i] == '"' {
 				// Escape double quotes
-				buffer[bi] = '\\'
-				bi++
-				if bi >= len(buffer) {
-					if fn(buffer) {
-						return
-					}
-					bi = 0
-				}
-			}
-			buffer[bi] = v[i]
-			bi++
-			i++
-			if bi >= len(buffer) {
-				if fn(buffer) {
+				if write('\\') {
 					return
 				}
-				bi = 0
 			}
+			if write(v[i]) {
+				return
+			}
+			i++
 		}
 		if b := buffer[:bi]; len(b) > 0 {
 			if fn(buffer[:bi]) {
