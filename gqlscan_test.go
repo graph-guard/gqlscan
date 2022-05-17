@@ -2,6 +2,7 @@ package gqlscan_test
 
 import (
 	_ "embed"
+	"strings"
 	"testing"
 
 	"github.com/graph-guard/gqlscan"
@@ -2525,37 +2526,40 @@ func TestScanInterpreted(t *testing.T) {
 }
 
 func TestScanInterpretedStop(t *testing.T) {
-	const s = "\n" +
-		"\t\t\tfirst line\\\"\"\"\n" +
-		"\t\t\t second\\tline\n" +
-		"\t\t"
-	/*
-		`{f(a:"""
-			first line\"""
-			 second\tline
-		""")}`
-	*/
-
+	const s = `
+		first line\"""
+		second\tline
+	`
+	const e = "first line\"\"\"\nsecond\\tline"
 	const q = `{f(a:"""` + s + `""")}`
-	in := []byte(q)
 
-	t.Run("Scan", func(t *testing.T) {
-		require := require.New(t)
+	itrFn := func(t *testing.T) func(i *gqlscan.Iterator) {
 		c := -1
-		err := gqlscan.Scan(in, func(i *gqlscan.Iterator) (err bool) {
+		require := require.New(t)
+		return func(i *gqlscan.Iterator) {
 			c++
 			if c != 5 {
-				return false
+				return
 			}
-			const bufLen = 8
-			for stopAt := 0; stopAt < len(s)/bufLen; stopAt++ {
-				buf, callCount := make([]byte, bufLen), 0
+			for stopAt := 0; stopAt < len(e); stopAt++ {
+				buf, callCount := make([]byte, 1), 0
+				var r strings.Builder
+				r.Grow(len(e))
 				i.ScanInterpreted(buf, func(buffer []byte) (stop bool) {
+					r.Write(buffer)
 					callCount++
 					return callCount > stopAt
 				})
-				require.Equal(stopAt+1, callCount)
+				require.Equal(e[:stopAt+1], r.String())
 			}
+		}
+	}
+
+	t.Run("Scan", func(t *testing.T) {
+		require := require.New(t)
+		fn, in := itrFn(t), []byte(q)
+		err := gqlscan.Scan(in, func(i *gqlscan.Iterator) (err bool) {
+			fn(i)
 			return false
 		})
 		require.False(err.IsErr())
@@ -2564,22 +2568,8 @@ func TestScanInterpretedStop(t *testing.T) {
 
 	t.Run("ScanAll", func(t *testing.T) {
 		require := require.New(t)
-		c := -1
-		err := gqlscan.ScanAll(in, func(i *gqlscan.Iterator) {
-			c++
-			if c != 5 {
-				return
-			}
-			const bufLen = 8
-			for stopAt := 0; stopAt < len(s)/bufLen; stopAt++ {
-				buf, callCount := make([]byte, bufLen), 0
-				i.ScanInterpreted(buf, func(buffer []byte) (stop bool) {
-					callCount++
-					return callCount > stopAt
-				})
-				require.Equal(stopAt+1, callCount)
-			}
-		})
+		fn, in := itrFn(t), []byte(q)
+		err := gqlscan.ScanAll(in, func(i *gqlscan.Iterator) { fn(i) })
 		require.False(err.IsErr())
 		require.Equal(q, string(in), "making sure input isn't mutated")
 	})
