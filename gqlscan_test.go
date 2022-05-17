@@ -2509,24 +2509,49 @@ func TestScanInterpretedReturnTrue(t *testing.T) {
 	*/
 
 	const q = `{f(a:"""` + s + `""")}`
-	c := -1
 	in := []byte(q)
-	err := gqlscan.Scan(in, func(i *gqlscan.Iterator) (err bool) {
-		c++
-		if c != 5 {
+
+	t.Run("Scan", func(t *testing.T) {
+		c := -1
+		err := gqlscan.Scan(in, func(i *gqlscan.Iterator) (err bool) {
+			c++
+			if c != 5 {
+				return false
+			}
+			const bufLen = 8
+			for stopAt := 0; stopAt < len(s)/bufLen; stopAt++ {
+				buf, callCount := make([]byte, bufLen), 0
+				i.ScanInterpreted(buf, func(buffer []byte) (stop bool) {
+					callCount++
+					return callCount > stopAt
+				})
+				require.Equal(stopAt+1, callCount)
+			}
 			return false
-		}
-		const bufLen = 8
-		for stopAt := 0; stopAt < len(s)/bufLen; stopAt++ {
-			buf, callCount := make([]byte, bufLen), 0
-			i.ScanInterpreted(buf, func(buffer []byte) (stop bool) {
-				callCount++
-				return callCount > stopAt
-			})
-			require.Equal(stopAt+1, callCount)
-		}
-		return false
+		})
+		require.False(err.IsErr())
+		require.Equal(q, string(in), "making sure input isn't mutated")
 	})
-	require.False(err.IsErr())
-	require.Equal(q, string(in), "making sure input isn't mutated")
+
+	t.Run("ScanAll", func(t *testing.T) {
+		c := -1
+		err := gqlscan.ScanAll(in, func(i *gqlscan.Iterator) {
+			c++
+			if c != 5 {
+				return
+			}
+			const bufLen = 8
+			for stopAt := 0; stopAt < len(s)/bufLen; stopAt++ {
+				buf, callCount := make([]byte, bufLen), 0
+				i.ScanInterpreted(buf, func(buffer []byte) (stop bool) {
+					callCount++
+					return callCount > stopAt
+				})
+				require.Equal(stopAt+1, callCount)
+			}
+			return
+		})
+		require.False(err.IsErr())
+		require.Equal(q, string(in), "making sure input isn't mutated")
+	})
 }
