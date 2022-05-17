@@ -2513,7 +2513,6 @@ func TestScanInterpreted(t *testing.T) {
 }
 
 func TestScanInterpretedStop(t *testing.T) {
-	require := require.New(t)
 	const s = "\n\t\t\tfirst line\\\"\"\"\n\t\t\t second\\tline\n\t\t"
 	/*
 		`{f(a:"""
@@ -2526,6 +2525,7 @@ func TestScanInterpretedStop(t *testing.T) {
 	in := []byte(q)
 
 	t.Run("Scan", func(t *testing.T) {
+		require := require.New(t)
 		c := -1
 		err := gqlscan.Scan(in, func(i *gqlscan.Iterator) (err bool) {
 			c++
@@ -2548,6 +2548,7 @@ func TestScanInterpretedStop(t *testing.T) {
 	})
 
 	t.Run("ScanAll", func(t *testing.T) {
+		require := require.New(t)
 		c := -1
 		err := gqlscan.ScanAll(in, func(i *gqlscan.Iterator) {
 			c++
