@@ -2400,7 +2400,7 @@ var testdataBlockStrings = []struct {
 		tokenIndex: 5,
 		buffer:     make([]byte, 10),
 		expectWrites: [][]byte{
-			[]byte(`\\n\\t\" `),
+			[]byte(`\n\t" `),
 		},
 	},
 	{index: 7,
@@ -2424,18 +2424,24 @@ var testdataBlockStrings = []struct {
 	{index: 8,
 		input: `{f(a:"""
 					first line
-					 second\tline
+					 second\t\tline
 				 """)}`,
 		tokenIndex: 5,
 		buffer:     make([]byte, 8),
 		expectWrites: [][]byte{
 			[]byte("first li"),
 			[]byte("ne\n seco"),
-			[]byte(`nd\\tlin`),
-			[]byte("e"),
+			[]byte(`nd\t\tli`),
+			[]byte(`ne`),
 		},
 	},
 	{index: 9,
+		input:        `{f(a:"""\"""""")}`,
+		tokenIndex:   5,
+		buffer:       make([]byte, 3),
+		expectWrites: [][]byte{[]byte(`"""`)},
+	},
+	{index: 10,
 		input: `{f(a:"""
 					a
 					 b
@@ -2448,18 +2454,10 @@ var testdataBlockStrings = []struct {
 		expectWrites: [][]byte{
 			[]byte("a"), []byte("\n"),
 			[]byte(" "), []byte("b"), []byte("\n"),
-			[]byte(`\`), []byte(`"`), []byte("\n"),
-			[]byte(`\`), []byte(`\`), []byte("\n"),
-			[]byte(`\`), []byte(`"`),
-			[]byte(`\`), []byte(`"`),
-			[]byte(`\`), []byte(`"`),
+			[]byte(`"`), []byte("\n"),
+			[]byte(`\`), []byte("\n"),
+			[]byte(`"`), []byte(`"`), []byte(`"`),
 		},
-	},
-	{index: 10,
-		input:        `{f(a:"""\"""""")}`,
-		tokenIndex:   5,
-		buffer:       make([]byte, 6),
-		expectWrites: [][]byte{[]byte(`\"\"\"`)},
 	},
 	{index: 11,
 		// Three non-empty and two empty lines.
@@ -2513,7 +2511,10 @@ func TestScanInterpreted(t *testing.T) {
 }
 
 func TestScanInterpretedStop(t *testing.T) {
-	const s = "\n\t\t\tfirst line\\\"\"\"\n\t\t\t second\\tline\n\t\t"
+	const s = "\n" +
+		"\t\t\tfirst line\\\"\"\"\n" +
+		"\t\t\t second\\tline\n" +
+		"\t\t"
 	/*
 		`{f(a:"""
 			first line\"""

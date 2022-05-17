@@ -210,41 +210,21 @@ func (i *Iterator) ScanInterpreted(
 					continue
 				}
 			}
-			if v[i] == '\\' {
-				if i+3 <= len(v) &&
-					v[i+3] == '"' &&
-					v[i+2] == '"' &&
-					v[i+1] == '"' {
-					if write('\\') {
-						return
-					}
-					if write('"') {
-						return
-					}
-					if write('\\') {
-						return
-					}
-					if write('"') {
-						return
-					}
-					if write('\\') {
-						return
-					}
-					if write('"') {
-						return
-					}
-					i += 4
-					continue
-				}
-				// Escape backslashes
-				if write('\\') {
+			if v[i] == '\\' && i+3 <= len(v) &&
+				v[i+3] == '"' &&
+				v[i+2] == '"' &&
+				v[i+1] == '"' {
+				if write('"') {
 					return
 				}
-			} else if v[i] == '"' {
-				// Escape double quotes
-				if write('\\') {
+				if write('"') {
 					return
 				}
+				if write('"') {
+					return
+				}
+				i += 4
+				continue
 			}
 			if write(v[i]) {
 				return
