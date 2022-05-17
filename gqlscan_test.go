@@ -2498,7 +2498,7 @@ func TestScanInterpreted(t *testing.T) {
 	}
 }
 
-func TestScanInterpretedReturnTrue(t *testing.T) {
+func TestScanInterpretedStop(t *testing.T) {
 	require := require.New(t)
 	const s = "\n\t\t\tfirst line\\\"\"\"\n\t\t\t second\\tline\n\t\t"
 	/*
