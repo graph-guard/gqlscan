@@ -3,6 +3,7 @@ package gqlscan_test
 import (
 	"testing"
 
+	"github.com/dustin/go-humanize"
 	"github.com/graph-guard/gqlscan"
 )
 
@@ -73,28 +74,36 @@ var InterpretedBuffer []byte
 func BenchmarkScanInterpreted(b *testing.B) {
 	for _, td := range testdataBlockStrings {
 		b.Run("", func(b *testing.B) {
-			input := []byte(td.input)
-			b.ResetTimer()
-			for n := 0; n < b.N; n++ {
-				c := 0
-				if err := gqlscan.ScanAll(
-					input,
-					func(i *gqlscan.Iterator) {
-						c++
-						if c != td.tokenIndex {
-							return
-						}
-						i.ScanInterpreted(
-							td.buffer,
-							func(buffer []byte) (stop bool) {
-								InterpretedBuffer = buffer
-								return false
+			for _, bufSize := range []int{
+				1, 1024, 65536,
+			} {
+				b.Run(humanize.Bytes(uint64(bufSize)), func(b *testing.B) {
+					input := []byte(td.input)
+					buffer := make([]byte, bufSize)
+					b.ResetTimer()
+					for n := 0; n < b.N; n++ {
+						c := 0
+						if err := gqlscan.ScanAll(
+							input,
+							func(i *gqlscan.Iterator) {
+								c++
+								if c != td.tokenIndex {
+									return
+								}
+								i.ScanInterpreted(
+									buffer,
+									func(buffer []byte) (stop bool) {
+										InterpretedBuffer = buffer
+										return false
+									},
+								)
 							},
-						)
-					},
-				); err.IsErr() {
-					panic(err)
-				}
+						); err.IsErr() {
+							panic(err)
+						}
+					}
+
+				})
 			}
 		})
 	}

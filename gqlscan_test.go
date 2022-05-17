@@ -1010,8 +1010,14 @@ var testdata = []struct {
 	}},
 }
 
-//go:embed string_2695b.txt
+//go:embed t_s_2695b.txt
 var string_2695b string
+
+//go:embed t_blks_2747b.graphql
+var blockstring_2747b string
+
+//go:embed t_blks_2747b_expect.txt
+var blockstring_2747b_expect string
 
 func TestScan(t *testing.T) {
 	for ti, td := range testdata {
@@ -2469,6 +2475,14 @@ var testdataBlockStrings = []struct {
 		buffer:     make([]byte, 8),
 		expectWrites: [][]byte{
 			[]byte("a\n\n  \n\nb"),
+		},
+	},
+	{index: 12,
+		input:      blockstring_2747b,
+		tokenIndex: 5,
+		buffer:     make([]byte, 4096), // 4 KiB buffer
+		expectWrites: [][]byte{
+			[]byte(blockstring_2747b_expect),
 		},
 	},
 }
