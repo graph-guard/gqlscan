@@ -2343,126 +2343,128 @@ func TestZeroValueToString(t *testing.T) {
 	require.Zero(t, token.String())
 }
 
+var testdataBlockStrings = []struct {
+	index        int
+	input        string
+	tokenIndex   int
+	buffer       []byte
+	expectWrites [][]byte
+}{
+	{index: 0,
+		input:        `{f(a:"0")}`,
+		tokenIndex:   5,
+		buffer:       nil,
+		expectWrites: [][]byte{},
+	},
+	{index: 1,
+		input:      `{f(a:"0")}`,
+		tokenIndex: 5,
+		buffer:     make([]byte, 8),
+		expectWrites: [][]byte{
+			[]byte("0"),
+		},
+	},
+	{index: 2,
+		input:      `{f(a:"01234567")}`,
+		tokenIndex: 5,
+		buffer:     make([]byte, 8),
+		expectWrites: [][]byte{
+			[]byte("01234567"),
+		},
+	},
+	{index: 3,
+		input:      `{f(a:"0123456789ab")}`,
+		tokenIndex: 5,
+		buffer:     make([]byte, 8),
+		expectWrites: [][]byte{
+			[]byte("01234567"),
+			[]byte("89ab"),
+		},
+	},
+	{index: 4,
+		input:        `{f(a:"""""")}`,
+		tokenIndex:   5,
+		buffer:       make([]byte, 8),
+		expectWrites: [][]byte{},
+	},
+	{index: 5,
+		input:      `{f(a:"""abc""")}`,
+		tokenIndex: 5,
+		buffer:     make([]byte, 8),
+		expectWrites: [][]byte{
+			[]byte("abc"),
+		},
+	},
+	{index: 6,
+		input:      `{f(a:"""\n\t" """)}`,
+		tokenIndex: 5,
+		buffer:     make([]byte, 10),
+		expectWrites: [][]byte{
+			[]byte(`\\n\\t\" `),
+		},
+	},
+	{index: 7,
+		input: `{f(a:"""
+					
+
+
+					1234567
+					12345678
+					
+
+
+				""")}`,
+		tokenIndex: 5,
+		buffer:     make([]byte, 8),
+		expectWrites: [][]byte{
+			[]byte("1234567\n"),
+			[]byte("12345678"),
+		},
+	},
+	{index: 8,
+		input: `{f(a:"""
+					first line
+					 second\tline
+				 """)}`,
+		tokenIndex: 5,
+		buffer:     make([]byte, 8),
+		expectWrites: [][]byte{
+			[]byte("first li"),
+			[]byte("ne\n seco"),
+			[]byte(`nd\\tlin`),
+			[]byte("e"),
+		},
+	},
+	{index: 9,
+		input: `{f(a:"""
+					a
+					 b
+					"
+					\
+					\"""
+				""")}`,
+		tokenIndex: 5,
+		buffer:     make([]byte, 1),
+		expectWrites: [][]byte{
+			[]byte("a"), []byte("\n"),
+			[]byte(" "), []byte("b"), []byte("\n"),
+			[]byte(`\`), []byte(`"`), []byte("\n"),
+			[]byte(`\`), []byte(`\`), []byte("\n"),
+			[]byte(`\`), []byte(`"`),
+			[]byte(`\`), []byte(`"`),
+			[]byte(`\`), []byte(`"`),
+		},
+	},
+	{index: 10,
+		input:        `{f(a:"""\"""""")}`,
+		tokenIndex:   5,
+		buffer:       make([]byte, 6),
+		expectWrites: [][]byte{[]byte(`\"\"\"`)},
+	},
+}
+
 func TestScanInterpreted(t *testing.T) {
-	for ti, td := range []struct {
-		index        int
-		input        string
-		tokenIndex   int
-		buffer       []byte
-		expectWrites [][]byte
-	}{
-		{index: 0,
-			input:        `{f(a:"0")}`,
-			tokenIndex:   5,
-			buffer:       nil,
-			expectWrites: [][]byte{},
-		},
-		{index: 1,
-			input:      `{f(a:"0")}`,
-			tokenIndex: 5,
-			buffer:     make([]byte, 8),
-			expectWrites: [][]byte{
-				[]byte("0"),
-			},
-		},
-		{index: 2,
-			input:      `{f(a:"01234567")}`,
-			tokenIndex: 5,
-			buffer:     make([]byte, 8),
-			expectWrites: [][]byte{
-				[]byte("01234567"),
-			},
-		},
-		{index: 3,
-			input:      `{f(a:"0123456789ab")}`,
-			tokenIndex: 5,
-			buffer:     make([]byte, 8),
-			expectWrites: [][]byte{
-				[]byte("01234567"),
-				[]byte("89ab"),
-			},
-		},
-		{index: 4,
-			input:        `{f(a:"""""")}`,
-			tokenIndex:   5,
-			buffer:       make([]byte, 8),
-			expectWrites: [][]byte{},
-		},
-		{index: 5,
-			input:      `{f(a:"""abc""")}`,
-			tokenIndex: 5,
-			buffer:     make([]byte, 8),
-			expectWrites: [][]byte{
-				[]byte("abc"),
-			},
-		},
-		{index: 6,
-			input:      `{f(a:"""\n\t" """)}`,
-			tokenIndex: 5,
-			buffer:     make([]byte, 10),
-			expectWrites: [][]byte{
-				[]byte(`\\n\\t\" `),
-			},
-		},
-		{index: 7,
-			input: `{f(a:"""
-						
-   
-
-						1234567
-						12345678
-						
-   
-
-					""")}`,
-			tokenIndex: 5,
-			buffer:     make([]byte, 8),
-			expectWrites: [][]byte{
-				[]byte("1234567\n"),
-				[]byte("12345678"),
-			},
-		},
-		{index: 8,
-			input: `{f(a:"""
-						first line
-						 second\tline
-					 """)}`,
-			tokenIndex: 5,
-			buffer:     make([]byte, 8),
-			expectWrites: [][]byte{
-				[]byte("first li"),
-				[]byte("ne\n seco"),
-				[]byte(`nd\\tlin`),
-				[]byte("e"),
-			},
-		},
-		{index: 9,
-			input: `{f(a:"""
-						a
-						 b
-						"
-						\
-						\"""
-					""")}`,
-			tokenIndex: 5,
-			buffer:     make([]byte, 1),
-			expectWrites: [][]byte{
-				[]byte("a"), []byte("\n"),
-				[]byte(" "), []byte("b"), []byte("\n"),
-				[]byte(`\`), []byte(`"`), []byte("\n"),
-				[]byte(`\`), []byte(`\`), []byte("\n"),
-				[]byte(`\`), []byte(`"`),
-				[]byte(`\`), []byte(`"`),
-				[]byte(`\`), []byte(`"`),
-			},
-		},
-		{index: 10,
-			input:        `{f(a:"""\"""""")}`,
-			tokenIndex:   5,
-			buffer:       make([]byte, 6),
-			expectWrites: [][]byte{[]byte(`\"\"\"`)},
-		},
-	} {
+	for ti, td := range testdataBlockStrings {
 		t.Run("", func(t *testing.T) {
 			require := require.New(t)
 			require.Equal(ti, td.index)
@@ -2549,7 +2551,6 @@ func TestScanInterpretedStop(t *testing.T) {
 				})
 				require.Equal(stopAt+1, callCount)
 			}
-			return
 		})
 		require.False(err.IsErr())
 		require.Equal(q, string(in), "making sure input isn't mutated")
