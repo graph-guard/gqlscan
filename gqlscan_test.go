@@ -1983,7 +1983,10 @@ func TestScanFuncErr(t *testing.T) {
 		foo: 2,
 		bar: "ok",
 		baz: null,
-	) done }`
+	) done }
+	subscription S($v:Input!){
+		sub(i: $v) {f}
+	}`
 
 	numOfTokensInInput := 0
 	err := gqlscan.Scan([]byte(input), func(*gqlscan.Iterator) (err bool) {
