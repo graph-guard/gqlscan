@@ -2461,6 +2461,18 @@ var testdataBlockStrings = []struct {
 		buffer:       make([]byte, 6),
 		expectWrites: [][]byte{[]byte(`\"\"\"`)},
 	},
+	{index: 11,
+		// Three non-empty and two empty lines.
+		// The second non-empty line consists of two spaces.
+		input: `{f(a:"""` +
+			"\n   a\n   \n     \n   \n   b\n" +
+			`""")}`,
+		tokenIndex: 5,
+		buffer:     make([]byte, 8),
+		expectWrites: [][]byte{
+			[]byte("a\n\n  \n\nb"),
+		},
+	},
 }
 
 func TestScanInterpreted(t *testing.T) {

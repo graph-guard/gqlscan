@@ -203,8 +203,11 @@ func (i *Iterator) ScanInterpreted(
 					}
 				}
 				// Ignore prefix
-				if shortestPrefixLen+1 <= len(v) {
+				if i+shortestPrefixLen+1 <= len(v) {
 					i += shortestPrefixLen + 1
+				}
+				if v[i] == '\n' {
+					continue
 				}
 			}
 			if v[i] == '\\' {
