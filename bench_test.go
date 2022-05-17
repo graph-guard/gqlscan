@@ -67,3 +67,35 @@ func BenchmarkScanAllErr(b *testing.B) {
 		})
 	}
 }
+
+var InterpretedBuffer []byte
+
+func BenchmarkScanInterpreted(b *testing.B) {
+	for _, td := range testdataBlockStrings {
+		b.Run("", func(b *testing.B) {
+			input := []byte(td.input)
+			b.ResetTimer()
+			for n := 0; n < b.N; n++ {
+				c := 0
+				if err := gqlscan.ScanAll(
+					input,
+					func(i *gqlscan.Iterator) {
+						c++
+						if c != td.tokenIndex {
+							return
+						}
+						i.ScanInterpreted(
+							td.buffer,
+							func(buffer []byte) (stop bool) {
+								InterpretedBuffer = buffer
+								return false
+							},
+						)
+					},
+				); err.IsErr() {
+					panic(err)
+				}
+			}
+		})
+	}
+}
