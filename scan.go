@@ -46,8 +46,8 @@ DEFINITION:
 			goto ERROR
 		}
 		i.head += len("query")
-		i.expect = ExpectAfterKeywordQuery
-		goto AFTER_KEYWORD_QUERY
+		i.expect = ExpectAfterDefKeyword
+		goto AFTER_DEF_KEYWORD
 	} else if i.isHeadKeywordMutation() {
 		// Mutation
 		i.token = TokenDefMut
@@ -56,8 +56,18 @@ DEFINITION:
 			goto ERROR
 		}
 		i.head += len("mutation")
-		i.expect = ExpectAfterKeywordMutation
-		goto AFTER_KEYWORD_MUTATION
+		i.expect = ExpectAfterDefKeyword
+		goto AFTER_DEF_KEYWORD
+	} else if i.isHeadKeywordSubscription() {
+		// Subscription
+		i.token = TokenDefSub
+		if fn(i) {
+			i.errc = ErrCallbackFn
+			goto ERROR
+		}
+		i.head += len("subscription")
+		i.expect = ExpectAfterDefKeyword
+		goto AFTER_DEF_KEYWORD
 	} else if i.isHeadKeywordFragment() {
 		// Fragment
 		i.tail = -1
@@ -75,7 +85,7 @@ DEFINITION:
 	i.expect = ExpectDef
 	goto ERROR
 
-AFTER_KEYWORD_QUERY:
+AFTER_DEF_KEYWORD:
 	i.skipSTNRC()
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
@@ -86,7 +96,7 @@ AFTER_KEYWORD_QUERY:
 		i.expect = ExpectSelSet
 		goto SELECTION_SET
 	} else if i.str[i.head] == '(' {
-		// Query variable list
+		// Variable list
 		i.tail = -1
 		i.token = TokenVarList
 		if fn(i) {
@@ -97,32 +107,7 @@ AFTER_KEYWORD_QUERY:
 		i.expect = ExpectVarName
 		goto QUERY_VAR
 	}
-	i.expect = ExpectQryName
-	goto NAME
-
-AFTER_KEYWORD_MUTATION:
-	i.skipSTNRC()
-	if i.head >= len(i.str) {
-		i.errc = ErrUnexpEOF
-		goto ERROR
-	} else if i.str[i.head] == '#' {
-		goto COMMENT
-	} else if i.str[i.head] == '{' {
-		i.expect = ExpectSelSet
-		goto SELECTION_SET
-	} else if i.str[i.head] == '(' {
-		// Mutation variable list
-		i.tail = -1
-		i.token = TokenVarList
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-		i.head++
-		i.expect = ExpectVarName
-		goto QUERY_VAR
-	}
-	i.expect = ExpectMutName
+	i.expect = ExpectOprName
 	goto NAME
 
 AFTER_KEYWORD_FRAGMENT:
@@ -1180,8 +1165,8 @@ AFTER_NAME:
 		i.expect = ExpectColumnAfterVar
 		goto AFTER_DECL_VAR_NAME
 
-	case ExpectQryName:
-		i.token = TokenQryName
+	case ExpectOprName:
+		i.token = TokenOprName
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
@@ -1196,38 +1181,7 @@ AFTER_NAME:
 			i.expect = ExpectSelSet
 			goto SELECTION_SET
 		} else if i.str[i.head] == '(' {
-			// Query variable list
-			i.tail = -1
-			i.token = TokenVarList
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
-			}
-			i.head++
-			i.expect = ExpectVarName
-			goto QUERY_VAR
-		}
-		i.errc = ErrUnexpToken
-		i.expect = ExpectSelSet
-		goto ERROR
-
-	case ExpectMutName:
-		i.token = TokenMutName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-		i.skipSTNRC()
-
-		if i.head >= len(i.str) {
-			i.errc = ErrUnexpEOF
-			i.expect = ExpectSelSet
-			goto ERROR
-		} else if i.str[i.head] == '{' {
-			i.expect = ExpectSelSet
-			goto SELECTION_SET
-		} else if i.str[i.head] == '(' {
-			// Mutation variable list
+			// Variable list
 			i.tail = -1
 			i.token = TokenVarList
 			if fn(i) {
@@ -1385,10 +1339,8 @@ COMMENT:
 		goto AFTER_VALUE_COMMENT
 	case ExpectAfterArgList:
 		goto AFTER_ARG_LIST
-	case ExpectAfterKeywordQuery:
-		goto AFTER_KEYWORD_QUERY
-	case ExpectAfterKeywordMutation:
-		goto AFTER_KEYWORD_MUTATION
+	case ExpectAfterDefKeyword:
+		goto AFTER_DEF_KEYWORD
 	case ExpectFragName:
 		goto AFTER_KEYWORD_FRAGMENT
 	case ExpectFragKeywordOn:

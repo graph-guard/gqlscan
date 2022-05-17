@@ -341,6 +341,24 @@ func (i *Iterator) isHeadKeywordMutation() bool {
 		i.str[i.head] == 'm'
 }
 
+// isHeadKeywordSubscription returns true if
+// the current head equals 'subscription'.
+func (i *Iterator) isHeadKeywordSubscription() bool {
+	return i.head+11 < len(i.str) &&
+		i.str[i.head+11] == 'n' &&
+		i.str[i.head+10] == 'o' &&
+		i.str[i.head+9] == 'i' &&
+		i.str[i.head+8] == 't' &&
+		i.str[i.head+7] == 'p' &&
+		i.str[i.head+6] == 'i' &&
+		i.str[i.head+5] == 'r' &&
+		i.str[i.head+4] == 'c' &&
+		i.str[i.head+3] == 's' &&
+		i.str[i.head+2] == 'b' &&
+		i.str[i.head+1] == 'u' &&
+		i.str[i.head] == 's'
+}
+
 // isHeadKeywordFragment returns true if the current head equals 'fragment'.
 func (i *Iterator) isHeadKeywordFragment() bool {
 	return i.head+7 < len(i.str) &&
@@ -362,8 +380,7 @@ const (
 	_ Expect = iota
 	ExpectVal
 	ExpectDef
-	ExpectQryName
-	ExpectMutName
+	ExpectOprName
 	ExpectSelSet
 	ExpectArgName
 	ExpectEscapedSequence
@@ -390,8 +407,7 @@ const (
 	ExpectAfterSelection
 	ExpectAfterValue
 	ExpectAfterArgList
-	ExpectAfterKeywordQuery
-	ExpectAfterKeywordMutation
+	ExpectAfterDefKeyword
 	ExpectAfterVarType
 	ExpectAfterVarTypeName
 )
@@ -400,10 +416,8 @@ func (e Expect) String() string {
 	switch e {
 	case ExpectDef:
 		return "definition"
-	case ExpectQryName:
-		return "query name"
-	case ExpectMutName:
-		return "mutation name"
+	case ExpectOprName:
+		return "operation name"
 	case ExpectVal:
 		return "value"
 	case ExpectSelSet:
@@ -458,9 +472,7 @@ func (e Expect) String() string {
 		return "argument list closure or argument"
 	case ExpectAfterArgList:
 		return "selection set or selection"
-	case ExpectAfterKeywordQuery:
-		return "variable list or selection set"
-	case ExpectAfterKeywordMutation:
+	case ExpectAfterDefKeyword:
 		return "variable list or selection set"
 	case ExpectAfterVarType:
 		return "variable list closure or variable name"
@@ -478,9 +490,9 @@ const (
 	_ Token = iota
 	TokenDefQry
 	TokenDefMut
+	TokenDefSub
 	TokenDefFrag
-	TokenQryName
-	TokenMutName
+	TokenOprName
 	TokenVarList
 	TokenVarListEnd
 	TokenArgList
@@ -519,12 +531,12 @@ func (t Token) String() string {
 		return "query definition"
 	case TokenDefMut:
 		return "mutation definition"
+	case TokenDefSub:
+		return "subscription definition"
 	case TokenDefFrag:
 		return "fragment definition"
-	case TokenQryName:
-		return "query name"
-	case TokenMutName:
-		return "mutation name"
+	case TokenOprName:
+		return "operation name"
 	case TokenVarList:
 		return "variable list"
 	case TokenVarListEnd:
