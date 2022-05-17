@@ -9,7 +9,7 @@ import (
 
 func BenchmarkScan(b *testing.B) {
 	for _, td := range testdata {
-		b.Run("", func(b *testing.B) {
+		b.Run(td.decl, func(b *testing.B) {
 			in := []byte(td.input)
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
@@ -25,7 +25,7 @@ func BenchmarkScan(b *testing.B) {
 
 func BenchmarkScanAll(b *testing.B) {
 	for _, td := range testdata {
-		b.Run("", func(b *testing.B) {
+		b.Run(td.decl, func(b *testing.B) {
 			in := []byte(td.input)
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
@@ -40,7 +40,7 @@ func BenchmarkScanAll(b *testing.B) {
 
 func BenchmarkScanErr(b *testing.B) {
 	for _, td := range testdataErr {
-		b.Run("", func(b *testing.B) {
+		b.Run(td.decl, func(b *testing.B) {
 			in := []byte(td.input)
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
@@ -56,7 +56,7 @@ func BenchmarkScanErr(b *testing.B) {
 
 func BenchmarkScanAllErr(b *testing.B) {
 	for _, td := range testdataErr {
-		b.Run("", func(b *testing.B) {
+		b.Run(td.decl, func(b *testing.B) {
 			in := []byte(td.input)
 			b.ResetTimer()
 			for i := 0; i < b.N; i++ {
@@ -73,7 +73,7 @@ var InterpretedBuffer []byte
 
 func BenchmarkScanInterpreted(b *testing.B) {
 	for _, td := range testdataBlockStrings {
-		b.Run("", func(b *testing.B) {
+		b.Run(td.decl, func(b *testing.B) {
 			for _, bufSize := range []int{
 				1, 1024, 65536,
 			} {
