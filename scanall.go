@@ -546,7 +546,7 @@ VALUE:
 		// Continue to fraction
 
 	FRACTION:
-
+		_ = 0 // Make code coverage count the label above
 		for s = i.head; i.head < len(i.str); i.head++ {
 			if i.isHeadDigit() {
 				continue
@@ -879,6 +879,7 @@ NAME:
 	goto AFTER_NAME
 
 NAME_LOOP:
+	_ = 0 // Make code coverage count the label above
 	for ; i.head < len(i.str); i.head++ {
 		if i.isHeadNameBody() {
 			continue
