@@ -1804,6 +1804,12 @@ var testdataErr = []struct {
 		"error at index 9: unexpected end of file; " +
 			"expected end of block string",
 	},
+	{120,
+		"control character in string",
+		`{f(a:"0123456` + string(rune(0x00)) + `")}`,
+		"error at index 13 (0x0): unexpected token; " +
+			"expected end of string",
+	},
 }
 
 func TestScanErr(t *testing.T) {
