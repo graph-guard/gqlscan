@@ -391,6 +391,7 @@ const (
 	ExpectFieldNameOrAlias
 	ExpectFieldName
 	ExpectSel
+	ExpectDirName
 	ExpectVarName
 	ExpectVarRefName
 	ExpectVarType
@@ -440,6 +441,8 @@ func (e Expect) String() string {
 		return "field name"
 	case ExpectSel:
 		return "selection"
+	case ExpectDirName:
+		return "directive name"
 	case ExpectVarName:
 		return "variable name"
 	case ExpectVarRefName:
@@ -493,6 +496,7 @@ const (
 	TokenDefSub
 	TokenDefFrag
 	TokenOprName
+	TokenDirName
 	TokenVarList
 	TokenVarListEnd
 	TokenArgList
@@ -538,6 +542,8 @@ func (t Token) String() string {
 		return "fragment definition"
 	case TokenOprName:
 		return "operation name"
+	case TokenDirName:
+		return "directive name"
 	case TokenVarList:
 		return "variable list"
 	case TokenVarListEnd:
@@ -668,3 +674,14 @@ func (e Error) Error() string {
 	}
 	return b.String()
 }
+
+type dirTarget int
+
+const (
+	_ dirTarget = iota
+	dirOpr
+	dirVar
+	dirField
+	dirFragRef
+	dirFragInlineOrDef
+)

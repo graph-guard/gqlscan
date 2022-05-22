@@ -3,7 +3,6 @@ package gqlscan_test
 import (
 	_ "embed"
 	"fmt"
-	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -19,11 +18,13 @@ type Expect struct {
 	Value string
 }
 
-var testdata = []struct {
+type TestInput struct {
 	decl   string
 	input  string
 	expect []Expect
-}{
+}
+
+var testdata = []TestInput{
 	{Decl(), `{foo}`, []Expect{
 		{Decl(), gqlscan.TokenDefQry, ""},
 		{Decl(), gqlscan.TokenSel, ""},
@@ -914,54 +915,145 @@ var testdata = []struct {
 		{Decl(), gqlscan.TokenField, "alice"},
 		{Decl(), gqlscan.TokenSelEnd, ""},
 	}},
-	{Decl(), `query # This is a test with many comments
+	Input(`query # This is a test with many comments
 	# sample comment text line
-	{  #sample comment text line
+	{ # sample comment text line
 		# sample comment text line
-		a  #sample comment text line
+		a # sample comment text line
 		# sample comment text line
-		{  #sample comment text line
+		{ # sample comment text line
 			# sample comment text line
-			b  #sample comment text line
+			b # sample comment text line
 			# sample comment text line
-			(  #sample comment text line
+			( # sample comment text line
 				# sample comment text line
-				x  #sample comment text line
+				x # sample comment text line
 				# sample comment text line
-				:  #sample comment text line
+				: # sample comment text line
 				# sample comment text line
-				1  #sample comment text line
+				1 # sample comment text line
 			# sample comment text line
-			)  #sample comment text line
+			) # sample comment text line
 			# sample comment text line
-			{  #sample comment text line
+			{ # sample comment text line
 				# sample comment text line
-				c  #sample comment text line
+				c # sample comment text line
 				# sample comment text line
-				d  #sample comment text line
+				d # sample comment text line
 			# sample comment text line
-			}  #sample comment text line
+			} # sample comment text line
 		# sample comment text line
-		}  #sample comment text line
+		} # sample comment text line
 	# sample comment text line
-	}  #sample comment text line
-	`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "a"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "b"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "x"},
-		{Decl(), gqlscan.TokenInt, "1"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "c"},
-		{Decl(), gqlscan.TokenField, "d"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
+	} # sample comment text line
+	# sample comment text line
+	query # sample comment text line
+	# sample comment text line
+	( # sample comment text line
+		# sample comment text line
+		$v # sample comment text line
+		# sample comment text line
+		: # sample comment text line
+		# sample comment text line
+		T # sample comment text line
+		# sample comment text line
+		! # sample comment text line
+		# sample comment text line
+		@d1 # sample comment text line
+		# sample comment text line
+		@d2 # sample comment text line
+		# sample comment text line
+		( # sample comment text line
+			# sample comment text line
+			a # sample comment text line
+			# sample comment text line
+			: # sample comment text line
+			# sample comment text line
+			0 # sample comment text line
+		# sample comment text line
+		) # sample comment text line
+		# sample comment text line
+		@d3 # sample comment text line
+	# sample comment text line
+	) # sample comment text line
+	# sample comment text line
+	@d1 # sample comment text line
+	# sample comment text line
+	@d2 # sample comment text line
+	# sample comment text line
+	( # sample comment text line
+		# sample comment text line
+		a # sample comment text line
+		# sample comment text line
+		: # sample comment text line
+		# sample comment text line
+		0 # sample comment text line
+	# sample comment text line
+	) # sample comment text line
+	# sample comment text line
+	@d3 # sample comment text line
+	# sample comment text line
+	{ # sample comment text line
+		# sample comment text line
+		... # sample comment text line
+		# sample comment text line
+		on # sample comment text line
+		# sample comment text line
+		T # sample comment text line
+		# sample comment text line
+		{ # sample comment text line
+		# sample comment text line
+			# sample comment text line
+			... # sample comment text line
+			# sample comment text line
+			f # sample comment text line
+		# sample comment text line
+		} # sample comment text line
+	} # sample comment text line
+	`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "a"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "b"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "x"),
+		Token(gqlscan.TokenInt, "1"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "c"),
+		Token(gqlscan.TokenField, "d"),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenSelEnd),
+
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "v"),
+		Token(gqlscan.TokenVarTypeName, "T"),
+		Token(gqlscan.TokenVarTypeNotNull),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d3"),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d3"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenFragInline, "T"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenFragRef, "f"),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
 	{Decl(), `{f}
 		#0
 		#01
@@ -1041,6 +1133,284 @@ var testdata = []struct {
 		{Decl(), gqlscan.TokenField, "f"},
 		{Decl(), gqlscan.TokenSelEnd, ""},
 	}},
+	Input(`mutation @d1 @d2 (a:0) @d3 {f}`,
+		Token(gqlscan.TokenDefMut),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d3"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`subscription @d1 @d2 (a:0) @d3 {f}`,
+		Token(gqlscan.TokenDefSub),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d3"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`query @d1 @d2 (a:0) @d3 {f}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d3"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`query Q @d1 @d2 (a:0) @d3 {f}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenOprName, "Q"),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d3"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`query ($v: String) @d1 @d2 (a:$v) @d3 {f}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "v"),
+		Token(gqlscan.TokenVarTypeName, "String"),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d3"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`query @d1 @d2 (a:$v) {f}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`query (
+		$v: String @d1 @d2 (a:$v) @d3
+	) {f}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "v"),
+		Token(gqlscan.TokenVarTypeName, "String"),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d3"),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`query (
+		$v1: String @d1 @d2 (a:0)
+		$v2: String! @d1 @d2 (a:0)
+		$v3: [String] @d1
+	) {f}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "v1"),
+		Token(gqlscan.TokenVarTypeName, "String"),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenVarName, "v2"),
+		Token(gqlscan.TokenVarTypeName, "String"),
+		Token(gqlscan.TokenVarTypeNotNull),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenVarName, "v3"),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeName, "String"),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{
+		a (a: 0) @d1 @d2 (a:$v) @d3 {
+			aa (a: 0) @d1 @d2 (a:$v) @d3
+		}
+		b @d1 @d2 (a:$v) @d3 {
+			ba @d2 (a:$v)
+			bb @d3 { bba }
+		}
+	}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "a"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d3"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "aa"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d3"),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenField, "b"),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d3"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "ba"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenField, "bb"),
+		Token(gqlscan.TokenDirName, "d3"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "bba"),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{
+		...f @d1 @d2 (a:$v) @d3
+		...f2 @d1 @d2 (a:$v)
+		x
+		... on X @d1 @d2 (a:$v) @d3 {
+			x
+		}
+		... on Y @d1 @d2 (a:$v) {
+			x
+		}
+	}
+	fragment f on X @d1 @d2 (a:$v) @d3 { x }
+	fragment f2 on Y @d1 @d2 (a:$v) { x }`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenFragRef, "f"),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d3"),
+		Token(gqlscan.TokenFragRef, "f2"),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenField, "x"),
+
+		Token(gqlscan.TokenFragInline, "X"),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d3"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+
+		Token(gqlscan.TokenFragInline, "Y"),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenSelEnd),
+
+		Token(gqlscan.TokenDefFrag),
+		Token(gqlscan.TokenFragName, "f"),
+		Token(gqlscan.TokenFragTypeCond, "X"),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenDirName, "d3"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+
+		Token(gqlscan.TokenDefFrag),
+		Token(gqlscan.TokenFragName, "f2"),
+		Token(gqlscan.TokenFragTypeCond, "Y"),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
 }
 
 //go:embed t_s_2695b.txt
@@ -1133,11 +1503,13 @@ func TestScan(t *testing.T) {
 	}
 }
 
-var testdataErr = []struct {
+type TestInputErr struct {
 	decl      string
 	input     string
 	expectErr string
-}{
+}
+
+var testdataErr = []TestInputErr{
 	{Decl(), // Unexpected token as query.
 		"q",
 		"error at index 0 ('q'): unexpected token; expected definition",
@@ -1753,6 +2125,66 @@ var testdataErr = []struct {
 		"error at index 5: unexpected end of file; " +
 			"expected selection, selection set or end of selection set",
 	},
+	InputErr( // Unexpected EOF.
+		"query @",
+		"error at index 7: unexpected end of file; "+
+			"expected directive name",
+	),
+	InputErr( // Unexpected EOF.
+		"query @ ",
+		"error at index 8: unexpected end of file; "+
+			"expected directive name",
+	),
+	InputErr( // Unexpected EOF.
+		"query @directive",
+		"error at index 16: unexpected end of file; "+
+			"expected variable list or selection set",
+	),
+	InputErr( // Unexpected EOF.
+		"query @directive ",
+		"error at index 17: unexpected end of file; "+
+			"expected variable list or selection set",
+	),
+	InputErr( // Unexpected EOF.
+		"query @directive(",
+		"error at index 17: unexpected end of file; "+
+			"expected argument name",
+	),
+	InputErr( // Unexpected EOF.
+		"query @directive( ",
+		"error at index 18: unexpected end of file; "+
+			"expected argument name",
+	),
+	InputErr( // Unexpected EOF.
+		"{f @",
+		"error at index 4: unexpected end of file; "+
+			"expected directive name",
+	),
+	InputErr( // Unexpected EOF.
+		"{f @ ",
+		"error at index 5: unexpected end of file; "+
+			"expected directive name",
+	),
+	InputErr( // Unexpected EOF.
+		"{f @d",
+		"error at index 5: unexpected end of file; "+
+			"expected selection, selection set or end of selection set",
+	),
+	InputErr( // Unexpected EOF.
+		"{f @d",
+		"error at index 5: unexpected end of file; "+
+			"expected selection, selection set or end of selection set",
+	),
+	InputErr( // Unexpected token; Variables after directives
+		"query @d (a:0) (a:0) {f}",
+		"error at index 15 ('('): unexpected token; "+
+			"expected selection set",
+	),
+	InputErr( // Unexpected token; Arguments after directives
+		"{f @d (a:0) (a:0)}",
+		"error at index 12 ('('): unexpected token; "+
+			"expected field name or alias",
+	),
 }
 
 func TestScanErr(t *testing.T) {
@@ -2509,8 +2941,45 @@ func TestScanInterpretedStop(t *testing.T) {
 	})
 }
 
-func Decl() string {
-	_, filename, line, _ := runtime.Caller(1)
-	filename = filepath.Base(filename)
-	return fmt.Sprintf("%s:%d", filename, line)
+func Decl() string { return decl(2) }
+
+func decl(skipFrames int) string {
+	_, _, line, _ := runtime.Caller(skipFrames)
+	return fmt.Sprintf("%d", line)
+}
+
+func Token(t gqlscan.Token, v ...string) Expect {
+	var val string
+	if len(v) > 1 {
+		panic("expected single value")
+	} else if len(v) > 0 {
+		val = v[0]
+	}
+	return Expect{
+		Decl:  decl(2),
+		Type:  t,
+		Value: val,
+	}
+}
+
+func Input(input string, e ...Expect) TestInput {
+	if len(e) < 1 {
+		panic("requires at least one expectation")
+	}
+	return TestInput{
+		decl:   decl(2),
+		input:  input,
+		expect: e,
+	}
+}
+
+func InputErr(input string, e string) TestInputErr {
+	if len(e) < 1 {
+		panic("requires at least one expectation")
+	}
+	return TestInputErr{
+		decl:      decl(2),
+		input:     input,
+		expectErr: e,
+	}
 }

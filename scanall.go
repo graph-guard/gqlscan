@@ -14,6 +14,7 @@ func ScanAll(str []byte, fn func(*Iterator)) Error {
 	defer iteratorPool.Put(i)
 
 	var typeArrLvl int
+	var dirOn dirTarget
 
 	i.skipSTNRC()
 
@@ -74,22 +75,273 @@ AFTER_DEF_KEYWORD:
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	switch i.str[i.head] {
+	case '#':
 		goto COMMENT
-	} else if i.str[i.head] == '{' {
+	case '{':
 		i.expect = ExpectSelSet
 		goto SELECTION_SET
-	} else if i.str[i.head] == '(' {
+	case '(':
 		// Variable list
 		i.tail = -1
 		i.token = TokenVarList
 		fn(i)
 		i.head++
 		i.expect = ExpectVarName
-		goto QUERY_VAR
+		goto OPR_VAR
+	case '@':
+		i.head++
+		i.skipSTNRC()
+		dirOn, i.expect = dirOpr, ExpectDirName
+		goto NAME
 	}
 	i.expect = ExpectOprName
 	goto NAME
+
+AFTER_DIR_NAME:
+	i.skipSTNRC()
+	switch dirOn {
+	case dirField:
+		if i.head >= len(i.str) {
+			i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
+			goto ERROR
+		}
+		switch i.str[i.head] {
+		case '#':
+			goto COMMENT
+		case '(':
+			// Directive argument list
+			i.tail = -1
+			i.token = TokenArgList
+			fn(i)
+			i.head++
+			i.skipSTNRC()
+			i.expect = ExpectArgName
+			goto ARG_LIST
+		case '@':
+			i.head++
+			i.skipSTNRC()
+			i.expect = ExpectDirName
+			goto NAME
+		case '{':
+			// Field selector expands without arguments
+			i.expect = ExpectSelSet
+			goto SELECTION_SET
+		default:
+			i.expect, dirOn = ExpectAfterSelection, 0
+			goto AFTER_SELECTION
+		}
+	case dirOpr:
+		if i.head >= len(i.str) {
+			i.errc, i.expect = ErrUnexpEOF, ExpectAfterDefKeyword
+			goto ERROR
+		}
+		switch i.str[i.head] {
+		case '#':
+			goto COMMENT
+		case '(':
+			// Directive argument list
+			i.tail = -1
+			i.token = TokenArgList
+			fn(i)
+			i.head++
+			i.skipSTNRC()
+			i.expect = ExpectArgName
+			goto ARG_LIST
+		case '@':
+			i.head++
+			i.skipSTNRC()
+			i.expect = ExpectDirName
+			goto NAME
+		default:
+			i.expect, dirOn = ExpectSelSet, 0
+			goto SELECTION_SET
+		}
+	case dirVar:
+		if i.head >= len(i.str) {
+			i.errc, i.expect = ErrUnexpEOF, ExpectAfterVarType
+			goto ERROR
+		}
+		switch i.str[i.head] {
+		case '#':
+			goto COMMENT
+		case '(':
+			// Directive argument list
+			i.tail = -1
+			i.token = TokenArgList
+			fn(i)
+			i.head++
+			i.skipSTNRC()
+			i.expect = ExpectArgName
+			goto ARG_LIST
+		case '@':
+			i.head++
+			i.skipSTNRC()
+			i.expect = ExpectDirName
+			goto NAME
+		case ')':
+			dirOn = 0
+			goto VAR_LIST_END
+		default:
+			i.expect, dirOn = ExpectVarName, 0
+			goto NAME
+		}
+	case dirFragRef:
+		if i.head >= len(i.str) {
+			i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
+			goto ERROR
+		}
+		switch i.str[i.head] {
+		case '#':
+			goto COMMENT
+		case '(':
+			// Directive argument list
+			i.tail = -1
+			i.token = TokenArgList
+			fn(i)
+			i.head++
+			i.skipSTNRC()
+			i.expect = ExpectArgName
+			goto ARG_LIST
+		case '@':
+			i.head++
+			i.skipSTNRC()
+			i.expect = ExpectDirName
+			goto NAME
+		default:
+			i.expect, dirOn = ExpectAfterSelection, 0
+			goto AFTER_SELECTION
+		}
+	case dirFragInlineOrDef:
+		if i.head >= len(i.str) {
+			i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
+			goto ERROR
+		}
+		switch i.str[i.head] {
+		case '#':
+			goto COMMENT
+		case '(':
+			// Directive argument list
+			i.tail = -1
+			i.token = TokenArgList
+			fn(i)
+			i.head++
+			i.skipSTNRC()
+			i.expect = ExpectArgName
+			goto ARG_LIST
+		case '@':
+			i.head++
+			i.skipSTNRC()
+			i.expect = ExpectDirName
+			goto NAME
+		default:
+			i.expect = ExpectSelSet
+			goto SELECTION_SET
+		}
+	default:
+		// The panic is triggered only if we forgot to handle a directive type.
+		panic(fmt.Errorf("unhandled directive type: %q", dirOn))
+	}
+
+AFTER_DIR_ARGS:
+	i.skipSTNRC()
+	switch dirOn {
+	case dirField:
+		if i.head >= len(i.str) {
+			i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
+			goto ERROR
+		}
+		switch i.str[i.head] {
+		case '#':
+			goto COMMENT
+		case '@':
+			i.head++
+			i.skipSTNRC()
+			i.expect = ExpectDirName
+			goto NAME
+		case '{':
+			// Field selector expands without arguments
+			i.expect = ExpectSelSet
+			goto SELECTION_SET
+		default:
+			i.expect, dirOn = ExpectAfterSelection, 0
+			goto AFTER_SELECTION
+		}
+	case dirOpr:
+		if i.head >= len(i.str) {
+			i.errc, i.expect = ErrUnexpEOF, ExpectAfterDefKeyword
+			goto ERROR
+		}
+		switch i.str[i.head] {
+		case '#':
+			goto COMMENT
+		case '@':
+			i.head++
+			i.skipSTNRC()
+			i.expect = ExpectDirName
+			goto NAME
+		default:
+			i.expect, dirOn = ExpectSelSet, 0
+			goto SELECTION_SET
+		}
+	case dirVar:
+		i.skipSTNRC()
+		if i.head >= len(i.str) {
+			i.errc, i.expect = ErrUnexpEOF, ExpectAfterVarType
+			goto ERROR
+		}
+		switch i.str[i.head] {
+		case '#':
+			goto COMMENT
+		case '@':
+			i.head++
+			i.skipSTNRC()
+			i.expect = ExpectDirName
+			goto NAME
+		case ')':
+			goto VAR_LIST_END
+		default:
+			i.expect, dirOn = ExpectAfterVarType, 0
+			goto OPR_VAR
+		}
+	case dirFragRef:
+		if i.head >= len(i.str) {
+			i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
+			goto ERROR
+		}
+		switch i.str[i.head] {
+		case '#':
+			goto COMMENT
+		case '@':
+			i.head++
+			i.skipSTNRC()
+			i.expect = ExpectDirName
+			goto NAME
+		default:
+			i.expect, dirOn = ExpectAfterSelection, 0
+			goto AFTER_SELECTION
+		}
+	case dirFragInlineOrDef:
+		if i.head >= len(i.str) {
+			i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
+			goto ERROR
+		}
+		switch i.str[i.head] {
+		case '#':
+			goto COMMENT
+		case '@':
+			i.head++
+			i.skipSTNRC()
+			i.expect = ExpectDirName
+			goto NAME
+		default:
+			i.expect = ExpectSelSet
+			goto SELECTION_SET
+		}
+	default:
+		panic(fmt.Errorf("no: %#v", dirOn))
+	}
 
 AFTER_KEYWORD_FRAGMENT:
 	i.skipSTNRC()
@@ -101,7 +353,7 @@ AFTER_KEYWORD_FRAGMENT:
 	}
 	goto NAME
 
-QUERY_VAR:
+OPR_VAR:
 	i.skipSTNRC()
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
@@ -133,16 +385,36 @@ AFTER_VAR_TYPE:
 		i.errc = ErrInvalType
 		i.expect = ExpectVarType
 		goto ERROR
-	} else if i.str[i.head] != ')' {
-		i.expect = ExpectAfterVarType
-		goto QUERY_VAR
+	} else if i.str[i.head] == '@' {
+		i.head++
+		i.skipSTNRC()
+		dirOn, i.expect = dirVar, ExpectDirName
+		goto NAME
+	} else if i.str[i.head] == ')' {
+		goto VAR_LIST_END
 	}
-	// End of query variable list
+	i.expect = ExpectAfterVarType
+	goto OPR_VAR
+
+VAR_LIST_END:
 	i.tail = -1
 	i.token = TokenVarListEnd
 	fn(i)
 	i.head++
+	i.skipSTNRC()
 	i.expect = ExpectSelSet
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	} else if i.str[i.head] == '#' {
+		dirOn, i.expect = dirOpr, ExpectDirName
+		goto AFTER_DIR_NAME
+	} else if i.str[i.head] == '@' {
+		i.head++
+		i.skipSTNRC()
+		dirOn, i.expect = dirOpr, ExpectDirName
+		goto NAME
+	}
 	goto SELECTION_SET
 
 SELECTION_SET:
@@ -172,19 +444,22 @@ AFTER_SELECTION:
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if i.str[i.head] == '}' {
-		i.tail = -1
-		i.token = TokenSelEnd
-		fn(i)
-		i.levelSel--
-		i.head++
-		i.skipSTNRC()
-		if i.levelSel < 1 {
-			goto DEFINITION_END
-		}
-		goto AFTER_SELECTION
+		goto SEL_END
 	}
 	i.expect = ExpectSel
 	goto SELECTION
+
+SEL_END:
+	i.tail = -1
+	i.token = TokenSelEnd
+	fn(i)
+	i.levelSel--
+	i.head++
+	i.skipSTNRC()
+	if i.levelSel < 1 {
+		goto DEFINITION_END
+	}
+	goto AFTER_SELECTION
 
 VALUE:
 	i.skipSTNRC()
@@ -710,18 +985,30 @@ AFTER_VALUE_COMMENT:
 	goto NAME
 
 AFTER_ARG_LIST:
+	if dirOn != 0 {
+		goto AFTER_DIR_ARGS
+	}
+
 	i.skipSTNRC()
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
-	} else if i.str[i.head] == '{' {
+	}
+
+	if i.str[i.head] == '{' {
 		i.expect = ExpectSelSet
 		goto SELECTION_SET
 	} else if i.str[i.head] == '}' {
 		i.expect = ExpectAfterSelection
 		goto AFTER_SELECTION
+	} else if i.str[i.head] == '@' {
+		i.head++
+		i.skipSTNRC()
+		dirOn, i.expect = dirField, ExpectDirName
+		goto NAME
 	}
 	i.expect = ExpectSel
 	goto SELECTION
@@ -784,10 +1071,9 @@ FRAGMENT:
 			i.str[i.head+2] == ',' ||
 			i.str[i.head+2] == '#' {
 			// ... on Type {
-			i.head += len("on ")
-			i.skipSTNRC()
+			i.head += len("on")
 			i.expect = ExpectFragInlined
-			goto NAME
+			goto FRAG_TYPE_COND
 		}
 	}
 	// ...fragmentName
@@ -943,8 +1229,7 @@ AFTER_VAR_TYPE_NOT_NULL:
 		goto COMMENT
 	} else if i.str[i.head] == ']' {
 		if typeArrLvl < 1 {
-			i.errc = ErrUnexpToken
-			i.expect = ExpectVarName
+			i.errc, i.expect = ErrUnexpToken, ExpectVarName
 			goto ERROR
 		}
 		i.tail = -1
@@ -992,6 +1277,11 @@ AFTER_FIELD_NAME:
 	case '#':
 		i.expect = ExpectAfterFieldName
 		goto COMMENT
+	case '@':
+		i.head++
+		i.skipSTNRC()
+		dirOn, i.expect = dirField, ExpectDirName
+		goto NAME
 	}
 	i.expect = ExpectAfterSelection
 	goto AFTER_SELECTION
@@ -1024,6 +1314,12 @@ AFTER_NAME:
 		i.token = TokenField
 		fn(i)
 		goto AFTER_FIELD_NAME
+
+	case ExpectDirName:
+		// Callback directive name
+		i.token = TokenDirName
+		fn(i)
+		goto AFTER_DIR_NAME
 
 	case ExpectArgName:
 		// Callback for argument name
@@ -1080,17 +1376,24 @@ AFTER_NAME:
 			i.errc = ErrUnexpEOF
 			i.expect = ExpectSelSet
 			goto ERROR
-		} else if i.str[i.head] == '{' {
+		}
+		switch i.str[i.head] {
+		case '{':
 			i.expect = ExpectSelSet
 			goto SELECTION_SET
-		} else if i.str[i.head] == '(' {
+		case '(':
 			// Variable list
 			i.tail = -1
 			i.token = TokenVarList
 			fn(i)
 			i.head++
 			i.expect = ExpectVarName
-			goto QUERY_VAR
+			goto OPR_VAR
+		case '@':
+			i.head++
+			i.skipSTNRC()
+			dirOn, i.expect = dirOpr, ExpectDirName
+			goto NAME
 		}
 		i.errc = ErrUnexpToken
 		i.expect = ExpectSelSet
@@ -1099,12 +1402,32 @@ AFTER_NAME:
 	case ExpectFragInlined:
 		i.token = TokenFragInline
 		fn(i)
+
+		i.skipSTNRC()
+		if i.head >= len(i.str) {
+			i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
+			goto ERROR
+		} else if i.str[i.head] == '@' {
+			dirOn = dirFragInlineOrDef
+			goto AFTER_DIR_NAME
+		}
+
 		i.expect = ExpectSelSet
 		goto SELECTION_SET
 
 	case ExpectFragRef:
 		i.token = TokenFragRef
 		fn(i)
+
+		i.skipSTNRC()
+		if i.head >= len(i.str) {
+			i.errc, i.expect = ErrUnexpEOF, ExpectAfterSelection
+			goto ERROR
+		} else if i.str[i.head] == '@' {
+			dirOn = dirFragRef
+			goto AFTER_DIR_NAME
+		}
+
 		i.expect = ExpectAfterSelection
 		goto AFTER_SELECTION
 
@@ -1117,8 +1440,18 @@ AFTER_NAME:
 	case ExpectFragTypeCond:
 		i.token = TokenFragTypeCond
 		fn(i)
+
+		i.skipSTNRC()
+		if i.head >= len(i.str) {
+			i.errc = ErrUnexpEOF
+			goto ERROR
+		} else if i.str[i.head] == '@' {
+			dirOn = dirFragInlineOrDef
+			goto AFTER_DIR_NAME
+		}
 		i.expect = ExpectSelSet
 		goto SELECTION_SET
+
 	default:
 		// This line should never be executed!
 		// The panic is triggered only if we forgot to handle an expectation.
@@ -1207,6 +1540,8 @@ COMMENT:
 	switch i.expect {
 	case ExpectDef:
 		goto DEFINITION
+	case ExpectDirName:
+		goto AFTER_DIR_NAME
 	case ExpectSelSet:
 		goto SELECTION_SET
 	case ExpectSel:
@@ -1214,7 +1549,7 @@ COMMENT:
 	case ExpectAfterSelection:
 		goto AFTER_SELECTION
 	case ExpectVarName:
-		goto QUERY_VAR
+		goto OPR_VAR
 	case ExpectArgName:
 		goto ARG_LIST
 	case ExpectColumnAfterArg:
@@ -1233,6 +1568,8 @@ COMMENT:
 		goto AFTER_KEYWORD_FRAGMENT
 	case ExpectFragKeywordOn:
 		goto FRAG_KEYWORD_ON
+	case ExpectFragInlined:
+		goto FRAG_TYPE_COND
 	case ExpectFragTypeCond:
 		goto FRAG_TYPE_COND
 	case ExpectFrag:
