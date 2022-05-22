@@ -503,6 +503,7 @@ VALUE:
 					i.head++
 					goto EXPONENT_SIGN
 				} else if i.isHeadNumEnd() {
+					i.token = TokenInt
 					goto ON_NUM_VAL
 				} else {
 					i.errc = ErrInvalNum
@@ -527,6 +528,7 @@ VALUE:
 					goto ERROR
 				}
 				// Integer
+				i.token = TokenInt
 				goto ON_NUM_VAL
 			} else if i.str[i.head] == 'e' || i.str[i.head] == 'E' {
 				i.head++
@@ -541,6 +543,7 @@ VALUE:
 
 		if i.head >= len(i.str) {
 			// Integer without exponent
+			i.token = TokenInt
 			goto ON_NUM_VAL
 		}
 		// Continue to fraction
@@ -558,6 +561,7 @@ VALUE:
 					goto ERROR
 				}
 				// Number with fraction
+				i.token = TokenFloat
 				goto ON_NUM_VAL
 			} else if i.str[i.head] == 'e' || i.str[i.head] == 'E' {
 				i.head++
@@ -578,6 +582,7 @@ VALUE:
 
 		if i.head >= len(i.str) {
 			// Number (with fraction but) without exponent
+			i.token = TokenFloat
 			goto ON_NUM_VAL
 		}
 
@@ -602,6 +607,7 @@ VALUE:
 					goto ERROR
 				}
 				// Number with (fraction and) exponent
+				i.token = TokenFloat
 				goto ON_NUM_VAL
 			}
 			break
@@ -613,7 +619,6 @@ VALUE:
 
 	ON_NUM_VAL:
 		// Callback for argument
-		i.token = TokenNum
 		fn(i)
 	default:
 		// Invalid value

@@ -510,7 +510,8 @@ const (
 	TokenArrEnd
 	TokenStr
 	TokenStrBlock
-	TokenNum
+	TokenInt
+	TokenFloat
 	TokenTrue
 	TokenFalse
 	TokenNull
@@ -571,8 +572,10 @@ func (t Token) String() string {
 		return "string"
 	case TokenStrBlock:
 		return "block string"
-	case TokenNum:
-		return "number"
+	case TokenInt:
+		return "integer"
+	case TokenFloat:
+		return "float"
 	case TokenTrue:
 		return "true"
 	case TokenFalse:
