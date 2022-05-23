@@ -13,6 +13,9 @@ func ScanAll(str []byte, fn func(*Iterator)) Error {
 	i := acquireIterator(str)
 	defer iteratorPool.Put(i)
 
+	// inDefVal triggers different expectations after values
+	// when the iterator is in a variable default value definition.
+	var inDefVal bool
 	var typeArrLvl int
 	var dirOn dirTarget
 
@@ -185,7 +188,7 @@ AFTER_DIR_NAME:
 			goto VAR_LIST_END
 		default:
 			i.expect, dirOn = ExpectVarName, 0
-			goto NAME
+			goto OPR_VAR
 		}
 	case dirFragRef:
 		if i.head >= len(i.str) {
@@ -390,6 +393,11 @@ AFTER_VAR_TYPE:
 		i.skipSTNRC()
 		dirOn, i.expect = dirVar, ExpectDirName
 		goto NAME
+	} else if i.str[i.head] == '=' {
+		i.head++
+		i.skipSTNRC()
+		i.expect, inDefVal = ExpectVal, true
+		goto VALUE
 	} else if i.str[i.head] == ')' {
 		goto VAR_LIST_END
 	}
@@ -971,15 +979,31 @@ AFTER_VALUE_COMMENT:
 			goto VALUE
 		}
 	}
+
+	if inDefVal {
+		inDefVal = false
+		if i.str[i.head] == ')' {
+			goto VAR_LIST_END
+		} else if i.str[i.head] == '@' {
+			i.head++
+			i.skipSTNRC()
+			dirOn, i.expect = dirVar, ExpectDirName
+			goto NAME
+		}
+		i.expect = ExpectVarName
+		goto OPR_VAR
+	}
+
 	if i.str[i.head] == ')' {
+		// End of argument list
 		i.tail = -1
 		i.token = TokenArgListEnd
 		fn(i)
-		// End of argument list
 		i.head++
 		i.expect = ExpectAfterArgList
 		goto AFTER_ARG_LIST
 	}
+
 	// Proceed to the next argument
 	i.expect = ExpectArgName
 	goto NAME

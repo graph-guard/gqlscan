@@ -209,7 +209,10 @@ var testdata = []TestInput{
 		Token(gqlscan.TokenField, "done"),
 		Token(gqlscan.TokenSelEnd),
 	),
-	Input(`query Q($variable: Foo, $v: [ [ Bar ] ]) {
+	Input(`query Q(
+		$variable: Foo,
+		$v: [ [ Bar ] ] = [[{f:0}] null [null]]
+	) {
 		foo_alias: foo(x: null) {
 			foobar_alias: foo_bar
 		}
@@ -238,7 +241,7 @@ var testdata = []TestInput{
 				})
 			}
 		}
-	} mutation M($variable: Foo, $v: [ [ Bar ] ]) {
+	} mutation M($variable: Foo={f:2}, $v: [ [ Bar ] ]) {
 		foo(x: null) {
 			foo_bar
 		}
@@ -290,6 +293,18 @@ var testdata = []TestInput{
 		Token(gqlscan.TokenVarTypeName, "Bar"),
 		Token(gqlscan.TokenVarTypeArrEnd),
 		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenObj),
+		Token(gqlscan.TokenObjField, "f"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenObjEnd),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenNull, "null"),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenNull, "null"),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenArrEnd),
 		Token(gqlscan.TokenVarListEnd),
 		Token(gqlscan.TokenSel),
 		Token(gqlscan.TokenFieldAlias, "foo_alias"),
@@ -383,6 +398,10 @@ var testdata = []TestInput{
 		Token(gqlscan.TokenVarList),
 		Token(gqlscan.TokenVarName, "variable"),
 		Token(gqlscan.TokenVarTypeName, "Foo"),
+		Token(gqlscan.TokenObj),
+		Token(gqlscan.TokenObjField, "f"),
+		Token(gqlscan.TokenInt, "2"),
+		Token(gqlscan.TokenObjEnd),
 		Token(gqlscan.TokenVarName, "v"),
 		Token(gqlscan.TokenVarTypeArr),
 		Token(gqlscan.TokenVarTypeArr),
@@ -956,9 +975,13 @@ var testdata = []TestInput{
 		# sample comment text line
 		: # sample comment text line
 		# sample comment text line
-		T # sample comment text line
+		Int # sample comment text line
 		# sample comment text line
 		! # sample comment text line
+		# sample comment text line
+		= # sample comment text line
+		# sample comment text line
+		42 # sample comment text line
 		# sample comment text line
 		@d1 # sample comment text line
 		# sample comment text line
@@ -1031,8 +1054,9 @@ var testdata = []TestInput{
 		Token(gqlscan.TokenDefQry),
 		Token(gqlscan.TokenVarList),
 		Token(gqlscan.TokenVarName, "v"),
-		Token(gqlscan.TokenVarTypeName, "T"),
+		Token(gqlscan.TokenVarTypeName, "Int"),
 		Token(gqlscan.TokenVarTypeNotNull),
+		Token(gqlscan.TokenInt, "42"),
 		Token(gqlscan.TokenDirName, "d1"),
 		Token(gqlscan.TokenDirName, "d2"),
 		Token(gqlscan.TokenArgList),
@@ -1410,6 +1434,245 @@ var testdata = []TestInput{
 		Token(gqlscan.TokenArgListEnd),
 		Token(gqlscan.TokenSel),
 		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`query($v: Int = 12 @ok $v2: String) {x(a:$v)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "v"),
+		Token(gqlscan.TokenVarTypeName, "Int"),
+		Token(gqlscan.TokenInt, "12"),
+		Token(gqlscan.TokenDirName, "ok"),
+		Token(gqlscan.TokenVarName, "v2"),
+		Token(gqlscan.TokenVarTypeName, "String"),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`query Int($v: Int = 12) {x(a:$v)}
+		query String($v: String = "text") {x(a:$v)}
+		query BooleanTrue($v: Boolean = true) {x(a:$v)}
+		query BooleanFalse($v: Boolean = false) {x(a:$v)}
+		query Array($v: [Int] = [12]) {x(a:$v)}
+		`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenOprName, "Int"),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "v"),
+		Token(gqlscan.TokenVarTypeName, "Int"),
+		Token(gqlscan.TokenInt, "12"),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenOprName, "String"),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "v"),
+		Token(gqlscan.TokenVarTypeName, "String"),
+		Token(gqlscan.TokenStr, "text"),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenOprName, "BooleanTrue"),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "v"),
+		Token(gqlscan.TokenVarTypeName, "Boolean"),
+		Token(gqlscan.TokenTrue, "true"),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenOprName, "BooleanFalse"),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "v"),
+		Token(gqlscan.TokenVarTypeName, "Boolean"),
+		Token(gqlscan.TokenFalse, "false"),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenOprName, "Array"),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "v"),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeName, "Int"),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenInt, "12"),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`query(
+		$v1: Boolean = false
+		$v2: Boolean = true
+		$v3: Int = 12
+		$v4: Float = -3.14159265359
+		$v5: String = "default value"
+		$v6: String = ""
+		$v7: Int = null
+		$v8: [Int] = [1,null,3]
+		$v9: [Int] = []
+		$v10: Input = {foo: "bar"}
+		$v11: Input = {faz: "baz" taz: """maz"""}
+		$v12: String! = """block string"""
+		$v13: String! = """"""
+	) {x(
+		a1:$v1
+		a2:$v2
+		a3:$v3
+		a4:$v4
+		a5:$v5
+		a6:$v6
+		a7:$v7
+		a8:$v8
+		a9:$v9
+		a10:$v10
+		a11:$v11
+		a12:$v12
+		a13:$v13
+	)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenVarList),
+
+		Token(gqlscan.TokenVarName, "v1"),
+		Token(gqlscan.TokenVarTypeName, "Boolean"),
+		Token(gqlscan.TokenFalse, "false"),
+
+		Token(gqlscan.TokenVarName, "v2"),
+		Token(gqlscan.TokenVarTypeName, "Boolean"),
+		Token(gqlscan.TokenTrue, "true"),
+
+		Token(gqlscan.TokenVarName, "v3"),
+		Token(gqlscan.TokenVarTypeName, "Int"),
+		Token(gqlscan.TokenInt, "12"),
+
+		Token(gqlscan.TokenVarName, "v4"),
+		Token(gqlscan.TokenVarTypeName, "Float"),
+		Token(gqlscan.TokenFloat, "-3.14159265359"),
+
+		Token(gqlscan.TokenVarName, "v5"),
+		Token(gqlscan.TokenVarTypeName, "String"),
+		Token(gqlscan.TokenStr, "default value"),
+
+		Token(gqlscan.TokenVarName, "v6"),
+		Token(gqlscan.TokenVarTypeName, "String"),
+		Token(gqlscan.TokenStr, ""),
+
+		Token(gqlscan.TokenVarName, "v7"),
+		Token(gqlscan.TokenVarTypeName, "Int"),
+		Token(gqlscan.TokenNull, "null"),
+
+		Token(gqlscan.TokenVarName, "v8"),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeName, "Int"),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenInt, "1"),
+		Token(gqlscan.TokenNull, "null"),
+		Token(gqlscan.TokenInt, "3"),
+		Token(gqlscan.TokenArrEnd),
+
+		Token(gqlscan.TokenVarName, "v9"),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeName, "Int"),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenArrEnd),
+
+		Token(gqlscan.TokenVarName, "v10"),
+		Token(gqlscan.TokenVarTypeName, "Input"),
+		Token(gqlscan.TokenObj),
+		Token(gqlscan.TokenObjField, "foo"),
+		Token(gqlscan.TokenStr, "bar"),
+		Token(gqlscan.TokenObjEnd),
+
+		Token(gqlscan.TokenVarName, "v11"),
+		Token(gqlscan.TokenVarTypeName, "Input"),
+		Token(gqlscan.TokenObj),
+		Token(gqlscan.TokenObjField, "faz"),
+		Token(gqlscan.TokenStr, "baz"),
+		Token(gqlscan.TokenObjField, "taz"),
+		Token(gqlscan.TokenStrBlock, "maz"),
+		Token(gqlscan.TokenObjEnd),
+
+		Token(gqlscan.TokenVarName, "v12"),
+		Token(gqlscan.TokenVarTypeName, "String"),
+		Token(gqlscan.TokenVarTypeNotNull),
+		Token(gqlscan.TokenStrBlock, "block string"),
+
+		Token(gqlscan.TokenVarName, "v13"),
+		Token(gqlscan.TokenVarTypeName, "String"),
+		Token(gqlscan.TokenVarTypeNotNull),
+		Token(gqlscan.TokenStrBlock, ""),
+
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a1"),
+		Token(gqlscan.TokenVarRef, "v1"),
+		Token(gqlscan.TokenArg, "a2"),
+		Token(gqlscan.TokenVarRef, "v2"),
+		Token(gqlscan.TokenArg, "a3"),
+		Token(gqlscan.TokenVarRef, "v3"),
+		Token(gqlscan.TokenArg, "a4"),
+		Token(gqlscan.TokenVarRef, "v4"),
+		Token(gqlscan.TokenArg, "a5"),
+		Token(gqlscan.TokenVarRef, "v5"),
+		Token(gqlscan.TokenArg, "a6"),
+		Token(gqlscan.TokenVarRef, "v6"),
+		Token(gqlscan.TokenArg, "a7"),
+		Token(gqlscan.TokenVarRef, "v7"),
+		Token(gqlscan.TokenArg, "a8"),
+		Token(gqlscan.TokenVarRef, "v8"),
+		Token(gqlscan.TokenArg, "a9"),
+		Token(gqlscan.TokenVarRef, "v9"),
+		Token(gqlscan.TokenArg, "a10"),
+		Token(gqlscan.TokenVarRef, "v10"),
+		Token(gqlscan.TokenArg, "a11"),
+		Token(gqlscan.TokenVarRef, "v11"),
+		Token(gqlscan.TokenArg, "a12"),
+		Token(gqlscan.TokenVarRef, "v12"),
+		Token(gqlscan.TokenArg, "a13"),
+		Token(gqlscan.TokenVarRef, "v13"),
+		Token(gqlscan.TokenArgListEnd),
 		Token(gqlscan.TokenSelEnd),
 	),
 }
