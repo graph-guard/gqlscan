@@ -391,7 +391,9 @@ const (
 	ExpectFieldNameOrAlias
 	ExpectFieldName
 	ExpectSel
+	ExpectDir
 	ExpectDirName
+	ExpectVar
 	ExpectVarName
 	ExpectVarRefName
 	ExpectVarType
@@ -441,8 +443,12 @@ func (e Expect) String() string {
 		return "field name"
 	case ExpectSel:
 		return "selection"
+	case ExpectDir:
+		return "directive name"
 	case ExpectDirName:
 		return "directive name"
+	case ExpectVar:
+		return "variable"
 	case ExpectVarName:
 		return "variable name"
 	case ExpectVarRefName:

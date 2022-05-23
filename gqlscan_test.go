@@ -211,7 +211,7 @@ var testdata = []TestInput{
 	),
 	Input(`query Q(
 		$variable: Foo,
-		$v: [ [ Bar ] ] = [[{f:0}] null [null]]
+		$ v: [ [ Bar ] ] = [[{f:0}] null [null]]
 	) {
 		foo_alias: foo(x: null) {
 			foobar_alias: foo_bar
@@ -971,7 +971,9 @@ var testdata = []TestInput{
 	# sample comment text line
 	( # sample comment text line
 		# sample comment text line
-		$v # sample comment text line
+		$ # sample comment text line
+		# sample comment text line
+		v # sample comment text line
 		# sample comment text line
 		: # sample comment text line
 		# sample comment text line
@@ -983,7 +985,9 @@ var testdata = []TestInput{
 		# sample comment text line
 		42 # sample comment text line
 		# sample comment text line
-		@d1 # sample comment text line
+		@ # sample comment text line
+		# sample comment text line
+		d1 # sample comment text line
 		# sample comment text line
 		@d2 # sample comment text line
 		# sample comment text line
@@ -1791,7 +1795,7 @@ var testdataErr = []TestInputErr{
 	InputErr( // Unexpected square bracket in variable type.
 		"query($a: A]){f}",
 		"error at index 11 (']'): unexpected token; "+
-			"expected variable name",
+			"expected variable",
 	),
 	InputErr( // Unexpected square bracket in variable type.
 		"query($a: [[A]]]){f}",
@@ -1815,11 +1819,6 @@ var testdataErr = []TestInputErr{
 		"{}",
 		"error at index 1 ('}'): unexpected token; "+
 			"expected field name or alias",
-	),
-	InputErr( // Variable missing name.
-		"query($ ",
-		"error at index 7 (' '): unexpected token; "+
-			"expected variable name",
 	),
 	InputErr( // Empty args.
 		"{f()}",
@@ -1907,16 +1906,21 @@ var testdataErr = []TestInputErr{
 	InputErr( // Unexpected EOF.
 		"query(",
 		"error at index 6: unexpected end of file; "+
-			"expected variable name",
+			"expected variable",
 	),
 	InputErr( // Unexpected EOF.
 		"query( ",
 		"error at index 7: unexpected end of file; "+
-			"expected variable name",
+			"expected variable",
 	),
 	InputErr( // Unexpected EOF.
 		"query($",
-		"error at index 6: unexpected end of file; "+
+		"error at index 7: unexpected end of file; "+
+			"expected variable name",
+	),
+	InputErr( // Variable missing name.
+		"query($ ",
+		"error at index 8: unexpected end of file; "+
 			"expected variable name",
 	),
 	InputErr( // Unexpected EOF.

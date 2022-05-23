@@ -110,13 +110,12 @@ AFTER_DEF_KEYWORD:
 			goto ERROR
 		}
 		i.head++
-		i.expect = ExpectVarName
+		i.expect = ExpectVar
 		goto OPR_VAR
 	case '@':
 		i.head++
-		i.skipSTNRC()
-		dirOn, i.expect = dirOpr, ExpectDirName
-		goto NAME
+		dirOn, i.expect = dirOpr, ExpectDir
+		goto DIR_NAME
 	}
 	i.expect = ExpectOprName
 	goto NAME
@@ -146,9 +145,8 @@ AFTER_DIR_NAME:
 			goto ARG_LIST
 		case '@':
 			i.head++
-			i.skipSTNRC()
-			i.expect = ExpectDirName
-			goto NAME
+			i.expect = ExpectDir
+			goto DIR_NAME
 		case '{':
 			// Field selector expands without arguments
 			i.expect = ExpectSelSet
@@ -179,9 +177,8 @@ AFTER_DIR_NAME:
 			goto ARG_LIST
 		case '@':
 			i.head++
-			i.skipSTNRC()
-			i.expect = ExpectDirName
-			goto NAME
+			i.expect = ExpectDir
+			goto DIR_NAME
 		default:
 			i.expect, dirOn = ExpectSelSet, 0
 			goto SELECTION_SET
@@ -208,14 +205,13 @@ AFTER_DIR_NAME:
 			goto ARG_LIST
 		case '@':
 			i.head++
-			i.skipSTNRC()
-			i.expect = ExpectDirName
-			goto NAME
+			i.expect = ExpectDir
+			goto DIR_NAME
 		case ')':
 			dirOn = 0
 			goto VAR_LIST_END
 		default:
-			i.expect, dirOn = ExpectVarName, 0
+			i.expect, dirOn = ExpectVar, 0
 			goto OPR_VAR
 		}
 	case dirFragRef:
@@ -240,9 +236,8 @@ AFTER_DIR_NAME:
 			goto ARG_LIST
 		case '@':
 			i.head++
-			i.skipSTNRC()
-			i.expect = ExpectDirName
-			goto NAME
+			i.expect = ExpectDir
+			goto DIR_NAME
 		default:
 			i.expect, dirOn = ExpectAfterSelection, 0
 			goto AFTER_SELECTION
@@ -269,9 +264,8 @@ AFTER_DIR_NAME:
 			goto ARG_LIST
 		case '@':
 			i.head++
-			i.skipSTNRC()
-			i.expect = ExpectDirName
-			goto NAME
+			i.expect = ExpectDir
+			goto DIR_NAME
 		default:
 			i.expect = ExpectSelSet
 			goto SELECTION_SET
@@ -294,9 +288,8 @@ AFTER_DIR_ARGS:
 			goto COMMENT
 		case '@':
 			i.head++
-			i.skipSTNRC()
-			i.expect = ExpectDirName
-			goto NAME
+			i.expect = ExpectDir
+			goto DIR_NAME
 		case '{':
 			// Field selector expands without arguments
 			i.expect = ExpectSelSet
@@ -315,9 +308,8 @@ AFTER_DIR_ARGS:
 			goto COMMENT
 		case '@':
 			i.head++
-			i.skipSTNRC()
-			i.expect = ExpectDirName
-			goto NAME
+			i.expect = ExpectDir
+			goto DIR_NAME
 		default:
 			i.expect, dirOn = ExpectSelSet, 0
 			goto SELECTION_SET
@@ -333,9 +325,8 @@ AFTER_DIR_ARGS:
 			goto COMMENT
 		case '@':
 			i.head++
-			i.skipSTNRC()
-			i.expect = ExpectDirName
-			goto NAME
+			i.expect = ExpectDir
+			goto DIR_NAME
 		case ')':
 			goto VAR_LIST_END
 		default:
@@ -352,9 +343,8 @@ AFTER_DIR_ARGS:
 			goto COMMENT
 		case '@':
 			i.head++
-			i.skipSTNRC()
-			i.expect = ExpectDirName
-			goto NAME
+			i.expect = ExpectDir
+			goto DIR_NAME
 		default:
 			i.expect, dirOn = ExpectAfterSelection, 0
 			goto AFTER_SELECTION
@@ -369,9 +359,8 @@ AFTER_DIR_ARGS:
 			goto COMMENT
 		case '@':
 			i.head++
-			i.skipSTNRC()
-			i.expect = ExpectDirName
-			goto NAME
+			i.expect = ExpectDir
+			goto DIR_NAME
 		default:
 			i.expect = ExpectSelSet
 			goto SELECTION_SET
@@ -400,7 +389,7 @@ OPR_VAR:
 	}
 
 	// Variable name
-	if i.head+1 >= len(i.str) {
+	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	} else if i.str[i.head] != '$' {
@@ -408,7 +397,8 @@ OPR_VAR:
 		goto ERROR
 	}
 	i.head++
-	goto NAME
+	i.expect = ExpectVarName
+	goto VAR_NAME
 
 AFTER_VAR_TYPE:
 	i.skipSTNRC()
@@ -424,9 +414,8 @@ AFTER_VAR_TYPE:
 		goto ERROR
 	} else if i.str[i.head] == '@' {
 		i.head++
-		i.skipSTNRC()
-		dirOn, i.expect = dirVar, ExpectDirName
-		goto NAME
+		dirOn, i.expect = dirVar, ExpectDir
+		goto DIR_NAME
 	} else if i.str[i.head] == '=' {
 		i.head++
 		i.skipSTNRC()
@@ -456,9 +445,8 @@ VAR_LIST_END:
 		goto AFTER_DIR_NAME
 	} else if i.str[i.head] == '@' {
 		i.head++
-		i.skipSTNRC()
-		dirOn, i.expect = dirOpr, ExpectDirName
-		goto NAME
+		dirOn, i.expect = dirOpr, ExpectDir
+		goto DIR_NAME
 	}
 	goto SELECTION_SET
 
@@ -748,7 +736,7 @@ VALUE:
 
 		// Variable name
 		i.expect = ExpectVarRefName
-		goto NAME
+		goto VAR_NAME
 
 	case 'n':
 		// Null
@@ -1062,11 +1050,10 @@ AFTER_VALUE_COMMENT:
 			goto VAR_LIST_END
 		} else if i.str[i.head] == '@' {
 			i.head++
-			i.skipSTNRC()
-			dirOn, i.expect = dirVar, ExpectDirName
-			goto NAME
+			dirOn, i.expect = dirVar, ExpectDir
+			goto DIR_NAME
 		}
-		i.expect = ExpectVarName
+		i.expect = ExpectVar
 		goto OPR_VAR
 	}
 
@@ -1109,9 +1096,8 @@ AFTER_ARG_LIST:
 		goto AFTER_SELECTION
 	} else if i.str[i.head] == '@' {
 		i.head++
-		i.skipSTNRC()
-		dirOn, i.expect = dirField, ExpectDirName
-		goto NAME
+		dirOn, i.expect = dirField, ExpectDir
+		goto DIR_NAME
 	}
 	i.expect = ExpectSel
 	goto SELECTION
@@ -1217,6 +1203,27 @@ VAR_TYPE:
 		goto VAR_TYPE
 	}
 	i.expect = ExpectVarType
+	goto NAME
+
+VAR_NAME:
+	i.skipSTNRC()
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	} else if i.str[i.head] == '#' {
+		goto COMMENT
+	}
+	goto NAME
+
+DIR_NAME:
+	i.skipSTNRC()
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	} else if i.str[i.head] == '#' {
+		goto COMMENT
+	}
+	i.expect = ExpectDirName
 	goto NAME
 
 NAME:
@@ -1338,7 +1345,7 @@ AFTER_VAR_TYPE_NOT_NULL:
 		goto COMMENT
 	} else if i.str[i.head] == ']' {
 		if typeArrLvl < 1 {
-			i.errc, i.expect = ErrUnexpToken, ExpectVarName
+			i.errc, i.expect = ErrUnexpToken, ExpectVar
 			goto ERROR
 		}
 		i.tail = -1
@@ -1397,9 +1404,8 @@ AFTER_FIELD_NAME:
 		goto COMMENT
 	case '@':
 		i.head++
-		i.skipSTNRC()
-		dirOn, i.expect = dirField, ExpectDirName
-		goto NAME
+		dirOn, i.expect = dirField, ExpectDir
+		goto DIR_NAME
 	}
 	i.expect = ExpectAfterSelection
 	goto AFTER_SELECTION
@@ -1500,7 +1506,7 @@ AFTER_NAME:
 		i.expect = ExpectAfterVarTypeName
 		goto AFTER_VAR_TYPE_NAME
 
-	case ExpectVarName, ExpectAfterVarType:
+	case ExpectVarName:
 		i.token = TokenVarName
 		if fn(i) {
 			i.errc = ErrCallbackFn
@@ -1535,13 +1541,12 @@ AFTER_NAME:
 				goto ERROR
 			}
 			i.head++
-			i.expect = ExpectVarName
+			i.expect = ExpectVar
 			goto OPR_VAR
 		case '@':
 			i.head++
-			i.skipSTNRC()
-			dirOn, i.expect = dirOpr, ExpectDirName
-			goto NAME
+			dirOn, i.expect = dirOpr, ExpectDir
+			goto DIR_NAME
 		}
 		i.errc = ErrUnexpToken
 		i.expect = ExpectSelSet
@@ -1698,8 +1703,12 @@ COMMENT:
 	i.tail = -1
 	i.skipSTNRC()
 	switch i.expect {
+	case ExpectVarRefName, ExpectVarName:
+		goto VAR_NAME
 	case ExpectDef:
 		goto DEFINITION
+	case ExpectDir:
+		goto DIR_NAME
 	case ExpectDirName:
 		goto AFTER_DIR_NAME
 	case ExpectSelSet:
@@ -1708,7 +1717,7 @@ COMMENT:
 		goto SELECTION
 	case ExpectAfterSelection:
 		goto AFTER_SELECTION
-	case ExpectVarName:
+	case ExpectVar:
 		goto OPR_VAR
 	case ExpectArgName:
 		goto ARG_LIST
