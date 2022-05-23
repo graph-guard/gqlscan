@@ -3,6 +3,7 @@ package gqlscan_test
 import (
 	_ "embed"
 	"fmt"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -25,190 +26,190 @@ type TestInput struct {
 }
 
 var testdata = []TestInput{
-	{Decl(), `{foo}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "foo"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `query {foo}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "foo"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(f: {foo: false})}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "f"},
-		{Decl(), gqlscan.TokenObj, ""},
-		{Decl(), gqlscan.TokenObjField, "foo"},
-		{Decl(), gqlscan.TokenFalse, "false"},
-		{Decl(), gqlscan.TokenObjEnd, ""},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(f: false)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "f"},
-		{Decl(), gqlscan.TokenFalse, "false"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(f: true)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "f"},
-		{Decl(), gqlscan.TokenTrue, "true"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(f: null)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "f"},
-		{Decl(), gqlscan.TokenNull, "null"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(f: [])}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "f"},
-		{Decl(), gqlscan.TokenArr, ""},
-		{Decl(), gqlscan.TokenArrEnd, ""},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(f: [[]])}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "f"},
-		{Decl(), gqlscan.TokenArr, ""},
-		{Decl(), gqlscan.TokenArr, ""},
-		{Decl(), gqlscan.TokenArrEnd, ""},
-		{Decl(), gqlscan.TokenArrEnd, ""},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(f: 0)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "f"},
-		{Decl(), gqlscan.TokenInt, "0"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(f: 0.0)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "f"},
-		{Decl(), gqlscan.TokenFloat, "0.0"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(f: 42)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "f"},
-		{Decl(), gqlscan.TokenInt, "42"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(f: -42)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "f"},
-		{Decl(), gqlscan.TokenInt, "-42"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(f: -42.5678)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "f"},
-		{Decl(), gqlscan.TokenFloat, "-42.5678"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(f: -42.5678e2)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "f"},
-		{Decl(), gqlscan.TokenFloat, "-42.5678e2"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{ f (f: {x: 2}) }`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "f"},
-		{Decl(), gqlscan.TokenObj, ""},
-		{Decl(), gqlscan.TokenObjField, "x"},
-		{Decl(), gqlscan.TokenInt, "2"},
-		{Decl(), gqlscan.TokenObjEnd, ""},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `fragment f1 on Query { todos { ...f2 } }
+	Input(`{foo}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "foo"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`query {foo}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "foo"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(f: {foo: false})}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "f"),
+		Token(gqlscan.TokenObj),
+		Token(gqlscan.TokenObjField, "foo"),
+		Token(gqlscan.TokenFalse, "false"),
+		Token(gqlscan.TokenObjEnd),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(f: false)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "f"),
+		Token(gqlscan.TokenFalse, "false"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(f: true)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "f"),
+		Token(gqlscan.TokenTrue, "true"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(f: null)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "f"),
+		Token(gqlscan.TokenNull, "null"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(f: [])}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "f"),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(f: [[]])}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "f"),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(f: 0)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "f"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(f: 0.0)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "f"),
+		Token(gqlscan.TokenFloat, "0.0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(f: 42)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "f"),
+		Token(gqlscan.TokenInt, "42"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(f: -42)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "f"),
+		Token(gqlscan.TokenInt, "-42"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(f: -42.5678)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "f"),
+		Token(gqlscan.TokenFloat, "-42.5678"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(f: -42.5678e2)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "f"),
+		Token(gqlscan.TokenFloat, "-42.5678e2"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{ f (f: {x: 2}) }`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "f"),
+		Token(gqlscan.TokenObj),
+		Token(gqlscan.TokenObjField, "x"),
+		Token(gqlscan.TokenInt, "2"),
+		Token(gqlscan.TokenObjEnd),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`fragment f1 on Query { todos { ...f2 } }
 	query Todos { ...f1 }
-	fragment f2 on Todo { id text done }`, []Expect{
+	fragment f2 on Todo { id text done }`,
 		// Fragment f1
-		{Decl(), gqlscan.TokenDefFrag, ""},
-		{Decl(), gqlscan.TokenFragName, "f1"},
-		{Decl(), gqlscan.TokenFragTypeCond, "Query"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "todos"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenFragRef, "f2"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
+		Token(gqlscan.TokenDefFrag),
+		Token(gqlscan.TokenFragName, "f1"),
+		Token(gqlscan.TokenFragTypeCond, "Query"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "todos"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenFragRef, "f2"),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenSelEnd),
 
 		// Query Todos
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenOprName, "Todos"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenFragRef, "f1"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenOprName, "Todos"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenFragRef, "f1"),
+		Token(gqlscan.TokenSelEnd),
 
 		// Fragment f2
-		{Decl(), gqlscan.TokenDefFrag, ""},
-		{Decl(), gqlscan.TokenFragName, "f2"},
-		{Decl(), gqlscan.TokenFragTypeCond, "Todo"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "id"},
-		{Decl(), gqlscan.TokenField, "text"},
-		{Decl(), gqlscan.TokenField, "done"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `query Q($variable: Foo, $v: [ [ Bar ] ]) {
+		Token(gqlscan.TokenDefFrag),
+		Token(gqlscan.TokenFragName, "f2"),
+		Token(gqlscan.TokenFragTypeCond, "Todo"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "id"),
+		Token(gqlscan.TokenField, "text"),
+		Token(gqlscan.TokenField, "done"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`query Q($variable: Foo, $v: [ [ Bar ] ]) {
 		foo_alias: foo(x: null) {
 			foobar_alias: foo_bar
 		}
@@ -276,645 +277,645 @@ var testdata = []TestInput{
 	) done }
 	subscription S($v:Input!){
 		sub(i: $v) {f}
-	}`, []Expect{
+	}`,
 		// Query Q
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenOprName, "Q"},
-		{Decl(), gqlscan.TokenVarList, ""},
-		{Decl(), gqlscan.TokenVarName, "variable"},
-		{Decl(), gqlscan.TokenVarTypeName, "Foo"},
-		{Decl(), gqlscan.TokenVarName, "v"},
-		{Decl(), gqlscan.TokenVarTypeArr, ""},
-		{Decl(), gqlscan.TokenVarTypeArr, ""},
-		{Decl(), gqlscan.TokenVarTypeName, "Bar"},
-		{Decl(), gqlscan.TokenVarTypeArrEnd, ""},
-		{Decl(), gqlscan.TokenVarTypeArrEnd, ""},
-		{Decl(), gqlscan.TokenVarListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenFieldAlias, "foo_alias"},
-		{Decl(), gqlscan.TokenField, "foo"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "x"},
-		{Decl(), gqlscan.TokenNull, "null"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenFieldAlias, "foobar_alias"},
-		{Decl(), gqlscan.TokenField, "foo_bar"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenField, "bar"},
-		{Decl(), gqlscan.TokenField, "baz"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenFragInline, "A"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz_A"},
-		{Decl(), gqlscan.TokenFragRef, "namedFragment1"},
-		{Decl(), gqlscan.TokenFragRef, "namedFragment2"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenFragInline, "B"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz_B"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz1"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "bool"},
-		{Decl(), gqlscan.TokenFalse, "false"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz2"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "bool"},
-		{Decl(), gqlscan.TokenTrue, "true"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz3"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "string"},
-		{Decl(), gqlscan.TokenStr, "okay"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz4"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "array"},
-		{Decl(), gqlscan.TokenArr, ""},
-		{Decl(), gqlscan.TokenArrEnd, ""},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz5"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "variable"},
-		{Decl(), gqlscan.TokenVarRef, "variable"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz6"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "variable"},
-		{Decl(), gqlscan.TokenVarRef, "v"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz7"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "object"},
-		{Decl(), gqlscan.TokenObj, ""},
-		{Decl(), gqlscan.TokenObjField, "number0"},
-		{Decl(), gqlscan.TokenInt, "0"},
-		{Decl(), gqlscan.TokenObjField, "number1"},
-		{Decl(), gqlscan.TokenInt, "2"},
-		{Decl(), gqlscan.TokenObjField, "number2"},
-		{Decl(), gqlscan.TokenFloat, "123456789.1234e2"},
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenOprName, "Q"),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "variable"),
+		Token(gqlscan.TokenVarTypeName, "Foo"),
+		Token(gqlscan.TokenVarName, "v"),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeName, "Bar"),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenFieldAlias, "foo_alias"),
+		Token(gqlscan.TokenField, "foo"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "x"),
+		Token(gqlscan.TokenNull, "null"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenFieldAlias, "foobar_alias"),
+		Token(gqlscan.TokenField, "foo_bar"),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenField, "bar"),
+		Token(gqlscan.TokenField, "baz"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "baz_fuzz"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenFragInline, "A"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "baz_fuzz_taz_A"),
+		Token(gqlscan.TokenFragRef, "namedFragment1"),
+		Token(gqlscan.TokenFragRef, "namedFragment2"),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenFragInline, "B"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "baz_fuzz_taz_B"),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenField, "baz_fuzz_taz1"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "bool"),
+		Token(gqlscan.TokenFalse, "false"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenField, "baz_fuzz_taz2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "bool"),
+		Token(gqlscan.TokenTrue, "true"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenField, "baz_fuzz_taz3"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "string"),
+		Token(gqlscan.TokenStr, "okay"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenField, "baz_fuzz_taz4"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "array"),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenField, "baz_fuzz_taz5"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "variable"),
+		Token(gqlscan.TokenVarRef, "variable"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenField, "baz_fuzz_taz6"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "variable"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenField, "baz_fuzz_taz7"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "object"),
+		Token(gqlscan.TokenObj),
+		Token(gqlscan.TokenObjField, "number0"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenObjField, "number1"),
+		Token(gqlscan.TokenInt, "2"),
+		Token(gqlscan.TokenObjField, "number2"),
+		Token(gqlscan.TokenFloat, "123456789.1234e2"),
 
-		{Decl(), gqlscan.TokenObjField, "arr0"},
-		{Decl(), gqlscan.TokenArr, ""},
-		{Decl(), gqlscan.TokenArr, ""},
-		{Decl(), gqlscan.TokenArrEnd, ""},
-		{Decl(), gqlscan.TokenArr, ""},
-		{Decl(), gqlscan.TokenObj, ""},
-		{Decl(), gqlscan.TokenObjField, "x"},
-		{Decl(), gqlscan.TokenNull, "null"},
-		{Decl(), gqlscan.TokenObjEnd, ""},
-		{Decl(), gqlscan.TokenArrEnd, ""},
-		{Decl(), gqlscan.TokenArrEnd, ""},
+		Token(gqlscan.TokenObjField, "arr0"),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenObj),
+		Token(gqlscan.TokenObjField, "x"),
+		Token(gqlscan.TokenNull, "null"),
+		Token(gqlscan.TokenObjEnd),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenArrEnd),
 
-		{Decl(), gqlscan.TokenObjEnd, ""},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
+		Token(gqlscan.TokenObjEnd),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenSelEnd),
 
 		// Mutation M
-		{Decl(), gqlscan.TokenDefMut, ""},
-		{Decl(), gqlscan.TokenOprName, "M"},
-		{Decl(), gqlscan.TokenVarList, ""},
-		{Decl(), gqlscan.TokenVarName, "variable"},
-		{Decl(), gqlscan.TokenVarTypeName, "Foo"},
-		{Decl(), gqlscan.TokenVarName, "v"},
-		{Decl(), gqlscan.TokenVarTypeArr, ""},
-		{Decl(), gqlscan.TokenVarTypeArr, ""},
-		{Decl(), gqlscan.TokenVarTypeName, "Bar"},
-		{Decl(), gqlscan.TokenVarTypeArrEnd, ""},
-		{Decl(), gqlscan.TokenVarTypeArrEnd, ""},
-		{Decl(), gqlscan.TokenVarListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "foo"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "x"},
-		{Decl(), gqlscan.TokenNull, "null"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "foo_bar"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenField, "bar"},
-		{Decl(), gqlscan.TokenField, "baz"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenFragInline, "A"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz_A"},
-		{Decl(), gqlscan.TokenFragRef, "namedFragment1"},
-		{Decl(), gqlscan.TokenFragRef, "namedFragment2"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenFragInline, "B"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz_B"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz1"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "bool"},
-		{Decl(), gqlscan.TokenFalse, "false"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz2"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "bool"},
-		{Decl(), gqlscan.TokenTrue, "true"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz3"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "string"},
-		{Decl(), gqlscan.TokenStr, "okay"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz4"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "array"},
-		{Decl(), gqlscan.TokenArr, ""},
-		{Decl(), gqlscan.TokenArrEnd, ""},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz5"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "variable"},
-		{Decl(), gqlscan.TokenVarRef, "variable"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz6"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "variable"},
-		{Decl(), gqlscan.TokenVarRef, "v"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz7"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "object"},
-		{Decl(), gqlscan.TokenObj, ""},
-		{Decl(), gqlscan.TokenObjField, "number0"},
-		{Decl(), gqlscan.TokenInt, "0"},
-		{Decl(), gqlscan.TokenObjField, "number1"},
-		{Decl(), gqlscan.TokenInt, "2"},
-		{Decl(), gqlscan.TokenObjField, "number2"},
-		{Decl(), gqlscan.TokenFloat, "123456789.1234e2"},
+		Token(gqlscan.TokenDefMut),
+		Token(gqlscan.TokenOprName, "M"),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "variable"),
+		Token(gqlscan.TokenVarTypeName, "Foo"),
+		Token(gqlscan.TokenVarName, "v"),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeName, "Bar"),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "foo"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "x"),
+		Token(gqlscan.TokenNull, "null"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "foo_bar"),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenField, "bar"),
+		Token(gqlscan.TokenField, "baz"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "baz_fuzz"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenFragInline, "A"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "baz_fuzz_taz_A"),
+		Token(gqlscan.TokenFragRef, "namedFragment1"),
+		Token(gqlscan.TokenFragRef, "namedFragment2"),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenFragInline, "B"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "baz_fuzz_taz_B"),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenField, "baz_fuzz_taz1"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "bool"),
+		Token(gqlscan.TokenFalse, "false"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenField, "baz_fuzz_taz2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "bool"),
+		Token(gqlscan.TokenTrue, "true"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenField, "baz_fuzz_taz3"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "string"),
+		Token(gqlscan.TokenStr, "okay"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenField, "baz_fuzz_taz4"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "array"),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenField, "baz_fuzz_taz5"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "variable"),
+		Token(gqlscan.TokenVarRef, "variable"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenField, "baz_fuzz_taz6"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "variable"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenField, "baz_fuzz_taz7"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "object"),
+		Token(gqlscan.TokenObj),
+		Token(gqlscan.TokenObjField, "number0"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenObjField, "number1"),
+		Token(gqlscan.TokenInt, "2"),
+		Token(gqlscan.TokenObjField, "number2"),
+		Token(gqlscan.TokenFloat, "123456789.1234e2"),
 
-		{Decl(), gqlscan.TokenObjField, "arr0"},
-		{Decl(), gqlscan.TokenArr, ""},
-		{Decl(), gqlscan.TokenArr, ""},
-		{Decl(), gqlscan.TokenArrEnd, ""},
-		{Decl(), gqlscan.TokenArr, ""},
-		{Decl(), gqlscan.TokenObj, ""},
-		{Decl(), gqlscan.TokenObjField, "x"},
-		{Decl(), gqlscan.TokenNull, "null"},
-		{Decl(), gqlscan.TokenObjEnd, ""},
-		{Decl(), gqlscan.TokenArrEnd, ""},
-		{Decl(), gqlscan.TokenArrEnd, ""},
+		Token(gqlscan.TokenObjField, "arr0"),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenObj),
+		Token(gqlscan.TokenObjField, "x"),
+		Token(gqlscan.TokenNull, "null"),
+		Token(gqlscan.TokenObjEnd),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenArrEnd),
 
-		{Decl(), gqlscan.TokenObjEnd, ""},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
+		Token(gqlscan.TokenObjEnd),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenSelEnd),
 
 		// Fragment f1
-		{Decl(), gqlscan.TokenDefFrag, ""},
-		{Decl(), gqlscan.TokenFragName, "f1"},
-		{Decl(), gqlscan.TokenFragTypeCond, "Query"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "todos"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenFragRef, "f2"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
+		Token(gqlscan.TokenDefFrag),
+		Token(gqlscan.TokenFragName, "f1"),
+		Token(gqlscan.TokenFragTypeCond, "Query"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "todos"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenFragRef, "f2"),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenSelEnd),
 
 		// Query Todos
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenOprName, "Todos"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenFragRef, "f1"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenOprName, "Todos"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenFragRef, "f1"),
+		Token(gqlscan.TokenSelEnd),
 
 		// Fragment f2
-		{Decl(), gqlscan.TokenDefFrag, ""},
-		{Decl(), gqlscan.TokenFragName, "f2"},
-		{Decl(), gqlscan.TokenFragTypeCond, "Todo"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "id"},
-		{Decl(), gqlscan.TokenField, "text"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "foo"},
-		{Decl(), gqlscan.TokenInt, "2"},
-		{Decl(), gqlscan.TokenArg, "bar"},
-		{Decl(), gqlscan.TokenStr, "ok"},
-		{Decl(), gqlscan.TokenArg, "baz"},
-		{Decl(), gqlscan.TokenNull, "null"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenField, "done"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
+		Token(gqlscan.TokenDefFrag),
+		Token(gqlscan.TokenFragName, "f2"),
+		Token(gqlscan.TokenFragTypeCond, "Todo"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "id"),
+		Token(gqlscan.TokenField, "text"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "foo"),
+		Token(gqlscan.TokenInt, "2"),
+		Token(gqlscan.TokenArg, "bar"),
+		Token(gqlscan.TokenStr, "ok"),
+		Token(gqlscan.TokenArg, "baz"),
+		Token(gqlscan.TokenNull, "null"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenField, "done"),
+		Token(gqlscan.TokenSelEnd),
 
 		// Subscription S
-		{Decl(), gqlscan.TokenDefSub, ""},
-		{Decl(), gqlscan.TokenOprName, "S"},
-		{Decl(), gqlscan.TokenVarList, ""},
-		{Decl(), gqlscan.TokenVarName, "v"},
-		{Decl(), gqlscan.TokenVarTypeName, "Input"},
-		{Decl(), gqlscan.TokenVarTypeNotNull, ""},
-		{Decl(), gqlscan.TokenVarListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "sub"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "i"},
-		{Decl(), gqlscan.TokenVarRef, "v"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
+		Token(gqlscan.TokenDefSub),
+		Token(gqlscan.TokenOprName, "S"),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "v"),
+		Token(gqlscan.TokenVarTypeName, "Input"),
+		Token(gqlscan.TokenVarTypeNotNull),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "sub"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "i"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
 
 	// Comments
-	{Decl(), "  #comment1\n  #comment2\n  {x}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "{  #comment1\n  #comment2\n  x}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "{x  #comment1\n  #comment2\n  }", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "{x}  #comment1\n  #comment2\n", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "{x(  #comment1\n  #comment2\n  y:0)}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "y"},
-		{Decl(), gqlscan.TokenInt, "0"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "{x(y  #comment1\n  #comment2\n  :0)}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "y"},
-		{Decl(), gqlscan.TokenInt, "0"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "{x(y:  #comment1\n  #comment2\n  0)}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "y"},
-		{Decl(), gqlscan.TokenInt, "0"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "{x(y:0  #comment1\n  #comment2\n  )}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "y"},
-		{Decl(), gqlscan.TokenInt, "0"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "{x(y:0)  #comment1\n  #comment2\n  }", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "y"},
-		{Decl(), gqlscan.TokenInt, "0"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "query  #comment1\n  #comment2\n  {x}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "mutation  #comment1\n  #comment2\n  {x}", []Expect{
-		{Decl(), gqlscan.TokenDefMut, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "fragment  #comment1\n  #comment2\n  f on X{x}", []Expect{
-		{Decl(), gqlscan.TokenDefFrag, ""},
-		{Decl(), gqlscan.TokenFragName, "f"},
-		{Decl(), gqlscan.TokenFragTypeCond, "X"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "fragment f  #comment1\n  #comment2\n  on X{x}", []Expect{
-		{Decl(), gqlscan.TokenDefFrag, ""},
-		{Decl(), gqlscan.TokenFragName, "f"},
-		{Decl(), gqlscan.TokenFragTypeCond, "X"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "fragment f on  #comment1\n  #comment2\n  X{x}", []Expect{
-		{Decl(), gqlscan.TokenDefFrag, ""},
-		{Decl(), gqlscan.TokenFragName, "f"},
-		{Decl(), gqlscan.TokenFragTypeCond, "X"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "fragment f on X  #comment1\n  #comment2\n  {x}", []Expect{
-		{Decl(), gqlscan.TokenDefFrag, ""},
-		{Decl(), gqlscan.TokenFragName, "f"},
-		{Decl(), gqlscan.TokenFragTypeCond, "X"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "{  ...  #comment1\n  #comment2\n  f  }", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenFragRef, "f"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "{  ...  f  #comment1\n  #comment2\n  }", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenFragRef, "f"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "query(  #comment1\n  #comment2\n  $x: T){x}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenVarList, ""},
-		{Decl(), gqlscan.TokenVarName, "x"},
-		{Decl(), gqlscan.TokenVarTypeName, "T"},
-		{Decl(), gqlscan.TokenVarListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "query($x  #comment1\n  #comment2\n  : T){x}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenVarList, ""},
-		{Decl(), gqlscan.TokenVarName, "x"},
-		{Decl(), gqlscan.TokenVarTypeName, "T"},
-		{Decl(), gqlscan.TokenVarListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "query($x:  #comment1\n  #comment2\n  T){x}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenVarList, ""},
-		{Decl(), gqlscan.TokenVarName, "x"},
-		{Decl(), gqlscan.TokenVarTypeName, "T"},
-		{Decl(), gqlscan.TokenVarListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "query($x:[  #comment1\n  #comment2\n  T]){x}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenVarList, ""},
-		{Decl(), gqlscan.TokenVarName, "x"},
-		{Decl(), gqlscan.TokenVarTypeArr, ""},
-		{Decl(), gqlscan.TokenVarTypeName, "T"},
-		{Decl(), gqlscan.TokenVarTypeArrEnd, ""},
-		{Decl(), gqlscan.TokenVarListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "query($x:[T  #comment1\n  #comment2\n  ]){x}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenVarList, ""},
-		{Decl(), gqlscan.TokenVarName, "x"},
-		{Decl(), gqlscan.TokenVarTypeArr, ""},
-		{Decl(), gqlscan.TokenVarTypeName, "T"},
-		{Decl(), gqlscan.TokenVarTypeArrEnd, ""},
-		{Decl(), gqlscan.TokenVarListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "query($x:[T]  #comment1\n  #comment2\n  ){x}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenVarList, ""},
-		{Decl(), gqlscan.TokenVarName, "x"},
-		{Decl(), gqlscan.TokenVarTypeArr, ""},
-		{Decl(), gqlscan.TokenVarTypeName, "T"},
-		{Decl(), gqlscan.TokenVarTypeArrEnd, ""},
-		{Decl(), gqlscan.TokenVarListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "query($x:[T])  #comment1\n  #comment2\n  {x}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenVarList, ""},
-		{Decl(), gqlscan.TokenVarName, "x"},
-		{Decl(), gqlscan.TokenVarTypeArr, ""},
-		{Decl(), gqlscan.TokenVarTypeName, "T"},
-		{Decl(), gqlscan.TokenVarTypeArrEnd, ""},
-		{Decl(), gqlscan.TokenVarListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "{f#comment\n{f2}}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f2"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
+	Input("  #comment1\n  #comment2\n  {x}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("{  #comment1\n  #comment2\n  x}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("{x  #comment1\n  #comment2\n  }",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("{x}  #comment1\n  #comment2\n",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("{x(  #comment1\n  #comment2\n  y:0)}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "y"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("{x(y  #comment1\n  #comment2\n  :0)}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "y"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("{x(y:  #comment1\n  #comment2\n  0)}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "y"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("{x(y:0  #comment1\n  #comment2\n  )}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "y"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("{x(y:0)  #comment1\n  #comment2\n  }",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "y"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("query  #comment1\n  #comment2\n  {x}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("mutation  #comment1\n  #comment2\n  {x}",
+		Token(gqlscan.TokenDefMut),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("fragment  #comment1\n  #comment2\n  f on X{x}",
+		Token(gqlscan.TokenDefFrag),
+		Token(gqlscan.TokenFragName, "f"),
+		Token(gqlscan.TokenFragTypeCond, "X"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("fragment f  #comment1\n  #comment2\n  on X{x}",
+		Token(gqlscan.TokenDefFrag),
+		Token(gqlscan.TokenFragName, "f"),
+		Token(gqlscan.TokenFragTypeCond, "X"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("fragment f on  #comment1\n  #comment2\n  X{x}",
+		Token(gqlscan.TokenDefFrag),
+		Token(gqlscan.TokenFragName, "f"),
+		Token(gqlscan.TokenFragTypeCond, "X"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("fragment f on X  #comment1\n  #comment2\n  {x}",
+		Token(gqlscan.TokenDefFrag),
+		Token(gqlscan.TokenFragName, "f"),
+		Token(gqlscan.TokenFragTypeCond, "X"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("{  ...  #comment1\n  #comment2\n  f  }",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenFragRef, "f"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("{  ...  f  #comment1\n  #comment2\n  }",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenFragRef, "f"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("query(  #comment1\n  #comment2\n  $x: T){x}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "x"),
+		Token(gqlscan.TokenVarTypeName, "T"),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("query($x  #comment1\n  #comment2\n  : T){x}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "x"),
+		Token(gqlscan.TokenVarTypeName, "T"),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("query($x:  #comment1\n  #comment2\n  T){x}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "x"),
+		Token(gqlscan.TokenVarTypeName, "T"),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("query($x:[  #comment1\n  #comment2\n  T]){x}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "x"),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeName, "T"),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("query($x:[T  #comment1\n  #comment2\n  ]){x}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "x"),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeName, "T"),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("query($x:[T]  #comment1\n  #comment2\n  ){x}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "x"),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeName, "T"),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("query($x:[T])  #comment1\n  #comment2\n  {x}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "x"),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeName, "T"),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("{f#comment\n{f2}}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f2"),
+		Token(gqlscan.TokenSelEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
 
 	// String escape
-	{Decl(), `{x(s:"\"")}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "s"},
-		{Decl(), gqlscan.TokenStr, `\"`},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{x(s:"\\")}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "s"},
-		{Decl(), gqlscan.TokenStr, `\\`},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{x(s:"\\\"")}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "s"},
-		{Decl(), gqlscan.TokenStr, `\\\"`},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
+	Input(`{x(s:"\"")}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "s"),
+		Token(gqlscan.TokenStr, `\"`),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{x(s:"\\")}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "s"),
+		Token(gqlscan.TokenStr, `\\`),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{x(s:"\\\"")}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "s"),
+		Token(gqlscan.TokenStr, `\\\"`),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
 
-	{Decl(), `{x(y:1e8)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "y"},
-		{Decl(), gqlscan.TokenFloat, `1e8`},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{x(y:0e8)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "y"},
-		{Decl(), gqlscan.TokenFloat, `0e8`},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{x(y:0e+8)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "y"},
-		{Decl(), gqlscan.TokenFloat, `0e+8`},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{x(y:0e-8)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "y"},
-		{Decl(), gqlscan.TokenFloat, `0e-8`},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `mutation{x}`, []Expect{
-		{Decl(), gqlscan.TokenDefMut, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `mutation($x:T){x}`, []Expect{
-		{Decl(), gqlscan.TokenDefMut, ""},
-		{Decl(), gqlscan.TokenVarList, ""},
-		{Decl(), gqlscan.TokenVarName, "x"},
-		{Decl(), gqlscan.TokenVarTypeName, "T"},
-		{Decl(), gqlscan.TokenVarListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `mutation M{x}`, []Expect{
-		{Decl(), gqlscan.TokenDefMut, ""},
-		{Decl(), gqlscan.TokenOprName, "M"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(o:{o2:{x:[]}})}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "o"},
-		{Decl(), gqlscan.TokenObj, ""},
-		{Decl(), gqlscan.TokenObjField, "o2"},
-		{Decl(), gqlscan.TokenObj, ""},
-		{Decl(), gqlscan.TokenObjField, "x"},
-		{Decl(), gqlscan.TokenArr, ""},
-		{Decl(), gqlscan.TokenArrEnd, ""},
-		{Decl(), gqlscan.TokenObjEnd, ""},
-		{Decl(), gqlscan.TokenObjEnd, ""},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(a:[0])}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "a"},
-		{Decl(), gqlscan.TokenArr, ""},
-		{Decl(), gqlscan.TokenInt, "0"},
-		{Decl(), gqlscan.TokenArrEnd, ""},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `query($v:T ! ){x(a:$v)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenVarList, ""},
-		{Decl(), gqlscan.TokenVarName, "v"},
-		{Decl(), gqlscan.TokenVarTypeName, "T"},
-		{Decl(), gqlscan.TokenVarTypeNotNull, ""},
-		{Decl(), gqlscan.TokenVarListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "a"},
-		{Decl(), gqlscan.TokenVarRef, "v"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `query ($v: [ [ T ! ] ! ] ! ) {x(a:$v)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenVarList, ""},
-		{Decl(), gqlscan.TokenVarName, "v"},
-		{Decl(), gqlscan.TokenVarTypeArr, ""},
-		{Decl(), gqlscan.TokenVarTypeArr, ""},
-		{Decl(), gqlscan.TokenVarTypeName, "T"},
-		{Decl(), gqlscan.TokenVarTypeNotNull, ""},
-		{Decl(), gqlscan.TokenVarTypeArrEnd, ""},
-		{Decl(), gqlscan.TokenVarTypeNotNull, ""},
-		{Decl(), gqlscan.TokenVarTypeArrEnd, ""},
-		{Decl(), gqlscan.TokenVarTypeNotNull, ""},
-		{Decl(), gqlscan.TokenVarListEnd, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "x"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "a"},
-		{Decl(), gqlscan.TokenVarRef, "v"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{ bob : alice }`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenFieldAlias, "bob"},
-		{Decl(), gqlscan.TokenField, "alice"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
+	Input(`{x(y:1e8)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "y"),
+		Token(gqlscan.TokenFloat, `1e8`),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{x(y:0e8)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "y"),
+		Token(gqlscan.TokenFloat, `0e8`),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{x(y:0e+8)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "y"),
+		Token(gqlscan.TokenFloat, `0e+8`),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{x(y:0e-8)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "y"),
+		Token(gqlscan.TokenFloat, `0e-8`),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`mutation{x}`,
+		Token(gqlscan.TokenDefMut),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`mutation($x:T){x}`,
+		Token(gqlscan.TokenDefMut),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "x"),
+		Token(gqlscan.TokenVarTypeName, "T"),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`mutation M{x}`,
+		Token(gqlscan.TokenDefMut),
+		Token(gqlscan.TokenOprName, "M"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(o:{o2:{x:[]}})}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "o"),
+		Token(gqlscan.TokenObj),
+		Token(gqlscan.TokenObjField, "o2"),
+		Token(gqlscan.TokenObj),
+		Token(gqlscan.TokenObjField, "x"),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenObjEnd),
+		Token(gqlscan.TokenObjEnd),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(a:[0])}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`query($v:T ! ){x(a:$v)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "v"),
+		Token(gqlscan.TokenVarTypeName, "T"),
+		Token(gqlscan.TokenVarTypeNotNull),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`query ($v: [ [ T ! ] ! ] ! ) {x(a:$v)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "v"),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeName, "T"),
+		Token(gqlscan.TokenVarTypeNotNull),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenVarTypeNotNull),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenVarTypeNotNull),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{ bob : alice }`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenFieldAlias, "bob"),
+		Token(gqlscan.TokenField, "alice"),
+		Token(gqlscan.TokenSelEnd),
+	),
 	Input(`query # This is a test with many comments
 	# sample comment text line
 	{ # sample comment text line
@@ -1054,7 +1055,7 @@ var testdata = []TestInput{
 		Token(gqlscan.TokenSelEnd),
 		Token(gqlscan.TokenSelEnd),
 	),
-	{Decl(), `{f}
+	Input(`{f}
 		#0
 		#01
 		#012
@@ -1069,39 +1070,39 @@ var testdata = []TestInput{
 		#01234567810a
 		#01234567810ab
 		#01234567810abc
-		#01234567810abcd`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(a:
+		#01234567810abcd`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(a:
 		"\b\t\r\n\f\/\"\u1234\u5678\u9abc\udefA\uBCDE\uF000"
 		b:123456789
-	)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "a"},
-		{Decl(), gqlscan.TokenStr,
-			`\b\t\r\n\f\/\"\u1234\u5678\u9abc\udefA\uBCDE\uF000`},
-		{Decl(), gqlscan.TokenArg, "b"},
-		{Decl(), gqlscan.TokenInt, "123456789"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), "{f(a:" + string_2695b + ")}", []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "a"},
-		{Decl(), gqlscan.TokenStr, string_2695b[1 : len(string_2695b)-1]},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `{f(
+	)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenStr,
+			`\b\t\r\n\f\/\"\u1234\u5678\u9abc\udefA\uBCDE\uF000`),
+		Token(gqlscan.TokenArg, "b"),
+		Token(gqlscan.TokenInt, "123456789"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input("{f(a:"+string_2695b+")}",
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenStr, string_2695b[1:len(string_2695b)-1]),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`{f(
 		a:""""""
 		b:"""abc"""
 		c:"""\n\t" """
@@ -1109,30 +1110,30 @@ var testdata = []TestInput{
 			foo
 				bar
 		"""
-	)}`, []Expect{
-		{Decl(), gqlscan.TokenDefQry, ""},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenArgList, ""},
-		{Decl(), gqlscan.TokenArg, "a"},
-		{Decl(), gqlscan.TokenStrBlock, ""},
-		{Decl(), gqlscan.TokenArg, "b"},
-		{Decl(), gqlscan.TokenStrBlock, "abc"},
-		{Decl(), gqlscan.TokenArg, "c"},
-		{Decl(), gqlscan.TokenStrBlock, `\n\t" `},
-		{Decl(), gqlscan.TokenArg, "d"},
-		{Decl(), gqlscan.TokenStrBlock,
-			"\n\t\t\tfoo\n\t\t\t\tbar\n\t\t"},
-		{Decl(), gqlscan.TokenArgListEnd, ""},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
-	{Decl(), `subscription S{f}`, []Expect{
-		{Decl(), gqlscan.TokenDefSub, ""},
-		{Decl(), gqlscan.TokenOprName, "S"},
-		{Decl(), gqlscan.TokenSel, ""},
-		{Decl(), gqlscan.TokenField, "f"},
-		{Decl(), gqlscan.TokenSelEnd, ""},
-	}},
+	)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenStrBlock),
+		Token(gqlscan.TokenArg, "b"),
+		Token(gqlscan.TokenStrBlock, "abc"),
+		Token(gqlscan.TokenArg, "c"),
+		Token(gqlscan.TokenStrBlock, `\n\t" `),
+		Token(gqlscan.TokenArg, "d"),
+		Token(gqlscan.TokenStrBlock,
+			"\n\t\t\tfoo\n\t\t\t\tbar\n\t\t"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSelEnd),
+	),
+	Input(`subscription S{f}`,
+		Token(gqlscan.TokenDefSub),
+		Token(gqlscan.TokenOprName, "S"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenSelEnd),
+	),
 	Input(`mutation @d1 @d2 (a:0) @d3 {f}`,
 		Token(gqlscan.TokenDefMut),
 		Token(gqlscan.TokenDirName, "d1"),
@@ -1510,621 +1511,621 @@ type TestInputErr struct {
 }
 
 var testdataErr = []TestInputErr{
-	{Decl(), // Unexpected token as query.
+	InputErr( // Unexpected token as query.
 		"q",
 		"error at index 0 ('q'): unexpected token; expected definition",
-	},
-	{Decl(), // Missing square bracket in type.
+	),
+	InputErr( // Missing square bracket in type.
 		"query($a: [A){f}",
-		"error at index 11 ('A'): invalid type; " +
+		"error at index 11 ('A'): invalid type; "+
 			"expected variable type",
-	},
-	{Decl(), // Missing square bracket in type.
+	),
+	InputErr( // Missing square bracket in type.
 		"query($a: [[A]){f}",
-		"error at index 13 (']'): invalid type; " +
+		"error at index 13 (']'): invalid type; "+
 			"expected variable type",
-	},
-	{Decl(), // Unexpected square bracket in variable type.
+	),
+	InputErr( // Unexpected square bracket in variable type.
 		"query($a: A]){f}",
-		"error at index 11 (']'): unexpected token; " +
+		"error at index 11 (']'): unexpected token; "+
 			"expected variable name",
-	},
-	{Decl(), // Unexpected square bracket in variable type.
+	),
+	InputErr( // Unexpected square bracket in variable type.
 		"query($a: [[A]]]){f}",
-		"error at index 15 (']'): unexpected token; " +
+		"error at index 15 (']'): unexpected token; "+
 			"expected variable list closure or variable name",
-	},
-	{Decl(), // Missing query closing curly bracket.
+	),
+	InputErr( // Missing query closing curly bracket.
 		"{",
 		"error at index 1: unexpected end of file; expected selection",
-	},
-	{Decl(), // Invalid field name.
+	),
+	InputErr( // Invalid field name.
 		"{1abc}",
-		"error at index 1 ('1'): unexpected token; " +
+		"error at index 1 ('1'): unexpected token; "+
 			"expected field name or alias",
-	},
-	{Decl(), // Trailing closing curly bracket.
+	),
+	InputErr( // Trailing closing curly bracket.
 		"{f}}",
 		"error at index 3 ('}'): unexpected token; expected definition",
-	},
-	{Decl(), // Query missing closing curly bracket.
+	),
+	InputErr( // Query missing closing curly bracket.
 		"{}",
-		"error at index 1 ('}'): unexpected token; " +
+		"error at index 1 ('}'): unexpected token; "+
 			"expected field name or alias",
-	},
-	{Decl(), // Variable missing name.
+	),
+	InputErr( // Variable missing name.
 		"query($ ",
-		"error at index 7 (' '): unexpected token; " +
+		"error at index 7 (' '): unexpected token; "+
 			"expected variable name",
-	},
-	{Decl(), // Empty args.
+	),
+	InputErr( // Empty args.
 		"{f()}",
 		"error at index 3 (')'): unexpected token; expected argument name",
-	},
-	{Decl(), // Argument missing column.
+	),
+	InputErr( // Argument missing column.
 		"{f(x null))}",
-		"error at index 5 ('n'): " +
+		"error at index 5 ('n'): "+
 			"unexpected token; expected column after argument name",
-	},
-	{Decl(), // Argument with trailing closing parenthesis.
+	),
+	InputErr( // Argument with trailing closing parenthesis.
 		"{f(x:null))}",
-		"error at index 10 (')'): unexpected token; " +
+		"error at index 10 (')'): unexpected token; "+
 			"expected field name or alias",
-	},
-	{Decl(), // Argument missing closing parenthesis.
+	),
+	InputErr( // Argument missing closing parenthesis.
 		"{f(}",
 		"error at index 3 ('}'): unexpected token; expected argument name",
-	},
-	{Decl(), // Invalid argument.
+	),
+	InputErr( // Invalid argument.
 		"{f(x:abc))}",
 		"error at index 5 ('a'): invalid value; expected value",
-	},
-	{Decl(), // String argument missing closing quotes.
+	),
+	InputErr( // String argument missing closing quotes.
 		`{f(x:"))}`,
 		"error at index 9: unexpected end of file; expected end of string",
-	},
-	{Decl(), // Invalid negative number.
+	),
+	InputErr( // Invalid negative number.
 		`{f(x:-))}`,
 		"error at index 6 (')'): invalid number value; expected value",
-	},
-	{Decl(), // Number missing fraction.
+	),
+	InputErr( // Number missing fraction.
 		`{f(x:1.))}`,
 		"error at index 7 (')'): invalid number value; expected value",
-	},
-	{Decl(), // Number missing exponent.
+	),
+	InputErr( // Number missing exponent.
 		`{f(x:1.2e))}`,
 		"error at index 9 (')'): invalid number value; expected value",
-	},
-	{Decl(), // Number with leading zero.
+	),
+	InputErr( // Number with leading zero.
 		`{f(x:0123))}`,
 		"error at index 6 ('1'): invalid number value; expected value",
-	},
+	),
 
 	// --- Unexpected EOF ---
-	{Decl(), // Unexpected EOF.
+	InputErr( // Unexpected EOF.
 		"",
 		"error at index 0: unexpected end of file; expected definition",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"query",
-		"error at index 5: unexpected end of file; " +
+		"error at index 5: unexpected end of file; "+
 			"expected variable list or selection set",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"query Name",
-		"error at index 10: unexpected end of file; " +
+		"error at index 10: unexpected end of file; "+
 			"expected selection set",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"query Name ",
-		"error at index 11: unexpected end of file; " +
+		"error at index 11: unexpected end of file; "+
 			"expected selection set",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"mutation Name",
-		"error at index 13: unexpected end of file; " +
+		"error at index 13: unexpected end of file; "+
 			"expected selection set",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"mutation Name ",
-		"error at index 14: unexpected end of file; " +
+		"error at index 14: unexpected end of file; "+
 			"expected selection set",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"subscription Name",
-		"error at index 17: unexpected end of file; " +
+		"error at index 17: unexpected end of file; "+
 			"expected selection set",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"subscription Name ",
-		"error at index 18: unexpected end of file; " +
+		"error at index 18: unexpected end of file; "+
 			"expected selection set",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"query(",
-		"error at index 6: unexpected end of file; " +
+		"error at index 6: unexpected end of file; "+
 			"expected variable name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"query( ",
-		"error at index 7: unexpected end of file; " +
+		"error at index 7: unexpected end of file; "+
 			"expected variable name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"query($",
-		"error at index 6: unexpected end of file; " +
+		"error at index 6: unexpected end of file; "+
 			"expected variable name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"query($v",
-		"error at index 8: unexpected end of file; " +
+		"error at index 8: unexpected end of file; "+
 			"expected column after variable name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"query($v ",
-		"error at index 9: unexpected end of file; " +
+		"error at index 9: unexpected end of file; "+
 			"expected column after variable name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"query($v:",
-		"error at index 9: unexpected end of file; " +
+		"error at index 9: unexpected end of file; "+
 			"expected variable type",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"query($v: ",
-		"error at index 10: unexpected end of file; " +
+		"error at index 10: unexpected end of file; "+
 			"expected variable type",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"query($v: T",
-		"error at index 11: unexpected end of file; " +
+		"error at index 11: unexpected end of file; "+
 			"expected variable list closure or variable name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"query($v: T ",
-		"error at index 12: unexpected end of file; " +
+		"error at index 12: unexpected end of file; "+
 			"expected variable list closure or variable name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"query($v: T)",
-		"error at index 12: unexpected end of file; " +
+		"error at index 12: unexpected end of file; "+
 			"expected selection set",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"query($v: T) ",
-		"error at index 13: unexpected end of file; " +
+		"error at index 13: unexpected end of file; "+
 			"expected selection set",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{",
-		"error at index 1: unexpected end of file; " +
+		"error at index 1: unexpected end of file; "+
 			"expected selection",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{ ",
-		"error at index 2: unexpected end of file; " +
+		"error at index 2: unexpected end of file; "+
 			"expected selection",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{foo",
-		"error at index 4: unexpected end of file; " +
+		"error at index 4: unexpected end of file; "+
 			"expected field name or alias",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{foo ",
-		"error at index 5: unexpected end of file; " +
+		"error at index 5: unexpected end of file; "+
 			"expected field name or alias",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{foo(",
-		"error at index 5: unexpected end of file; " +
+		"error at index 5: unexpected end of file; "+
 			"expected argument name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{foo( ",
-		"error at index 6: unexpected end of file; " +
+		"error at index 6: unexpected end of file; "+
 			"expected argument name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{foo(name",
-		"error at index 9: unexpected end of file; " +
+		"error at index 9: unexpected end of file; "+
 			"expected column after argument name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{foo(name ",
-		"error at index 10: unexpected end of file; " +
+		"error at index 10: unexpected end of file; "+
 			"expected column after argument name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{foo(name:",
-		"error at index 10: unexpected end of file; " +
+		"error at index 10: unexpected end of file; "+
 			"expected value",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{foo(name: ",
-		"error at index 11: unexpected end of file; " +
+		"error at index 11: unexpected end of file; "+
 			"expected value",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{foo(name: {",
-		"error at index 12: unexpected end of file; " +
+		"error at index 12: unexpected end of file; "+
 			"expected object field name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{foo(name: { ",
-		"error at index 13: unexpected end of file; " +
+		"error at index 13: unexpected end of file; "+
 			"expected object field name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{foo(name: {field",
-		"error at index 17: unexpected end of file; " +
+		"error at index 17: unexpected end of file; "+
 			"expected column after object field name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{foo(name: {field ",
-		"error at index 18: unexpected end of file; " +
+		"error at index 18: unexpected end of file; "+
 			"expected column after object field name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{foo(name: {field:",
-		"error at index 18: unexpected end of file; " +
+		"error at index 18: unexpected end of file; "+
 			"expected value",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{foo(name: {field: ",
-		"error at index 19: unexpected end of file; " +
+		"error at index 19: unexpected end of file; "+
 			"expected value",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{foo(name: "`,
-		"error at index 12: unexpected end of file; " +
+		"error at index 12: unexpected end of file; "+
 			"expected end of string",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{foo(name: ""`,
-		"error at index 13: unexpected end of file; " +
+		"error at index 13: unexpected end of file; "+
 			"expected argument list closure or argument",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{foo(name: f`,
 		"error at index 12: unexpected end of file; expected value",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{foo(name: t`,
 		"error at index 12: unexpected end of file; expected value",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{foo(name: n`,
 		"error at index 12: unexpected end of file; expected value",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{foo(name: 0`,
-		"error at index 12: unexpected end of file; " +
+		"error at index 12: unexpected end of file; "+
 			"expected argument list closure or argument",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{foo(name: 0 `,
-		"error at index 13: unexpected end of file; " +
+		"error at index 13: unexpected end of file; "+
 			"expected argument list closure or argument",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{foo(name: -`,
 		"error at index 12: unexpected end of file; expected value",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{foo(name: 0.`,
 		"error at index 13: unexpected end of file; expected value",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{foo(name: 0.1e`,
 		"error at index 15: unexpected end of file; expected value",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{.`,
 		"error at index 2: unexpected end of file; expected fragment",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{..`,
 		"error at index 3: unexpected end of file; expected fragment",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{...`,
 		"error at index 4: unexpected end of file; expected fragment",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{... `,
 		"error at index 5: unexpected end of file; expected fragment",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{... on`,
 		"error at index 7: unexpected end of file; expected fragment",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{... on `,
-		"error at index 8: unexpected end of file; " +
+		"error at index 8: unexpected end of file; "+
 			"expected inlined fragment",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"fragment",
-		"error at index 8: unexpected end of file; " +
+		"error at index 8: unexpected end of file; "+
 			"expected fragment name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{x",
-		"error at index 2: unexpected end of file; " +
+		"error at index 2: unexpected end of file; "+
 			"expected field name or alias",
-	},
+	),
 
-	{Decl(), // Invalid value.
+	InputErr( // Invalid value.
 		"{x(p:falsa",
-		"error at index 5 ('f'): invalid value; " +
+		"error at index 5 ('f'): invalid value; "+
 			"expected value",
-	},
-	{Decl(), // Invalid value.
+	),
+	InputErr( // Invalid value.
 		"{x(p:truu",
-		"error at index 5 ('t'): invalid value; " +
+		"error at index 5 ('t'): invalid value; "+
 			"expected value",
-	},
-	{Decl(), // Invalid value.
+	),
+	InputErr( // Invalid value.
 		"{x(p:nuli",
-		"error at index 5 ('n'): invalid value; " +
+		"error at index 5 ('n'): invalid value; "+
 			"expected value",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{x(p:[",
-		"error at index 6: unexpected end of file; " +
+		"error at index 6: unexpected end of file; "+
 			"expected value",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"query($x:T)x",
-		"error at index 11 ('x'): unexpected token; " +
+		"error at index 11 ('x'): unexpected token; "+
 			"expected selection set",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"mutation M",
-		"error at index 10: unexpected end of file; " +
+		"error at index 10: unexpected end of file; "+
 			"expected selection set",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"query\x00",
-		"error at index 5 (0x0): unexpected token; " +
+		"error at index 5 (0x0): unexpected token; "+
 			"expected operation name",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"{x(y:12e)}",
-		"error at index 8 (')'): invalid number value; " +
+		"error at index 8 (')'): invalid number value; "+
 			"expected value",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"{x(y:12.)}",
-		"error at index 8 (')'): invalid number value; " +
+		"error at index 8 (')'): invalid number value; "+
 			"expected value",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"{x(y:12x)}",
-		"error at index 7 ('x'): invalid number value; " +
+		"error at index 7 ('x'): invalid number value; "+
 			"expected value",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"{x(y:12.12x)}",
-		"error at index 10 ('x'): invalid number value; " +
+		"error at index 10 ('x'): invalid number value; "+
 			"expected value",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{x(y:12.12",
-		"error at index 10: unexpected end of file; " +
+		"error at index 10: unexpected end of file; "+
 			"expected argument list closure or argument",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{x(y:12.",
-		"error at index 8: unexpected end of file; " +
+		"error at index 8: unexpected end of file; "+
 			"expected value",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"{x(y:12e111x",
-		"error at index 11 ('x'): invalid number value; " +
+		"error at index 11 ('x'): invalid number value; "+
 			"expected value",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"{x(y:12ex",
-		"error at index 8 ('x'): invalid number value; " +
+		"error at index 8 ('x'): invalid number value; "+
 			"expected value",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"{x(y:{f})}",
-		"error at index 7 ('}'): unexpected token; " +
+		"error at index 7 ('}'): unexpected token; "+
 			"expected column after object field name",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"{x(\x00:1)}",
-		"error at index 3 (0x0): unexpected token; " +
+		"error at index 3 (0x0): unexpected token; "+
 			"expected argument name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{x(y\x00:1)}",
-		"error at index 4 (0x0): unexpected token; " +
+		"error at index 4 (0x0): unexpected token; "+
 			"expected argument name",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"query M [",
-		"error at index 8 ('['): unexpected token; " +
+		"error at index 8 ('['): unexpected token; "+
 			"expected selection set",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"mutation M|",
-		"error at index 10 ('|'): unexpected token; " +
+		"error at index 10 ('|'): unexpected token; "+
 			"expected selection set",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"fragment f on",
-		"error at index 13: unexpected end of file; " +
+		"error at index 13: unexpected end of file; "+
 			"expected fragment type condition",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"mutation\x00",
-		"error at index 8 (0x0): unexpected token; " +
+		"error at index 8 (0x0): unexpected token; "+
 			"expected operation name",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"subscription\x00",
-		"error at index 12 (0x0): unexpected token; " +
+		"error at index 12 (0x0): unexpected token; "+
 			"expected operation name",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"fragment\x00",
-		"error at index 8 (0x0): unexpected token; " +
+		"error at index 8 (0x0): unexpected token; "+
 			"expected fragment name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{x(y:$",
-		"error at index 6: unexpected end of file; " +
+		"error at index 6: unexpected end of file; "+
 			"expected referenced variable name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"mutation",
-		"error at index 8: unexpected end of file; " +
+		"error at index 8: unexpected end of file; "+
 			"expected variable list or selection set",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{x(y:null)",
-		"error at index 10: unexpected end of file; " +
+		"error at index 10: unexpected end of file; "+
 			"expected selection set or selection",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"query($v |",
-		"error at index 9 ('|'): unexpected token; " +
+		"error at index 9 ('|'): unexpected token; "+
 			"expected column after variable name",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"query($v:[T] |)",
-		"error at index 13 ('|'): unexpected token; " +
+		"error at index 13 ('|'): unexpected token; "+
 			"expected variable list closure or variable name",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"fragment X at",
-		"error at index 11 ('a'): unexpected token; " +
+		"error at index 11 ('a'): unexpected token; "+
 			"expected keyword 'on'",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"query($a:[A]",
-		"error at index 12: unexpected end of file; " +
+		"error at index 12: unexpected end of file; "+
 			"expected variable list closure or variable name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"fragment f ",
-		"error at index 11: unexpected end of file; " +
+		"error at index 11: unexpected end of file; "+
 			"expected keyword 'on'",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{f{x} ",
-		"error at index 6: unexpected end of file; " +
+		"error at index 6: unexpected end of file; "+
 			"expected selection or end of selection set",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"{f(x:\"abc\n\")}",
-		"error at index 9 (0xa): unexpected token; " +
+		"error at index 9 (0xa): unexpected token; "+
 			"expected end of string",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"{.f}",
-		"error at index 2 ('f'): unexpected token; " +
+		"error at index 2 ('f'): unexpected token; "+
 			"expected fragment",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"{..f}",
-		"error at index 3 ('f'): unexpected token; " +
+		"error at index 3 ('f'): unexpected token; "+
 			"expected fragment",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"query($v:T ! !){x(a:$v)}",
-		"error at index 13 ('!'): unexpected token; " +
+		"error at index 13 ('!'): unexpected token; "+
 			"expected variable list closure or variable name",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"query($v: [ T ! ] ! ! ){x(a:$v)}",
-		"error at index 20 ('!'): unexpected token; " +
+		"error at index 20 ('!'): unexpected token; "+
 			"expected variable list closure or variable name",
-	},
-	{Decl(), // Unexpected token.
+	),
+	InputErr( // Unexpected token.
 		"{alias : alias2 : x}",
-		"error at index 16 (':'): unexpected token; " +
+		"error at index 16 (':'): unexpected token; "+
 			"expected field name or alias",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{f:",
-		"error at index 3: unexpected end of file; " +
+		"error at index 3: unexpected end of file; "+
 			"expected field name",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		"{f: ",
-		"error at index 4: unexpected end of file; " +
+		"error at index 4: unexpected end of file; "+
 			"expected field name",
-	},
-	{Decl(), // Invalid escape sequence.
+	),
+	InputErr( // Invalid escape sequence.
 		`{f(a:"\a")}`,
-		"error at index 7 ('a'): unexpected token; " +
+		"error at index 7 ('a'): unexpected token; "+
 			"expected escaped sequence",
-	},
-	{Decl(), // Invalid escape sequence.
+	),
+	InputErr( // Invalid escape sequence.
 		`{f(a:"\u")}`,
-		"error at index 8 ('\"'): unexpected token; " +
+		"error at index 8 ('\"'): unexpected token; "+
 			"expected escaped unicode sequence",
-	},
-	{Decl(), // Invalid escape sequence.
+	),
+	InputErr( // Invalid escape sequence.
 		`{f(a:"\u1")}`,
-		"error at index 9 ('\"'): unexpected token; " +
+		"error at index 9 ('\"'): unexpected token; "+
 			"expected escaped unicode sequence",
-	},
-	{Decl(), // Invalid escape sequence.
+	),
+	InputErr( // Invalid escape sequence.
 		`{f(a:"\u12")}`,
-		"error at index 10 ('\"'): unexpected token; " +
+		"error at index 10 ('\"'): unexpected token; "+
 			"expected escaped unicode sequence",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{f(a:"\u`,
-		"error at index 8: unexpected end of file; " +
+		"error at index 8: unexpected end of file; "+
 			"expected escaped unicode sequence",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{f(a:"\u1`,
-		"error at index 9: unexpected end of file; " +
+		"error at index 9: unexpected end of file; "+
 			"expected escaped unicode sequence",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{f(a:"\u12`,
-		"error at index 10: unexpected end of file; " +
+		"error at index 10: unexpected end of file; "+
 			"expected escaped unicode sequence",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{f(a:"\u123`,
-		"error at index 11: unexpected end of file; " +
+		"error at index 11: unexpected end of file; "+
 			"expected escaped unicode sequence",
-	},
-	{Decl(), // Invalid escape sequence.
+	),
+	InputErr( // Invalid escape sequence.
 		`{f(a:"\u123")}`,
-		"error at index 11 ('\"'): unexpected token; " +
+		"error at index 11 ('\"'): unexpected token; "+
 			"expected escaped unicode sequence",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{f(a:"""`,
-		`error at index 8: unexpected end of file; ` +
+		`error at index 8: unexpected end of file; `+
 			"expected end of block string",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{f(a:""" `,
-		"error at index 9: unexpected end of file; " +
+		"error at index 9: unexpected end of file; "+
 			"expected end of block string",
-	},
-	{Decl(), // Control character in string.
-		`{f(a:"0123456` + string(rune(0x00)) + `")}`,
-		"error at index 13 (0x0): unexpected token; " +
+	),
+	InputErr( // Control character in string.
+		`{f(a:"0123456`+string(rune(0x00))+`")}`,
+		"error at index 13 (0x0): unexpected token; "+
 			"expected end of string",
-	},
-	{Decl(), // Unexpected EOF.
+	),
+	InputErr( // Unexpected EOF.
 		`{f #c`,
-		"error at index 5: unexpected end of file; " +
+		"error at index 5: unexpected end of file; "+
 			"expected selection, selection set or end of selection set",
-	},
+	),
 	InputErr( // Unexpected EOF.
 		"query @",
 		"error at index 7: unexpected end of file; "+
@@ -2389,244 +2390,265 @@ func TestLevel(t *testing.T) {
 		baz: null,
 	) done }`
 
-	expect := []struct {
+	type ExpectLevel struct {
 		Decl  string
 		Type  gqlscan.Token
 		Value string
 		Level int
-	}{
+	}
+
+	TokenLevel := func(
+		t gqlscan.Token,
+		level int,
+		v ...string,
+	) ExpectLevel {
+		var val string
+		if len(v) > 1 {
+			panic("expected single value")
+		} else if len(v) > 0 {
+			val = v[0]
+		}
+		return ExpectLevel{
+			Decl:  decl(2),
+			Level: level,
+			Type:  t,
+			Value: val,
+		}
+	}
+
+	expect := []ExpectLevel{
 		// Query Q
-		{Decl(), gqlscan.TokenDefQry, "", 0},
-		{Decl(), gqlscan.TokenOprName, "Q", 0},
-		{Decl(), gqlscan.TokenVarList, "", 0},
-		{Decl(), gqlscan.TokenVarName, "variable", 0},
-		{Decl(), gqlscan.TokenVarTypeName, "Foo", 0},
-		{Decl(), gqlscan.TokenVarName, "v", 0},
-		{Decl(), gqlscan.TokenVarTypeArr, "", 0},
-		{Decl(), gqlscan.TokenVarTypeArr, "", 0},
-		{Decl(), gqlscan.TokenVarTypeName, "Bar", 0},
-		{Decl(), gqlscan.TokenVarTypeArrEnd, "", 0},
-		{Decl(), gqlscan.TokenVarTypeArrEnd, "", 0},
-		{Decl(), gqlscan.TokenVarListEnd, "", 0},
-		{Decl(), gqlscan.TokenSel, "", 0},
-		{Decl(), gqlscan.TokenFieldAlias, "foo_alias", 1},
-		{Decl(), gqlscan.TokenField, "foo", 1},
-		{Decl(), gqlscan.TokenArgList, "", 1},
-		{Decl(), gqlscan.TokenArg, "x", 1},
-		{Decl(), gqlscan.TokenNull, "null", 1},
-		{Decl(), gqlscan.TokenArgListEnd, "", 1},
+		TokenLevel(gqlscan.TokenDefQry, 0, ""),
+		TokenLevel(gqlscan.TokenOprName, 0, "Q"),
+		TokenLevel(gqlscan.TokenVarList, 0, ""),
+		TokenLevel(gqlscan.TokenVarName, 0, "variable"),
+		TokenLevel(gqlscan.TokenVarTypeName, 0, "Foo"),
+		TokenLevel(gqlscan.TokenVarName, 0, "v"),
+		TokenLevel(gqlscan.TokenVarTypeArr, 0, ""),
+		TokenLevel(gqlscan.TokenVarTypeArr, 0, ""),
+		TokenLevel(gqlscan.TokenVarTypeName, 0, "Bar"),
+		TokenLevel(gqlscan.TokenVarTypeArrEnd, 0, ""),
+		TokenLevel(gqlscan.TokenVarTypeArrEnd, 0, ""),
+		TokenLevel(gqlscan.TokenVarListEnd, 0, ""),
+		TokenLevel(gqlscan.TokenSel, 0, ""),
+		TokenLevel(gqlscan.TokenFieldAlias, 1, "foo_alias"),
+		TokenLevel(gqlscan.TokenField, 1, "foo"),
+		TokenLevel(gqlscan.TokenArgList, 1, ""),
+		TokenLevel(gqlscan.TokenArg, 1, "x"),
+		TokenLevel(gqlscan.TokenNull, 1, "null"),
+		TokenLevel(gqlscan.TokenArgListEnd, 1, ""),
 
-		{Decl(), gqlscan.TokenSel, "", 1},
-		{Decl(), gqlscan.TokenFieldAlias, "foobar_alias", 2},
-		{Decl(), gqlscan.TokenField, "foo_bar", 2},
-		{Decl(), gqlscan.TokenSelEnd, "", 2},
-		{Decl(), gqlscan.TokenField, "bar", 1},
-		{Decl(), gqlscan.TokenField, "baz", 1},
-		{Decl(), gqlscan.TokenSel, "", 1},
-		{Decl(), gqlscan.TokenField, "baz_fuzz", 2},
-		{Decl(), gqlscan.TokenSel, "", 2},
-		{Decl(), gqlscan.TokenFragInline, "A", 3},
-		{Decl(), gqlscan.TokenSel, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz_A", 4},
-		{Decl(), gqlscan.TokenFragRef, "namedFragment1", 4},
-		{Decl(), gqlscan.TokenFragRef, "namedFragment2", 4},
-		{Decl(), gqlscan.TokenSelEnd, "", 4},
-		{Decl(), gqlscan.TokenFragInline, "B", 3},
-		{Decl(), gqlscan.TokenSel, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz_B", 4},
-		{Decl(), gqlscan.TokenSelEnd, "", 4},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz1", 3},
-		{Decl(), gqlscan.TokenArgList, "", 3},
-		{Decl(), gqlscan.TokenArg, "bool", 3},
-		{Decl(), gqlscan.TokenFalse, "false", 3},
-		{Decl(), gqlscan.TokenArgListEnd, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz2", 3},
-		{Decl(), gqlscan.TokenArgList, "", 3},
-		{Decl(), gqlscan.TokenArg, "bool", 3},
-		{Decl(), gqlscan.TokenTrue, "true", 3},
-		{Decl(), gqlscan.TokenArgListEnd, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz3", 3},
-		{Decl(), gqlscan.TokenArgList, "", 3},
-		{Decl(), gqlscan.TokenArg, "string", 3},
-		{Decl(), gqlscan.TokenStr, "okay", 3},
-		{Decl(), gqlscan.TokenArgListEnd, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz4", 3},
-		{Decl(), gqlscan.TokenArgList, "", 3},
-		{Decl(), gqlscan.TokenArg, "array", 3},
-		{Decl(), gqlscan.TokenArr, "", 3},
-		{Decl(), gqlscan.TokenArrEnd, "", 3},
-		{Decl(), gqlscan.TokenArgListEnd, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz5", 3},
-		{Decl(), gqlscan.TokenArgList, "", 3},
-		{Decl(), gqlscan.TokenArg, "variable", 3},
-		{Decl(), gqlscan.TokenVarRef, "variable", 3},
-		{Decl(), gqlscan.TokenArgListEnd, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz6", 3},
-		{Decl(), gqlscan.TokenArgList, "", 3},
-		{Decl(), gqlscan.TokenArg, "variable", 3},
-		{Decl(), gqlscan.TokenVarRef, "v", 3},
-		{Decl(), gqlscan.TokenArgListEnd, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz7", 3},
-		{Decl(), gqlscan.TokenArgList, "", 3},
-		{Decl(), gqlscan.TokenArg, "object", 3},
-		{Decl(), gqlscan.TokenObj, "", 3},
-		{Decl(), gqlscan.TokenObjField, "number0", 3},
-		{Decl(), gqlscan.TokenInt, "0", 3},
-		{Decl(), gqlscan.TokenObjField, "number1", 3},
-		{Decl(), gqlscan.TokenInt, "2", 3},
-		{Decl(), gqlscan.TokenObjField, "number2", 3},
-		{Decl(), gqlscan.TokenFloat, "123456789.1234e2", 3},
+		TokenLevel(gqlscan.TokenSel, 1, ""),
+		TokenLevel(gqlscan.TokenFieldAlias, 2, "foobar_alias"),
+		TokenLevel(gqlscan.TokenField, 2, "foo_bar"),
+		TokenLevel(gqlscan.TokenSelEnd, 2, ""),
+		TokenLevel(gqlscan.TokenField, 1, "bar"),
+		TokenLevel(gqlscan.TokenField, 1, "baz"),
+		TokenLevel(gqlscan.TokenSel, 1, ""),
+		TokenLevel(gqlscan.TokenField, 2, "baz_fuzz"),
+		TokenLevel(gqlscan.TokenSel, 2, ""),
+		TokenLevel(gqlscan.TokenFragInline, 3, "A"),
+		TokenLevel(gqlscan.TokenSel, 3, ""),
+		TokenLevel(gqlscan.TokenField, 4, "baz_fuzz_taz_A"),
+		TokenLevel(gqlscan.TokenFragRef, 4, "namedFragment1"),
+		TokenLevel(gqlscan.TokenFragRef, 4, "namedFragment2"),
+		TokenLevel(gqlscan.TokenSelEnd, 4, ""),
+		TokenLevel(gqlscan.TokenFragInline, 3, "B"),
+		TokenLevel(gqlscan.TokenSel, 3, ""),
+		TokenLevel(gqlscan.TokenField, 4, "baz_fuzz_taz_B"),
+		TokenLevel(gqlscan.TokenSelEnd, 4, ""),
+		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz1"),
+		TokenLevel(gqlscan.TokenArgList, 3, ""),
+		TokenLevel(gqlscan.TokenArg, 3, "bool"),
+		TokenLevel(gqlscan.TokenFalse, 3, "false"),
+		TokenLevel(gqlscan.TokenArgListEnd, 3, ""),
+		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz2"),
+		TokenLevel(gqlscan.TokenArgList, 3, ""),
+		TokenLevel(gqlscan.TokenArg, 3, "bool"),
+		TokenLevel(gqlscan.TokenTrue, 3, "true"),
+		TokenLevel(gqlscan.TokenArgListEnd, 3, ""),
+		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz3"),
+		TokenLevel(gqlscan.TokenArgList, 3, ""),
+		TokenLevel(gqlscan.TokenArg, 3, "string"),
+		TokenLevel(gqlscan.TokenStr, 3, "okay"),
+		TokenLevel(gqlscan.TokenArgListEnd, 3, ""),
+		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz4"),
+		TokenLevel(gqlscan.TokenArgList, 3, ""),
+		TokenLevel(gqlscan.TokenArg, 3, "array"),
+		TokenLevel(gqlscan.TokenArr, 3, ""),
+		TokenLevel(gqlscan.TokenArrEnd, 3, ""),
+		TokenLevel(gqlscan.TokenArgListEnd, 3, ""),
+		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz5"),
+		TokenLevel(gqlscan.TokenArgList, 3, ""),
+		TokenLevel(gqlscan.TokenArg, 3, "variable"),
+		TokenLevel(gqlscan.TokenVarRef, 3, "variable"),
+		TokenLevel(gqlscan.TokenArgListEnd, 3, ""),
+		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz6"),
+		TokenLevel(gqlscan.TokenArgList, 3, ""),
+		TokenLevel(gqlscan.TokenArg, 3, "variable"),
+		TokenLevel(gqlscan.TokenVarRef, 3, "v"),
+		TokenLevel(gqlscan.TokenArgListEnd, 3, ""),
+		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz7"),
+		TokenLevel(gqlscan.TokenArgList, 3, ""),
+		TokenLevel(gqlscan.TokenArg, 3, "object"),
+		TokenLevel(gqlscan.TokenObj, 3, ""),
+		TokenLevel(gqlscan.TokenObjField, 3, "number0"),
+		TokenLevel(gqlscan.TokenInt, 3, "0"),
+		TokenLevel(gqlscan.TokenObjField, 3, "number1"),
+		TokenLevel(gqlscan.TokenInt, 3, "2"),
+		TokenLevel(gqlscan.TokenObjField, 3, "number2"),
+		TokenLevel(gqlscan.TokenFloat, 3, "123456789.1234e2"),
 
-		{Decl(), gqlscan.TokenObjField, "arr0", 3},
-		{Decl(), gqlscan.TokenArr, "", 3},
-		{Decl(), gqlscan.TokenArr, "", 3},
-		{Decl(), gqlscan.TokenArrEnd, "", 3},
-		{Decl(), gqlscan.TokenArr, "", 3},
-		{Decl(), gqlscan.TokenObj, "", 3},
-		{Decl(), gqlscan.TokenObjField, "x", 3},
-		{Decl(), gqlscan.TokenNull, "null", 3},
-		{Decl(), gqlscan.TokenObjEnd, "", 3},
-		{Decl(), gqlscan.TokenArrEnd, "", 3},
-		{Decl(), gqlscan.TokenArrEnd, "", 3},
+		TokenLevel(gqlscan.TokenObjField, 3, "arr0"),
+		TokenLevel(gqlscan.TokenArr, 3, ""),
+		TokenLevel(gqlscan.TokenArr, 3, ""),
+		TokenLevel(gqlscan.TokenArrEnd, 3, ""),
+		TokenLevel(gqlscan.TokenArr, 3, ""),
+		TokenLevel(gqlscan.TokenObj, 3, ""),
+		TokenLevel(gqlscan.TokenObjField, 3, "x"),
+		TokenLevel(gqlscan.TokenNull, 3, "null"),
+		TokenLevel(gqlscan.TokenObjEnd, 3, ""),
+		TokenLevel(gqlscan.TokenArrEnd, 3, ""),
+		TokenLevel(gqlscan.TokenArrEnd, 3, ""),
 
-		{Decl(), gqlscan.TokenObjEnd, "", 3},
-		{Decl(), gqlscan.TokenArgListEnd, "", 3},
-		{Decl(), gqlscan.TokenSelEnd, "", 3},
-		{Decl(), gqlscan.TokenSelEnd, "", 2},
-		{Decl(), gqlscan.TokenSelEnd, "", 1},
+		TokenLevel(gqlscan.TokenObjEnd, 3, ""),
+		TokenLevel(gqlscan.TokenArgListEnd, 3, ""),
+		TokenLevel(gqlscan.TokenSelEnd, 3, ""),
+		TokenLevel(gqlscan.TokenSelEnd, 2, ""),
+		TokenLevel(gqlscan.TokenSelEnd, 1, ""),
 
 		// Mutation M
-		{Decl(), gqlscan.TokenDefMut, "", 0},
-		{Decl(), gqlscan.TokenOprName, "M", 0},
-		{Decl(), gqlscan.TokenVarList, "", 0},
-		{Decl(), gqlscan.TokenVarName, "variable", 0},
-		{Decl(), gqlscan.TokenVarTypeName, "Foo", 0},
-		{Decl(), gqlscan.TokenVarName, "v", 0},
-		{Decl(), gqlscan.TokenVarTypeArr, "", 0},
-		{Decl(), gqlscan.TokenVarTypeArr, "", 0},
-		{Decl(), gqlscan.TokenVarTypeName, "Bar", 0},
-		{Decl(), gqlscan.TokenVarTypeArrEnd, "", 0},
-		{Decl(), gqlscan.TokenVarTypeArrEnd, "", 0},
-		{Decl(), gqlscan.TokenVarListEnd, "", 0},
-		{Decl(), gqlscan.TokenSel, "", 0},
-		{Decl(), gqlscan.TokenField, "foo", 1},
-		{Decl(), gqlscan.TokenArgList, "", 1},
-		{Decl(), gqlscan.TokenArg, "x", 1},
-		{Decl(), gqlscan.TokenNull, "null", 1},
-		{Decl(), gqlscan.TokenArgListEnd, "", 1},
-		{Decl(), gqlscan.TokenSel, "", 1},
-		{Decl(), gqlscan.TokenField, "foo_bar", 2},
-		{Decl(), gqlscan.TokenSelEnd, "", 2},
-		{Decl(), gqlscan.TokenField, "bar", 1},
-		{Decl(), gqlscan.TokenField, "baz", 1},
-		{Decl(), gqlscan.TokenSel, "", 1},
-		{Decl(), gqlscan.TokenField, "baz_fuzz", 2},
-		{Decl(), gqlscan.TokenSel, "", 2},
-		{Decl(), gqlscan.TokenFragInline, "A", 3},
-		{Decl(), gqlscan.TokenSel, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz_A", 4},
-		{Decl(), gqlscan.TokenFragRef, "namedFragment1", 4},
-		{Decl(), gqlscan.TokenFragRef, "namedFragment2", 4},
-		{Decl(), gqlscan.TokenSelEnd, "", 4},
-		{Decl(), gqlscan.TokenFragInline, "B", 3},
-		{Decl(), gqlscan.TokenSel, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz_B", 4},
-		{Decl(), gqlscan.TokenSelEnd, "", 4},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz1", 3},
-		{Decl(), gqlscan.TokenArgList, "", 3},
-		{Decl(), gqlscan.TokenArg, "bool", 3},
-		{Decl(), gqlscan.TokenFalse, "false", 3},
-		{Decl(), gqlscan.TokenArgListEnd, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz2", 3},
-		{Decl(), gqlscan.TokenArgList, "", 3},
-		{Decl(), gqlscan.TokenArg, "bool", 3},
-		{Decl(), gqlscan.TokenTrue, "true", 3},
-		{Decl(), gqlscan.TokenArgListEnd, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz3", 3},
-		{Decl(), gqlscan.TokenArgList, "", 3},
-		{Decl(), gqlscan.TokenArg, "string", 3},
-		{Decl(), gqlscan.TokenStr, "okay", 3},
-		{Decl(), gqlscan.TokenArgListEnd, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz4", 3},
-		{Decl(), gqlscan.TokenArgList, "", 3},
-		{Decl(), gqlscan.TokenArg, "array", 3},
-		{Decl(), gqlscan.TokenArr, "", 3},
-		{Decl(), gqlscan.TokenArrEnd, "", 3},
-		{Decl(), gqlscan.TokenArgListEnd, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz5", 3},
-		{Decl(), gqlscan.TokenArgList, "", 3},
-		{Decl(), gqlscan.TokenArg, "variable", 3},
-		{Decl(), gqlscan.TokenVarRef, "variable", 3},
-		{Decl(), gqlscan.TokenArgListEnd, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz6", 3},
-		{Decl(), gqlscan.TokenArgList, "", 3},
-		{Decl(), gqlscan.TokenArg, "variable", 3},
-		{Decl(), gqlscan.TokenVarRef, "v", 3},
-		{Decl(), gqlscan.TokenArgListEnd, "", 3},
-		{Decl(), gqlscan.TokenField, "baz_fuzz_taz7", 3},
-		{Decl(), gqlscan.TokenArgList, "", 3},
-		{Decl(), gqlscan.TokenArg, "object", 3},
-		{Decl(), gqlscan.TokenObj, "", 3},
-		{Decl(), gqlscan.TokenObjField, "number0", 3},
-		{Decl(), gqlscan.TokenInt, "0", 3},
-		{Decl(), gqlscan.TokenObjField, "number1", 3},
-		{Decl(), gqlscan.TokenInt, "2", 3},
-		{Decl(), gqlscan.TokenObjField, "number2", 3},
-		{Decl(), gqlscan.TokenFloat, "123456789.1234e2", 3},
+		TokenLevel(gqlscan.TokenDefMut, 0, ""),
+		TokenLevel(gqlscan.TokenOprName, 0, "M"),
+		TokenLevel(gqlscan.TokenVarList, 0, ""),
+		TokenLevel(gqlscan.TokenVarName, 0, "variable"),
+		TokenLevel(gqlscan.TokenVarTypeName, 0, "Foo"),
+		TokenLevel(gqlscan.TokenVarName, 0, "v"),
+		TokenLevel(gqlscan.TokenVarTypeArr, 0, ""),
+		TokenLevel(gqlscan.TokenVarTypeArr, 0, ""),
+		TokenLevel(gqlscan.TokenVarTypeName, 0, "Bar"),
+		TokenLevel(gqlscan.TokenVarTypeArrEnd, 0, ""),
+		TokenLevel(gqlscan.TokenVarTypeArrEnd, 0, ""),
+		TokenLevel(gqlscan.TokenVarListEnd, 0, ""),
+		TokenLevel(gqlscan.TokenSel, 0, ""),
+		TokenLevel(gqlscan.TokenField, 1, "foo"),
+		TokenLevel(gqlscan.TokenArgList, 1, ""),
+		TokenLevel(gqlscan.TokenArg, 1, "x"),
+		TokenLevel(gqlscan.TokenNull, 1, "null"),
+		TokenLevel(gqlscan.TokenArgListEnd, 1, ""),
+		TokenLevel(gqlscan.TokenSel, 1, ""),
+		TokenLevel(gqlscan.TokenField, 2, "foo_bar"),
+		TokenLevel(gqlscan.TokenSelEnd, 2, ""),
+		TokenLevel(gqlscan.TokenField, 1, "bar"),
+		TokenLevel(gqlscan.TokenField, 1, "baz"),
+		TokenLevel(gqlscan.TokenSel, 1, ""),
+		TokenLevel(gqlscan.TokenField, 2, "baz_fuzz"),
+		TokenLevel(gqlscan.TokenSel, 2, ""),
+		TokenLevel(gqlscan.TokenFragInline, 3, "A"),
+		TokenLevel(gqlscan.TokenSel, 3, ""),
+		TokenLevel(gqlscan.TokenField, 4, "baz_fuzz_taz_A"),
+		TokenLevel(gqlscan.TokenFragRef, 4, "namedFragment1"),
+		TokenLevel(gqlscan.TokenFragRef, 4, "namedFragment2"),
+		TokenLevel(gqlscan.TokenSelEnd, 4, ""),
+		TokenLevel(gqlscan.TokenFragInline, 3, "B"),
+		TokenLevel(gqlscan.TokenSel, 3, ""),
+		TokenLevel(gqlscan.TokenField, 4, "baz_fuzz_taz_B"),
+		TokenLevel(gqlscan.TokenSelEnd, 4, ""),
+		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz1"),
+		TokenLevel(gqlscan.TokenArgList, 3, ""),
+		TokenLevel(gqlscan.TokenArg, 3, "bool"),
+		TokenLevel(gqlscan.TokenFalse, 3, "false"),
+		TokenLevel(gqlscan.TokenArgListEnd, 3, ""),
+		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz2"),
+		TokenLevel(gqlscan.TokenArgList, 3, ""),
+		TokenLevel(gqlscan.TokenArg, 3, "bool"),
+		TokenLevel(gqlscan.TokenTrue, 3, "true"),
+		TokenLevel(gqlscan.TokenArgListEnd, 3, ""),
+		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz3"),
+		TokenLevel(gqlscan.TokenArgList, 3, ""),
+		TokenLevel(gqlscan.TokenArg, 3, "string"),
+		TokenLevel(gqlscan.TokenStr, 3, "okay"),
+		TokenLevel(gqlscan.TokenArgListEnd, 3, ""),
+		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz4"),
+		TokenLevel(gqlscan.TokenArgList, 3, ""),
+		TokenLevel(gqlscan.TokenArg, 3, "array"),
+		TokenLevel(gqlscan.TokenArr, 3, ""),
+		TokenLevel(gqlscan.TokenArrEnd, 3, ""),
+		TokenLevel(gqlscan.TokenArgListEnd, 3, ""),
+		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz5"),
+		TokenLevel(gqlscan.TokenArgList, 3, ""),
+		TokenLevel(gqlscan.TokenArg, 3, "variable"),
+		TokenLevel(gqlscan.TokenVarRef, 3, "variable"),
+		TokenLevel(gqlscan.TokenArgListEnd, 3, ""),
+		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz6"),
+		TokenLevel(gqlscan.TokenArgList, 3, ""),
+		TokenLevel(gqlscan.TokenArg, 3, "variable"),
+		TokenLevel(gqlscan.TokenVarRef, 3, "v"),
+		TokenLevel(gqlscan.TokenArgListEnd, 3, ""),
+		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz7"),
+		TokenLevel(gqlscan.TokenArgList, 3, ""),
+		TokenLevel(gqlscan.TokenArg, 3, "object"),
+		TokenLevel(gqlscan.TokenObj, 3, ""),
+		TokenLevel(gqlscan.TokenObjField, 3, "number0"),
+		TokenLevel(gqlscan.TokenInt, 3, "0"),
+		TokenLevel(gqlscan.TokenObjField, 3, "number1"),
+		TokenLevel(gqlscan.TokenInt, 3, "2"),
+		TokenLevel(gqlscan.TokenObjField, 3, "number2"),
+		TokenLevel(gqlscan.TokenFloat, 3, "123456789.1234e2"),
 
-		{Decl(), gqlscan.TokenObjField, "arr0", 3},
-		{Decl(), gqlscan.TokenArr, "", 3},
-		{Decl(), gqlscan.TokenArr, "", 3},
-		{Decl(), gqlscan.TokenArrEnd, "", 3},
-		{Decl(), gqlscan.TokenArr, "", 3},
-		{Decl(), gqlscan.TokenObj, "", 3},
-		{Decl(), gqlscan.TokenObjField, "x", 3},
-		{Decl(), gqlscan.TokenNull, "null", 3},
-		{Decl(), gqlscan.TokenObjEnd, "", 3},
-		{Decl(), gqlscan.TokenArrEnd, "", 3},
-		{Decl(), gqlscan.TokenArrEnd, "", 3},
+		TokenLevel(gqlscan.TokenObjField, 3, "arr0"),
+		TokenLevel(gqlscan.TokenArr, 3, ""),
+		TokenLevel(gqlscan.TokenArr, 3, ""),
+		TokenLevel(gqlscan.TokenArrEnd, 3, ""),
+		TokenLevel(gqlscan.TokenArr, 3, ""),
+		TokenLevel(gqlscan.TokenObj, 3, ""),
+		TokenLevel(gqlscan.TokenObjField, 3, "x"),
+		TokenLevel(gqlscan.TokenNull, 3, "null"),
+		TokenLevel(gqlscan.TokenObjEnd, 3, ""),
+		TokenLevel(gqlscan.TokenArrEnd, 3, ""),
+		TokenLevel(gqlscan.TokenArrEnd, 3, ""),
 
-		{Decl(), gqlscan.TokenObjEnd, "", 3},
-		{Decl(), gqlscan.TokenArgListEnd, "", 3},
-		{Decl(), gqlscan.TokenSelEnd, "", 3},
-		{Decl(), gqlscan.TokenSelEnd, "", 2},
-		{Decl(), gqlscan.TokenSelEnd, "", 1},
+		TokenLevel(gqlscan.TokenObjEnd, 3, ""),
+		TokenLevel(gqlscan.TokenArgListEnd, 3, ""),
+		TokenLevel(gqlscan.TokenSelEnd, 3, ""),
+		TokenLevel(gqlscan.TokenSelEnd, 2, ""),
+		TokenLevel(gqlscan.TokenSelEnd, 1, ""),
 
 		// Fragment f1
-		{Decl(), gqlscan.TokenDefFrag, "", 0},
-		{Decl(), gqlscan.TokenFragName, "f1", 0},
-		{Decl(), gqlscan.TokenFragTypeCond, "Query", 0},
-		{Decl(), gqlscan.TokenSel, "", 0},
-		{Decl(), gqlscan.TokenField, "todos", 1},
-		{Decl(), gqlscan.TokenSel, "", 1},
-		{Decl(), gqlscan.TokenFragRef, "f2", 2},
-		{Decl(), gqlscan.TokenSelEnd, "", 2},
-		{Decl(), gqlscan.TokenSelEnd, "", 1},
+		TokenLevel(gqlscan.TokenDefFrag, 0, ""),
+		TokenLevel(gqlscan.TokenFragName, 0, "f1"),
+		TokenLevel(gqlscan.TokenFragTypeCond, 0, "Query"),
+		TokenLevel(gqlscan.TokenSel, 0, ""),
+		TokenLevel(gqlscan.TokenField, 1, "todos"),
+		TokenLevel(gqlscan.TokenSel, 1, ""),
+		TokenLevel(gqlscan.TokenFragRef, 2, "f2"),
+		TokenLevel(gqlscan.TokenSelEnd, 2, ""),
+		TokenLevel(gqlscan.TokenSelEnd, 1, ""),
 
 		// Query Todos
-		{Decl(), gqlscan.TokenDefQry, "", 0},
-		{Decl(), gqlscan.TokenOprName, "Todos", 0},
-		{Decl(), gqlscan.TokenSel, "", 0},
-		{Decl(), gqlscan.TokenFragRef, "f1", 1},
-		{Decl(), gqlscan.TokenSelEnd, "", 1},
+		TokenLevel(gqlscan.TokenDefQry, 0, ""),
+		TokenLevel(gqlscan.TokenOprName, 0, "Todos"),
+		TokenLevel(gqlscan.TokenSel, 0, ""),
+		TokenLevel(gqlscan.TokenFragRef, 1, "f1"),
+		TokenLevel(gqlscan.TokenSelEnd, 1, ""),
 
 		// Fragment f2
-		{Decl(), gqlscan.TokenDefFrag, "", 0},
-		{Decl(), gqlscan.TokenFragName, "f2", 0},
-		{Decl(), gqlscan.TokenFragTypeCond, "Todo", 0},
-		{Decl(), gqlscan.TokenSel, "", 0},
-		{Decl(), gqlscan.TokenField, "id", 1},
-		{Decl(), gqlscan.TokenField, "text", 1},
-		{Decl(), gqlscan.TokenArgList, "", 1},
-		{Decl(), gqlscan.TokenArg, "foo", 1},
-		{Decl(), gqlscan.TokenInt, "2", 1},
-		{Decl(), gqlscan.TokenArg, "bar", 1},
-		{Decl(), gqlscan.TokenStr, "ok", 1},
-		{Decl(), gqlscan.TokenArg, "baz", 1},
-		{Decl(), gqlscan.TokenNull, "null", 1},
-		{Decl(), gqlscan.TokenArgListEnd, "", 1},
-		{Decl(), gqlscan.TokenField, "done", 1},
-		{Decl(), gqlscan.TokenSelEnd, "", 1},
+		TokenLevel(gqlscan.TokenDefFrag, 0, ""),
+		TokenLevel(gqlscan.TokenFragName, 0, "f2"),
+		TokenLevel(gqlscan.TokenFragTypeCond, 0, "Todo"),
+		TokenLevel(gqlscan.TokenSel, 0, ""),
+		TokenLevel(gqlscan.TokenField, 1, "id"),
+		TokenLevel(gqlscan.TokenField, 1, "text"),
+		TokenLevel(gqlscan.TokenArgList, 1, ""),
+		TokenLevel(gqlscan.TokenArg, 1, "foo"),
+		TokenLevel(gqlscan.TokenInt, 1, "2"),
+		TokenLevel(gqlscan.TokenArg, 1, "bar"),
+		TokenLevel(gqlscan.TokenStr, 1, "ok"),
+		TokenLevel(gqlscan.TokenArg, 1, "baz"),
+		TokenLevel(gqlscan.TokenNull, 1, "null"),
+		TokenLevel(gqlscan.TokenArgListEnd, 1, ""),
+		TokenLevel(gqlscan.TokenField, 1, "done"),
+		TokenLevel(gqlscan.TokenSelEnd, 1, ""),
 	}
 
 	t.Run("Scan", func(t *testing.T) {
@@ -2717,157 +2739,121 @@ func TestZeroValueToString(t *testing.T) {
 	require.Zero(t, token.String())
 }
 
-var testdataBlockStrings = []struct {
-	decl         string
-	input        string
-	tokenIndex   int
-	buffer       []byte
-	expectWrites [][]byte
-}{
-	{decl: Decl(),
-		input:        `{f(a:"0")}`,
-		tokenIndex:   5,
-		buffer:       nil,
-		expectWrites: [][]byte{},
-	},
-	{decl: Decl(),
-		input:      `{f(a:"0")}`,
-		tokenIndex: 5,
-		buffer:     make([]byte, 8),
-		expectWrites: [][]byte{
-			[]byte("0"),
-		},
-	},
-	{decl: Decl(),
-		input:      `{f(a:"01234567")}`,
-		tokenIndex: 5,
-		buffer:     make([]byte, 8),
-		expectWrites: [][]byte{
-			[]byte("01234567"),
-		},
-	},
-	{decl: Decl(),
-		input:      `{f(a:"0123456789ab")}`,
-		tokenIndex: 5,
-		buffer:     make([]byte, 8),
-		expectWrites: [][]byte{
-			[]byte("01234567"),
-			[]byte("89ab"),
-		},
-	},
-	{decl: Decl(),
-		input:        `{f(a:"""""")}`,
-		tokenIndex:   5,
-		buffer:       make([]byte, 8),
-		expectWrites: [][]byte{},
-	},
-	{decl: Decl(),
-		input:      `{f(a:"""abc""")}`,
-		tokenIndex: 5,
-		buffer:     make([]byte, 8),
-		expectWrites: [][]byte{
-			[]byte("abc"),
-		},
-	},
-	{decl: Decl(),
-		input:      `{f(a:"""\n\t" """)}`,
-		tokenIndex: 5,
-		buffer:     make([]byte, 10),
-		expectWrites: [][]byte{
-			[]byte(`\n\t" `),
-		},
-	},
-	{decl: Decl(),
-		input: `{f(a:"""
-					
+type ExpectBlockStr struct {
+	Decl         string
+	Input        string
+	TokenIndex   int
+	Buffer       []byte
+	ExpectWrites [][]byte
+}
+
+var testdataBlockStrings = []ExpectBlockStr{
+	TokenBlockStr(
+		`{f(a:"0")}`,
+		nil,
+		// No writes
+	),
+	TokenBlockStr(
+		`{f(a:"0")}`,
+		make([]byte, 8),
+		"0",
+	),
+	TokenBlockStr(
+		`{f(a:"01234567")}`,
+		make([]byte, 8),
+		"01234567",
+	),
+	TokenBlockStr(
+		`{f(a:"0123456789ab")}`,
+		make([]byte, 8),
+		"01234567", "89ab",
+	),
+	TokenBlockStr(
+		`{f(a:"""""")}`,
+		make([]byte, 8),
+		// No writes
+	),
+	TokenBlockStr(
+		`{f(a:"""abc""")}`,
+		make([]byte, 8),
+		"abc",
+	),
+	TokenBlockStr(
+		`{f(a:"""\n\t" """)}`,
+		make([]byte, 10),
+		`\n\t" `,
+	),
+	TokenBlockStr(
+		`{f(a:"""
+			
 
 
-					1234567
-					12345678
-					
+			1234567
+			12345678
+			
 
 
-				""")}`,
-		tokenIndex: 5,
-		buffer:     make([]byte, 8),
-		expectWrites: [][]byte{
-			[]byte("1234567\n"),
-			[]byte("12345678"),
-		},
-	},
-	{decl: Decl(),
-		input: `{f(a:"""
-					first line
-					 second\t\tline
-				 """)}`,
-		tokenIndex: 5,
-		buffer:     make([]byte, 8),
-		expectWrites: [][]byte{
-			[]byte("first li"),
-			[]byte("ne\n seco"),
-			[]byte(`nd\t\tli`),
-			[]byte(`ne`),
-		},
-	},
-	{decl: Decl(),
-		input:        `{f(a:"""\"""""")}`,
-		tokenIndex:   5,
-		buffer:       make([]byte, 3),
-		expectWrites: [][]byte{[]byte(`"""`)},
-	},
-	{decl: Decl(),
-		input: `{f(a:"""
-					a
-					 b
-					"
-					\
-					\"""
-				""")}`,
-		tokenIndex: 5,
-		buffer:     make([]byte, 1),
-		expectWrites: [][]byte{
-			[]byte("a"), []byte("\n"),
-			[]byte(" "), []byte("b"), []byte("\n"),
-			[]byte(`"`), []byte("\n"),
-			[]byte(`\`), []byte("\n"),
-			[]byte(`"`), []byte(`"`), []byte(`"`),
-		},
-	},
-	{decl: Decl(),
+		""")}`,
+		make([]byte, 8),
+		"1234567\n", "12345678",
+	),
+	TokenBlockStr(
+		`{f(a:"""
+			first line
+			 second\t\tline
+		 """)}`,
+		make([]byte, 8),
+		"first li", "ne\n seco", `nd\t\tli`, `ne`,
+	),
+	TokenBlockStr(
+		`{f(a:"""\"""""")}`,
+		make([]byte, 3),
+		`"""`,
+	),
+	TokenBlockStr(
+		`{f(a:"""
+			a
+			 b
+			"
+			\
+			\"""
+		""")}`,
+		make([]byte, 1),
+		"a", "\n",
+		" ", "b", "\n",
+		`"`, "\n",
+		`\`, "\n",
+		`"`, `"`, `"`,
+	),
+	TokenBlockStr(
 		// Three non-empty and two empty lines.
 		// The second non-empty line consists of two spaces.
-		input: `{f(a:"""` +
-			"\n   a\n   \n     \n   \n   b\n" +
+		`{f(a:"""`+
+			"\n   a\n   \n     \n   \n   b\n"+
 			`""")}`,
-		tokenIndex: 5,
-		buffer:     make([]byte, 8),
-		expectWrites: [][]byte{
-			[]byte("a\n\n  \n\nb"),
-		},
-	},
-	{decl: Decl(),
-		input:      blockstring_2747b,
-		tokenIndex: 5,
-		buffer:     make([]byte, 4096), // 4 KiB buffer
-		expectWrites: [][]byte{
-			[]byte(blockstring_2747b_expect),
-		},
-	},
+		make([]byte, 8),
+		"a\n\n  \n\nb",
+	),
+	TokenBlockStr(
+		blockstring_2747b,
+		make([]byte, 4096), // 4 KiB buffer
+		blockstring_2747b_expect,
+	),
 }
 
 func TestScanInterpreted(t *testing.T) {
 	for _, td := range testdataBlockStrings {
-		t.Run(td.decl, func(t *testing.T) {
+		t.Run(td.Decl, func(t *testing.T) {
 			require := require.New(t)
 			writes, c := [][]byte{}, 0
 			err := gqlscan.Scan(
-				[]byte(td.input),
+				[]byte(td.Input),
 				func(i *gqlscan.Iterator) (err bool) {
-					if c != td.tokenIndex {
+					if c != td.TokenIndex {
 						c++
 						return false
 					}
-					i.ScanInterpreted(td.buffer, func(b []byte) (stop bool) {
+					i.ScanInterpreted(td.Buffer, func(b []byte) (stop bool) {
 						w := make([]byte, len(b))
 						copy(w, b)
 						writes = append(writes, w)
@@ -2880,11 +2866,11 @@ func TestScanInterpreted(t *testing.T) {
 				gqlscan.ErrCallbackFn, err.Code,
 				"unexpected error: %s", err.Error(),
 			)
-			require.Len(writes, len(td.expectWrites))
-			for i, e := range td.expectWrites {
+			require.Len(writes, len(td.ExpectWrites))
+			for i, e := range td.ExpectWrites {
 				require.Equal(
 					string(e), string(writes[i]),
-					"unexpected write at index %d (%s)", i, td.decl,
+					"unexpected write at index %d (%s)", i, td.Decl,
 				)
 			}
 		})
@@ -2941,11 +2927,9 @@ func TestScanInterpretedStop(t *testing.T) {
 	})
 }
 
-func Decl() string { return decl(2) }
-
 func decl(skipFrames int) string {
-	_, _, line, _ := runtime.Caller(skipFrames)
-	return fmt.Sprintf("%d", line)
+	_, filename, line, _ := runtime.Caller(skipFrames)
+	return fmt.Sprintf("%s:%d", filepath.Base(filename), line)
 }
 
 func Token(t gqlscan.Token, v ...string) Expect {
@@ -2959,6 +2943,24 @@ func Token(t gqlscan.Token, v ...string) Expect {
 		Decl:  decl(2),
 		Type:  t,
 		Value: val,
+	}
+}
+
+func TokenBlockStr(
+	input string,
+	buffer []byte,
+	expectWrites ...string,
+) ExpectBlockStr {
+	e := make([][]byte, len(expectWrites))
+	for i := range expectWrites {
+		e[i] = []byte(expectWrites[i])
+	}
+	return ExpectBlockStr{
+		TokenIndex:   5,
+		Decl:         decl(2),
+		Input:        input,
+		Buffer:       buffer,
+		ExpectWrites: e,
 	}
 }
 

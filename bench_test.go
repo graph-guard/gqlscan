@@ -73,12 +73,12 @@ var InterpretedBuffer []byte
 
 func BenchmarkScanInterpreted(b *testing.B) {
 	for _, td := range testdataBlockStrings {
-		b.Run(td.decl, func(b *testing.B) {
+		b.Run(td.Decl, func(b *testing.B) {
 			for _, bufSize := range []int{
 				1, 1024, 65536,
 			} {
 				b.Run(humanize.Bytes(uint64(bufSize)), func(b *testing.B) {
-					input := []byte(td.input)
+					input := []byte(td.Input)
 					buffer := make([]byte, bufSize)
 					b.ResetTimer()
 					for n := 0; n < b.N; n++ {
@@ -87,7 +87,7 @@ func BenchmarkScanInterpreted(b *testing.B) {
 							input,
 							func(i *gqlscan.Iterator) {
 								c++
-								if c != td.tokenIndex {
+								if c != td.TokenIndex {
 									return
 								}
 								i.ScanInterpreted(
