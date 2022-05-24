@@ -2531,6 +2531,12 @@ func TestScanErr(t *testing.T) {
 func TestScanFuncErr(t *testing.T) {
 	const input = `
 		{x @d }
+		query($v: Int @d1(v:0) @d2) @d1(v:0) @d2 {
+			x @d1(v:0) @d2
+			... on T @d1(v:0) @d2 {
+				... f @d1(v:0) @d2
+			}
+		}
 		query($v: [T!]!) {x}
 		mutation($v: [T!]!) {x}
 		query Q($variable: Foo, $v: [ [ Bar ] ]) {
@@ -2609,7 +2615,7 @@ func TestScanFuncErr(t *testing.T) {
 		numOfTokensInInput++
 		return false
 	})
-	require.False(t, err.IsErr())
+	require.False(t, err.IsErr(), "unexpected error: %s", err.Error())
 
 	for i := 0; i < numOfTokensInInput; i++ {
 		c := 0
