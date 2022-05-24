@@ -237,8 +237,8 @@ AFTER_DIR_NAME:
 			goto SELECTION_SET
 		}
 	default:
-		// The panic is triggered only if we forgot to handle a directive type.
-		panic(fmt.Errorf("unhandled directive type: %q", dirOn))
+		// This line is only executed if we forgot to handle a dirOn case.
+		panic(fmt.Errorf("unhandled dirOn case: %q", dirOn))
 	}
 
 AFTER_DIR_ARGS:
@@ -292,8 +292,6 @@ AFTER_DIR_ARGS:
 			i.head++
 			i.expect = ExpectDir
 			goto DIR_NAME
-		case ')':
-			goto VAR_LIST_END
 		default:
 			i.expect, dirOn = ExpectAfterVarType, 0
 			goto OPR_VAR
@@ -355,10 +353,7 @@ OPR_VAR:
 	}
 
 	// Variable name
-	if i.head >= len(i.str) {
-		i.errc = ErrUnexpEOF
-		goto ERROR
-	} else if i.str[i.head] != '$' {
+	if i.str[i.head] != '$' {
 		i.errc = ErrUnexpToken
 		goto ERROR
 	}
@@ -415,10 +410,7 @@ VAR_LIST_END:
 
 SELECTION_SET:
 	i.skipSTNRC()
-	if i.head >= len(i.str) {
-		i.errc = ErrUnexpEOF
-		goto ERROR
-	} else if i.str[i.head] == '#' {
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if i.str[i.head] != '{' {
 		i.errc = ErrUnexpToken
