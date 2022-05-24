@@ -1071,6 +1071,33 @@ var testdata = []TestInput{
 				0 # sample comment text line
 			# sample comment text line
 			) # sample comment text line
+			... # sample comment text line
+			# sample comment text line
+			@d # sample comment text line
+			# sample comment text line
+			( # sample comment text line
+				# sample comment text line
+				a # sample comment text line
+				# sample comment text line
+				: # sample comment text line
+				# sample comment text line
+				0 # sample comment text line
+			# sample comment text line
+			) # sample comment text line
+			# sample comment text line
+			{ # sample comment text line
+			# sample comment text line
+				x # sample comment text line
+				# sample comment text line
+			} # sample comment text line
+			# sample comment text line
+			... # sample comment text line
+			# sample comment text line
+			{ # sample comment text line
+				# sample comment text line
+				x # sample comment text line
+			# sample comment text line
+			} # sample comment text line
 		# sample comment text line
 		} # sample comment text line
 	} # sample comment text line
@@ -1132,6 +1159,19 @@ var testdata = []TestInput{
 		Token(gqlscan.TokenArgName, "a"),
 		Token(gqlscan.TokenInt, "0"),
 		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenFragInline),
+		Token(gqlscan.TokenDirName, "d"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArgName, "a"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSet),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSetEnd),
+		Token(gqlscan.TokenFragInline),
+		Token(gqlscan.TokenSet),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenSetEnd),
 		Token(gqlscan.TokenSetEnd),
 		Token(gqlscan.TokenSetEnd),
 	),
@@ -1418,6 +1458,9 @@ var testdata = []TestInput{
 		}
 		... on Y @d1 @d2 (a:$v) {
 			x
+			... @d1 @d2 (a:$v) {
+				y
+			}
 		}
 	}
 	query X($x:String @d #c
@@ -1464,6 +1507,16 @@ var testdata = []TestInput{
 		Token(gqlscan.TokenArgListEnd),
 		Token(gqlscan.TokenSet),
 		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenFragInline),
+		Token(gqlscan.TokenDirName, "d1"),
+		Token(gqlscan.TokenDirName, "d2"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArgName, "a"),
+		Token(gqlscan.TokenVarRef, "v"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSet),
+		Token(gqlscan.TokenField, "y"),
+		Token(gqlscan.TokenSetEnd),
 		Token(gqlscan.TokenSetEnd),
 		Token(gqlscan.TokenSetEnd),
 
@@ -2821,6 +2874,12 @@ func TestScanFuncErr(t *testing.T) {
 			x @d1(v:0) @d2
 			... on T @d1(v:0) @d2 {
 				... f @d1(v:0) @d2
+				... @d1(v:0) @d2 {
+					x
+				}
+				... {
+					x
+				}
 			}
 		}
 		query($v: [T!]!) {x}

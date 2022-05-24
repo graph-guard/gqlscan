@@ -1138,15 +1138,31 @@ SELECTION:
 	}
 
 	i.head += len("...")
-	goto FRAGMENT
+	goto SPREAD
 
-FRAGMENT:
+SPREAD:
 	i.skipSTNRC()
 	if i.head+1 >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
+	} else if i.str[i.head] == '{' {
+		i.token, i.tail = TokenFragInline, -1
+		if fn(i) {
+			i.errc = ErrCallbackFn
+			goto ERROR
+		}
+		i.expect = ExpectSelSet
+		goto SELECTION_SET
+	} else if i.str[i.head] == '@' {
+		i.token, i.tail = TokenFragInline, -1
+		if fn(i) {
+			i.errc = ErrCallbackFn
+			goto ERROR
+		}
+		i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
+		goto AFTER_DIR_NAME
 	} else if i.str[i.head+1] == 'n' &&
 		i.str[i.head] == 'o' {
 		if i.head+2 >= len(i.str) {
@@ -1732,7 +1748,7 @@ COMMENT:
 	case ExpectFragTypeCond:
 		goto FRAG_TYPE_COND
 	case ExpectFrag:
-		goto FRAGMENT
+		goto SPREAD
 	case ExpectColumnAfterVar:
 		goto AFTER_DECL_VAR_NAME
 	case ExpectVarType:
