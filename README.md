@@ -1,3 +1,9 @@
+![gqlscan logo](https://user-images.githubusercontent.com/9574743/170067364-dc7fd411-7943-4653-a3b1-78beecd43422.svg)
+
+
+<a href="https://go.dev/play/p/hWgkDaNqrPr">
+    <img src="https://img.shields.io/badge/Demo-Playground-blueviolet.svg">
+</a>
 <a href="https://github.com/graph-guard/gqlscan/actions?query=workflow%3ACI">
     <img src="https://github.com/graph-guard/gqlscan/workflows/CI/badge.svg" alt="GitHub Actions: CI">
 </a>
@@ -10,13 +16,11 @@
 <a href="https://pkg.go.dev/github.com/graph-guard/gqlscan">
     <img src="https://godoc.org/github.com/graph-guard/gqlscan?status.svg" alt="GoDoc">
 </a>
-<a href="https://go.dev/play/p/hWgkDaNqrPr">
-    <img src="https://img.shields.io/badge/Demo-Playground-blueviolet.svg">
-</a>
 
-# gqlscan
+----
+
 [gqlscan](https://pkg.go.dev/github.com/graph-guard/gqlscan) provides functions for fast and allocation-free
-lexical scanning and validation of GraphQL queries according
+lexical scanning and validation of [GraphQL](https://graphql.org) queries according
 to the [GraphQL specification of October 2021](https://spec.graphql.org/October2021/).
 
 The provided functions don't perform semantic analysis such as
