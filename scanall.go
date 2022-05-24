@@ -233,7 +233,7 @@ AFTER_DIR_NAME:
 			i.expect = ExpectDir
 			goto DIR_NAME
 		default:
-			i.expect = ExpectSelSet
+			i.expect, dirOn = ExpectSelSet, 0
 			goto SELECTION_SET
 		}
 	default:
@@ -257,7 +257,6 @@ AFTER_DIR_ARGS:
 			i.expect = ExpectDir
 			goto DIR_NAME
 		case '{':
-			// Field selector expands without arguments
 			i.expect = ExpectSelSet
 			goto SELECTION_SET
 		default:
@@ -1432,33 +1431,15 @@ AFTER_NAME:
 		i.token = TokenFragInline
 		fn(i)
 
-		i.skipSTNRC()
-		if i.head >= len(i.str) {
-			i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
-			goto ERROR
-		} else if i.str[i.head] == '@' {
-			dirOn = dirFragInlineOrDef
-			goto AFTER_DIR_NAME
-		}
-
-		i.expect = ExpectSelSet
-		goto SELECTION_SET
+		i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
+		goto AFTER_DIR_NAME
 
 	case ExpectFragRef:
 		i.token = TokenFragRef
 		fn(i)
 
-		i.skipSTNRC()
-		if i.head >= len(i.str) {
-			i.errc, i.expect = ErrUnexpEOF, ExpectAfterSelection
-			goto ERROR
-		} else if i.str[i.head] == '@' {
-			dirOn = dirFragRef
-			goto AFTER_DIR_NAME
-		}
-
-		i.expect = ExpectAfterSelection
-		goto AFTER_SELECTION
+		i.expect, dirOn = ExpectDirName, dirFragRef
+		goto AFTER_DIR_NAME
 
 	case ExpectFragName:
 		i.token = TokenFragName

@@ -484,9 +484,9 @@ func (e Expect) String() string {
 	case ExpectAfterDefKeyword:
 		return "variable list or selection set"
 	case ExpectAfterVarType:
-		return "variable list closure or variable name"
+		return "variable list closure or variable"
 	case ExpectAfterVarTypeName:
-		return "variable list closure or variable name"
+		return "variable list closure or variable"
 	}
 	return ""
 }

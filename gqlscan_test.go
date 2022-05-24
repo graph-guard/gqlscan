@@ -939,6 +939,16 @@ var testdata = []TestInput{
 	# sample comment text line
 	{ # sample comment text line
 		# sample comment text line
+		x # sample comment text line
+		# sample comment text line
+		@d # sample comment text line
+		# sample comment text line
+		{ # sample comment text line
+			# sample comment text line
+			xx # sample comment text line
+		# sample comment text line
+		} # sample comment text line
+		# sample comment text line
 		a # sample comment text line
 		# sample comment text line
 		{ # sample comment text line
@@ -1030,17 +1040,27 @@ var testdata = []TestInput{
 		T # sample comment text line
 		# sample comment text line
 		{ # sample comment text line
-		# sample comment text line
 			# sample comment text line
 			... # sample comment text line
 			# sample comment text line
 			f # sample comment text line
+			# sample comment text line
+			... # sample comment text line
+			# sample comment text line
+			f2 # sample comment text line
+			# sample comment text line
+			@d # sample comment text line
 		# sample comment text line
 		} # sample comment text line
 	} # sample comment text line
 	`,
 		Token(gqlscan.TokenDefQry),
 		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "x"),
+		Token(gqlscan.TokenDirName, "d"),
+		Token(gqlscan.TokenSel),
+		Token(gqlscan.TokenField, "xx"),
+		Token(gqlscan.TokenSelEnd),
 		Token(gqlscan.TokenField, "a"),
 		Token(gqlscan.TokenSel),
 		Token(gqlscan.TokenField, "b"),
@@ -1080,6 +1100,8 @@ var testdata = []TestInput{
 		Token(gqlscan.TokenFragInline, "T"),
 		Token(gqlscan.TokenSel),
 		Token(gqlscan.TokenFragRef, "f"),
+		Token(gqlscan.TokenFragRef, "f2"),
+		Token(gqlscan.TokenDirName, "d"),
 		Token(gqlscan.TokenSelEnd),
 		Token(gqlscan.TokenSelEnd),
 	),
@@ -1800,7 +1822,7 @@ var testdataErr = []TestInputErr{
 	InputErr( // Unexpected square bracket in variable type.
 		"query($a: [[A]]]){f}",
 		"error at index 15 (']'): unexpected token; "+
-			"expected variable list closure or variable name",
+			"expected variable list closure or variable",
 	),
 	InputErr( // Missing query closing curly bracket.
 		"{",
@@ -1946,12 +1968,12 @@ var testdataErr = []TestInputErr{
 	InputErr( // Unexpected EOF.
 		"query($v: T",
 		"error at index 11: unexpected end of file; "+
-			"expected variable list closure or variable name",
+			"expected variable list closure or variable",
 	),
 	InputErr( // Unexpected EOF.
 		"query($v: T ",
 		"error at index 12: unexpected end of file; "+
-			"expected variable list closure or variable name",
+			"expected variable list closure or variable",
 	),
 	InputErr( // Unexpected EOF.
 		"query($v: T)",
@@ -2266,7 +2288,7 @@ var testdataErr = []TestInputErr{
 	InputErr( // Unexpected token.
 		"query($v:[T] |)",
 		"error at index 13 ('|'): unexpected token; "+
-			"expected variable list closure or variable name",
+			"expected variable list closure or variable",
 	),
 	InputErr( // Unexpected token.
 		"fragment X at",
@@ -2276,7 +2298,7 @@ var testdataErr = []TestInputErr{
 	InputErr( // Unexpected EOF.
 		"query($a:[A]",
 		"error at index 12: unexpected end of file; "+
-			"expected variable list closure or variable name",
+			"expected variable list closure or variable",
 	),
 	InputErr( // Unexpected EOF.
 		"fragment f ",
@@ -2306,12 +2328,12 @@ var testdataErr = []TestInputErr{
 	InputErr( // Unexpected token.
 		"query($v:T ! !){x(a:$v)}",
 		"error at index 13 ('!'): unexpected token; "+
-			"expected variable list closure or variable name",
+			"expected variable list closure or variable",
 	),
 	InputErr( // Unexpected token.
 		"query($v: [ T ! ] ! ! ){x(a:$v)}",
 		"error at index 20 ('!'): unexpected token; "+
-			"expected variable list closure or variable name",
+			"expected variable list closure or variable",
 	),
 	InputErr( // Unexpected token.
 		"{alias : alias2 : x}",
@@ -2452,6 +2474,31 @@ var testdataErr = []TestInputErr{
 		"{f @d (a:0) (a:0)}",
 		"error at index 12 ('('): unexpected token; "+
 			"expected field name or alias",
+	),
+	InputErr( // Unexpected EOF
+		"{f @ #c",
+		"error at index 7: unexpected end of file; "+
+			"expected directive name",
+	),
+	InputErr( // Unexpected EOF
+		"{f @d(a:0)",
+		"error at index 10: unexpected end of file; "+
+			"expected selection, selection set or end of selection set",
+	),
+	InputErr( // Unexpected EOF
+		"{f @d(a:0) ",
+		"error at index 11: unexpected end of file; "+
+			"expected selection, selection set or end of selection set",
+	),
+	InputErr( // Unexpected EOF
+		"query @d(a:0)",
+		"error at index 13: unexpected end of file; "+
+			"expected variable list or selection set",
+	),
+	InputErr( // Unexpected EOF
+		"query ($v:Int @d(a:0)",
+		"error at index 21: unexpected end of file; "+
+			"expected variable list closure or variable",
 	),
 }
 
