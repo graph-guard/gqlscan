@@ -2596,6 +2596,11 @@ var testdataErr = []TestInputErr{
 		"error at index 13 (0x0): unexpected token; "+
 			"expected end of string",
 	),
+	InputErr( // Control character in name
+		"{a23456\u0000 b}",
+		"error at index 7 (0x0): unexpected token; "+
+			"expected field name or alias",
+	),
 	InputErr( // Unexpected EOF.
 		`{f #c`,
 		"error at index 5: unexpected end of file; "+
