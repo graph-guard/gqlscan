@@ -272,7 +272,7 @@ AFTER_DIR_NAME:
 		}
 	default:
 		// This line is only executed if we forgot to handle a dirOn case.
-		panic(fmt.Errorf("unhandled dirOn case: %q", dirOn))
+		panic(fmt.Errorf("unhandled dirOn case: %#v", dirOn))
 	}
 
 AFTER_DIR_ARGS:
@@ -364,7 +364,7 @@ AFTER_DIR_ARGS:
 		}
 	default:
 		// This line is only executed if we forgot to handle a dirOn case.
-		panic(fmt.Errorf("unhandled dirOn case: %q", dirOn))
+		panic(fmt.Errorf("unhandled dirOn case: %#v", dirOn))
 	}
 
 AFTER_KEYWORD_FRAGMENT:
