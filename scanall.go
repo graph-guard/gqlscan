@@ -188,7 +188,7 @@ AFTER_DIR_NAME:
 		}
 	case dirFragRef:
 		if i.head >= len(i.str) {
-			i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
+			i.errc, i.expect = ErrUnexpEOF, ExpectAfterSelection
 			goto ERROR
 		}
 		switch i.str[i.head] {
@@ -300,7 +300,7 @@ AFTER_DIR_ARGS:
 		}
 	case dirFragRef:
 		if i.head >= len(i.str) {
-			i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
+			i.errc, i.expect = ErrUnexpEOF, ExpectAfterSelection
 			goto ERROR
 		}
 		switch i.str[i.head] {
