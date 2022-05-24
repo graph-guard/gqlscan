@@ -1087,7 +1087,7 @@ FRAGMENT:
 		}
 	}
 	// ...fragmentName
-	i.expect = ExpectFragRef
+	i.expect = ExpectSpreadName
 	goto NAME
 
 AFTER_DECL_VAR_NAME:
@@ -1436,8 +1436,8 @@ AFTER_NAME:
 		i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
 		goto AFTER_DIR_NAME
 
-	case ExpectFragRef:
-		i.token = TokenFragRef
+	case ExpectSpreadName:
+		i.token = TokenNamedSpread
 		fn(i)
 
 		i.expect, dirOn = ExpectDirName, dirFragRef

@@ -414,7 +414,7 @@ const (
 	ExpectFragKeywordOn
 	ExpectFragName
 	ExpectFrag
-	ExpectFragRef
+	ExpectSpreadName
 	ExpectFragInlined
 	ExpectAfterFieldName
 	ExpectAfterSelection
@@ -481,8 +481,8 @@ func (e Expect) String() string {
 		return "fragment name"
 	case ExpectFrag:
 		return "fragment"
-	case ExpectFragRef:
-		return "fragment reference"
+	case ExpectSpreadName:
+		return "spread name"
 	case ExpectFragInlined:
 		return "inlined fragment"
 	case ExpectAfterFieldName:
@@ -524,7 +524,7 @@ const (
 	TokenFragTypeCond
 	TokenFragName
 	TokenFragInline
-	TokenFragRef
+	TokenNamedSpread
 	TokenFieldAlias
 	TokenField
 	TokenArgName
@@ -580,8 +580,8 @@ func (t Token) String() string {
 		return "fragment name"
 	case TokenFragInline:
 		return "fragment inline"
-	case TokenFragRef:
-		return "fragment reference"
+	case TokenNamedSpread:
+		return "named spread"
 	case TokenFieldAlias:
 		return "field alias"
 	case TokenField:
