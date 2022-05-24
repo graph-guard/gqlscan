@@ -2483,7 +2483,7 @@ func TestScanErr(t *testing.T) {
 
 func TestScanFuncErr(t *testing.T) {
 	const input = `
-		{x}
+		{x @d }
 		query($v: [T!]!) {x}
 		mutation($v: [T!]!) {x}
 		query Q($variable: Foo, $v: [ [ Bar ] ]) {
