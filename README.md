@@ -1,5 +1,4 @@
-![gqlscan logo](https://user-images.githubusercontent.com/9574743/170067364-dc7fd411-7943-4653-a3b1-78beecd43422.svg)
-
+![GraphQL Logo (Rhodamine) 4 (1)](https://user-images.githubusercontent.com/9574743/170073103-c5b21ec0-3686-4871-be9c-5029118ec001.svg)
 
 <a href="https://go.dev/play/p/hWgkDaNqrPr">
     <img src="https://img.shields.io/badge/Demo-Playground-blueviolet.svg">
