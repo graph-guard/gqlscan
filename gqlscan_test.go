@@ -2321,6 +2321,16 @@ var testdataErr = []TestInputErr{
 			"expected inlined fragment",
 	),
 	InputErr( // Unexpected EOF.
+		`fragment f on T`,
+		"error at index 15: unexpected end of file; "+
+			"expected selection set",
+	),
+	InputErr( // Unexpected EOF.
+		`fragment f on T `,
+		"error at index 16: unexpected end of file; "+
+			"expected selection set",
+	),
+	InputErr( // Unexpected EOF.
 		"fragment",
 		"error at index 8: unexpected end of file; "+
 			"expected fragment name",

@@ -1317,6 +1317,7 @@ AFTER_FIELD_NAME:
 	goto AFTER_SELECTION
 
 AFTER_NAME:
+	_ = 0 // Make code coverage count the label above
 	switch i.expect {
 	case ExpectFieldNameOrAlias:
 		head := i.head
@@ -1461,7 +1462,7 @@ AFTER_NAME:
 
 		i.skipSTNRC()
 		if i.head >= len(i.str) {
-			i.errc = ErrUnexpEOF
+			i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
 			goto ERROR
 		} else if i.str[i.head] == '@' {
 			dirOn = dirFragInlineOrDef
