@@ -750,7 +750,7 @@ VALUE:
 			i.expect = ExpectVal
 			goto ERROR
 		}
-		i.tail = i.head
+		i.tail = -1
 		i.head += len("null")
 
 		// Callback for argument
@@ -774,7 +774,7 @@ VALUE:
 			i.expect = ExpectVal
 			goto ERROR
 		}
-		i.tail = i.head
+		i.tail = -1
 		i.head += len("true")
 
 		// Callback for argument
@@ -799,7 +799,7 @@ VALUE:
 			i.expect = ExpectVal
 			goto ERROR
 		}
-		i.tail = i.head
+		i.tail = -1
 		i.head += len("false")
 
 		// Callback for argument
