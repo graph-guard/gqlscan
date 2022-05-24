@@ -454,7 +454,7 @@ SELECTION_SET:
 		goto ERROR
 	}
 	i.tail = -1
-	i.token = TokenSel
+	i.token = TokenSet
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
@@ -479,7 +479,7 @@ AFTER_SELECTION:
 
 SEL_END:
 	i.tail = -1
-	i.token = TokenSelEnd
+	i.token = TokenSetEnd
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
@@ -1448,7 +1448,7 @@ AFTER_NAME:
 
 	case ExpectArgName:
 		// Callback for argument name
-		i.token = TokenArg
+		i.token = TokenArgName
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR

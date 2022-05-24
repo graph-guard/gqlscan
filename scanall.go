@@ -417,7 +417,7 @@ SELECTION_SET:
 		goto ERROR
 	}
 	i.tail = -1
-	i.token = TokenSel
+	i.token = TokenSet
 	fn(i)
 	i.levelSel++
 	i.head++
@@ -439,7 +439,7 @@ AFTER_SELECTION:
 
 SEL_END:
 	i.tail = -1
-	i.token = TokenSelEnd
+	i.token = TokenSetEnd
 	fn(i)
 	i.levelSel--
 	i.head++
@@ -1345,7 +1345,7 @@ AFTER_NAME:
 
 	case ExpectArgName:
 		// Callback for argument name
-		i.token = TokenArg
+		i.token = TokenArgName
 		fn(i)
 		i.skipSTNRC()
 		i.expect = ExpectColumnAfterArg

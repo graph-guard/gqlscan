@@ -507,15 +507,15 @@ const (
 	TokenVarListEnd
 	TokenArgList
 	TokenArgListEnd
-	TokenSel
-	TokenSelEnd
+	TokenSet
+	TokenSetEnd
 	TokenFragTypeCond
 	TokenFragName
 	TokenFragInline
 	TokenFragRef
 	TokenFieldAlias
 	TokenField
-	TokenArg
+	TokenArgName
 	TokenArr
 	TokenArrEnd
 	TokenStr
@@ -558,9 +558,9 @@ func (t Token) String() string {
 		return "argument list"
 	case TokenArgListEnd:
 		return "argument list end"
-	case TokenSel:
+	case TokenSet:
 		return "selection set"
-	case TokenSelEnd:
+	case TokenSetEnd:
 		return "selection set end"
 	case TokenFragTypeCond:
 		return "fragment type condition"
@@ -574,8 +574,8 @@ func (t Token) String() string {
 		return "field alias"
 	case TokenField:
 		return "field"
-	case TokenArg:
-		return "argument"
+	case TokenArgName:
+		return "argument name"
 	case TokenArr:
 		return "array"
 	case TokenArrEnd:
