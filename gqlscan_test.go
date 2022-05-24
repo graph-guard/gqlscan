@@ -1039,6 +1039,17 @@ var testdata = []TestInput{
 		# sample comment text line
 		T # sample comment text line
 		# sample comment text line
+		@d # sample comment text line
+		# sample comment text line
+		( # sample comment text line
+			# sample comment text line
+			a # sample comment text line
+			# sample comment text line
+			: # sample comment text line
+			# sample comment text line
+			0 # sample comment text line
+		# sample comment text line
+		) # sample comment text line
 		{ # sample comment text line
 			# sample comment text line
 			... # sample comment text line
@@ -1050,6 +1061,16 @@ var testdata = []TestInput{
 			f2 # sample comment text line
 			# sample comment text line
 			@d # sample comment text line
+			# sample comment text line
+			( # sample comment text line
+				# sample comment text line
+				a # sample comment text line
+				# sample comment text line
+				: # sample comment text line
+				# sample comment text line
+				0 # sample comment text line
+			# sample comment text line
+			) # sample comment text line
 		# sample comment text line
 		} # sample comment text line
 	} # sample comment text line
@@ -1098,10 +1119,19 @@ var testdata = []TestInput{
 		Token(gqlscan.TokenDirName, "d3"),
 		Token(gqlscan.TokenSel),
 		Token(gqlscan.TokenFragInline, "T"),
+		Token(gqlscan.TokenDirName, "d"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
 		Token(gqlscan.TokenSel),
 		Token(gqlscan.TokenFragRef, "f"),
 		Token(gqlscan.TokenFragRef, "f2"),
 		Token(gqlscan.TokenDirName, "d"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArg, "a"),
+		Token(gqlscan.TokenInt, "0"),
+		Token(gqlscan.TokenArgListEnd),
 		Token(gqlscan.TokenSelEnd),
 		Token(gqlscan.TokenSelEnd),
 	),
