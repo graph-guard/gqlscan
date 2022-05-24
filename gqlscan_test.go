@@ -2475,6 +2475,21 @@ var testdataErr = []TestInputErr{
 		"error at index 18: unexpected end of file; "+
 			"expected argument name",
 	),
+	InputErr( // Unexpected EOF
+		"query @d(a:0)",
+		"error at index 13: unexpected end of file; "+
+			"expected variable list or selection set",
+	),
+	InputErr( // Unexpected EOF
+		"query ($v:Int @d(a:0)",
+		"error at index 21: unexpected end of file; "+
+			"expected variable list closure or variable",
+	),
+	InputErr( // Unexpected EOF
+		"query ($v:Int @d(a:0) ",
+		"error at index 22: unexpected end of file; "+
+			"expected variable list closure or variable",
+	),
 	InputErr( // Unexpected EOF.
 		"{f @",
 		"error at index 4: unexpected end of file; "+
@@ -2521,14 +2536,44 @@ var testdataErr = []TestInputErr{
 			"expected selection, selection set or end of selection set",
 	),
 	InputErr( // Unexpected EOF
-		"query @d(a:0)",
-		"error at index 13: unexpected end of file; "+
-			"expected variable list or selection set",
+		"{...f @",
+		"error at index 7: unexpected end of file; "+
+			"expected directive name",
 	),
 	InputErr( // Unexpected EOF
-		"query ($v:Int @d(a:0)",
-		"error at index 21: unexpected end of file; "+
-			"expected variable list closure or variable",
+		"{...f @ ",
+		"error at index 8: unexpected end of file; "+
+			"expected directive name",
+	),
+	InputErr( // Unexpected EOF
+		"{...f @d(a:0)",
+		"error at index 13: unexpected end of file; "+
+			"expected selection or end of selection set",
+	),
+	InputErr( // Unexpected EOF
+		"{...f @d(a:0) ",
+		"error at index 14: unexpected end of file; "+
+			"expected selection or end of selection set",
+	),
+	InputErr( // Unexpected EOF
+		"{...on T @",
+		"error at index 10: unexpected end of file; "+
+			"expected directive name",
+	),
+	InputErr( // Unexpected EOF
+		"{...on T @ ",
+		"error at index 11: unexpected end of file; "+
+			"expected directive name",
+	),
+	InputErr( // Unexpected EOF
+		"{...on T @d(a:0)",
+		"error at index 16: unexpected end of file; "+
+			"expected selection set",
+	),
+	InputErr( // Unexpected EOF
+		"{...on T @d(a:0) ",
+		"error at index 17: unexpected end of file; "+
+			"expected selection set",
 	),
 }
 
