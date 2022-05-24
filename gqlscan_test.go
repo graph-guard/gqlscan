@@ -2771,6 +2771,11 @@ var testdataErr = []TestInputErr{
 		"error at index 24 ('$'): unexpected token; "+
 			"expected default variable value",
 	),
+	InputErr( // Illegal fragment name
+		`fragment on on User {x}`,
+		"error at index 9 ('o'): illegal fragment name; "+
+			"expected fragment name",
+	),
 }
 
 func TestScanErr(t *testing.T) {

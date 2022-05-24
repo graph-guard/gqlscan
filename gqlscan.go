@@ -636,6 +636,7 @@ const (
 	ErrCallbackFn
 	ErrUnexpToken
 	ErrUnexpEOF
+	ErrIllegalFragName
 	ErrInvalNum
 	ErrInvalVal
 	ErrInvalType
@@ -677,6 +678,8 @@ func (e Error) Error() string {
 		b.WriteString(": callback function returned error")
 	case ErrUnexpToken:
 		b.WriteString(": unexpected token")
+	case ErrIllegalFragName:
+		b.WriteString(": illegal fragment name")
 	case ErrInvalNum:
 		b.WriteString(": invalid number value")
 	case ErrInvalVal:

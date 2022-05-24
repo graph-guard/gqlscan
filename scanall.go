@@ -1443,6 +1443,13 @@ AFTER_NAME:
 		goto AFTER_DIR_NAME
 
 	case ExpectFragName:
+		if i.head-i.tail == 2 &&
+			i.str[i.tail+1] == 'n' &&
+			i.str[i.tail] == 'o' {
+			i.errc, i.head = ErrIllegalFragName, i.tail
+			goto ERROR
+		}
+
 		i.token = TokenFragName
 		fn(i)
 		i.expect = ExpectFragKeywordOn
