@@ -2490,6 +2490,26 @@ var testdataErr = []TestInputErr{
 		"error at index 22: unexpected end of file; "+
 			"expected variable list closure or variable",
 	),
+	InputErr( // Unexpected EOF
+		"mutation ($a:Int @d",
+		"error at index 19: unexpected end of file; "+
+			"expected variable list closure or variable",
+	),
+	InputErr( // Unexpected EOF
+		"mutation ($a:Int @d ",
+		"error at index 20: unexpected end of file; "+
+			"expected variable list closure or variable",
+	),
+	InputErr( // Unexpected EOF
+		"fragment f on T @d",
+		"error at index 18: unexpected end of file; "+
+			"expected selection set",
+	),
+	InputErr( // Unexpected EOF
+		"fragment f on T @d ",
+		"error at index 19: unexpected end of file; "+
+			"expected selection set",
+	),
 	InputErr( // Unexpected EOF.
 		"{f @",
 		"error at index 4: unexpected end of file; "+
@@ -2544,6 +2564,16 @@ var testdataErr = []TestInputErr{
 		"{...f @ ",
 		"error at index 8: unexpected end of file; "+
 			"expected directive name",
+	),
+	InputErr( // Unexpected EOF
+		"{...f @d",
+		"error at index 8: unexpected end of file; "+
+			"expected selection or end of selection set",
+	),
+	InputErr( // Unexpected EOF
+		"{...f @d ",
+		"error at index 9: unexpected end of file; "+
+			"expected selection or end of selection set",
 	),
 	InputErr( // Unexpected EOF
 		"{...f @d(a:0)",
