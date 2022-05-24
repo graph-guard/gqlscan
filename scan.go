@@ -7,9 +7,12 @@ import (
 
 // Scan calls fn for every token it scans in str.
 // If fn returns true then an error with code ErrCallbackFn is returned.
+// If the returned error code == 0 then there was no error during the scan,
+// this can also be checked using err.IsErr().
 //
 // WARNING: *Iterator passed to fn should never be aliased and
-// used after Scan returns!
+// used after Scan returns because it's returned to the pool
+// and may be acquired by another call to Scan!
 func Scan(str []byte, fn func(*Iterator) (err bool)) Error {
 	i := acquireIterator(str)
 	defer iteratorPool.Put(i)

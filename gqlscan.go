@@ -7,7 +7,10 @@ import (
 	"sync"
 )
 
-// Iterator is a GraphQL iterator for lexical analysis
+// Iterator is a GraphQL iterator for lexical analysis.
+//
+// WARNING: An iterator instance shall never be aliased and/or used
+// after Scan or ScanAll returns because it's returned to a global pool!
 type Iterator struct {
 	// stack holds either TokenArr or TokenObj
 	// and is reset for every argument.
@@ -86,6 +89,7 @@ func (i *Iterator) IndexHead() int {
 }
 
 // IndexTail returns the current tail index.
+// Returns -1 if the current token doesn't reflect a dynamic value.
 func (i *Iterator) IndexTail() int {
 	return i.tail
 }
@@ -96,7 +100,12 @@ func (i *Iterator) Token() Token {
 }
 
 // Value returns the raw value of the current token.
-// For TokenStrBlock it's the raw uninterpreted body of the string.
+// For TokenStrBlock it's the raw uninterpreted body of the string,
+// use ScanInterpreted for the interpreted value of the block string.
+//
+// WARNING: The returned byte slice refers to the same underlying memory
+// as the byte slice passed to Scan and ScanAll as str parameter,
+// copy it or use with caution!
 func (i *Iterator) Value() []byte {
 	if i.tail < 0 {
 		return nil

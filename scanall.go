@@ -6,9 +6,12 @@ import (
 )
 
 // ScanAll calls fn for every token it scans in str.
+// If the returned error code == 0 then there was no error during the scan,
+// this can also be checked using err.IsErr().
 //
 // WARNING: *Iterator passed to fn should never be aliased and
-// used after ScanAll returns!
+// used after ScanAll returns because it's returned to the pool
+// and may be acquired by another call to ScanAll!
 func ScanAll(str []byte, fn func(*Iterator)) Error {
 	i := acquireIterator(str)
 	defer iteratorPool.Put(i)
