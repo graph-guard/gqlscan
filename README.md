@@ -26,3 +26,21 @@ The provided functions don't perform semantic analysis such as
 making sure that declared variables are used or that
 values match their declared types, etc. as this is outside the scope
 of lexical analysis.
+
+## Benchmark
+
+It takes gqlscan around 28 ns to scan a [tiny query](https://github.com/graph-guard/gqlscan/blob/2c7ec143c69e4a71b03adb63711be7cf7973549d/gqlscan_test.go#L29) (5 bytes) and around 2.5 µs to parse a [relatively complex](https://github.com/graph-guard/gqlscan/blob/2c7ec143c69e4a71b03adb63711be7cf7973549d/gqlscan_test.go#L212) (~1.4KB) one.
+
+```console
+goos: darwin
+goarch: arm64
+pkg: github.com/graph-guard/gqlscan
+BenchmarkScanAll
+BenchmarkScanAll/gqlscan_test.go:29
+BenchmarkScanAll/gqlscan_test.go:29-10         	210567658	        28.62 ns/op	       0 B/op	       0 allocs/op
+BenchmarkScanAll/gqlscan_test.go:212
+BenchmarkScanAll/gqlscan_test.go:212-10        	 2415644	      2479 ns/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/graph-guard/gqlscan	17.708s
+```
+The tests were performed on an Apple M1 Max 14" MBP running macOS Monterey 12.4.
