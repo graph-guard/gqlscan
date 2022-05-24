@@ -2766,6 +2766,11 @@ var testdataErr = []TestInputErr{
 		"error at index 17: unexpected end of file; "+
 			"expected selection set",
 	),
+	InputErr( // Variable reference in default value of variable definition
+		"query($v:Int=42 $v2:Int=$v) {x}",
+		"error at index 24 ('$'): unexpected token; "+
+			"expected default variable value",
+	),
 }
 
 func TestScanErr(t *testing.T) {

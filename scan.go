@@ -723,6 +723,11 @@ VALUE:
 		// Advance head index to include the closing double-quotes
 		i.head++
 	case '$':
+		if inDefVal {
+			i.errc, i.expect = ErrUnexpToken, ExpectDefaultVarVal
+			goto ERROR
+		}
+
 		// Variable reference
 		i.head++
 

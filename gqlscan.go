@@ -379,6 +379,7 @@ type Expect int
 const (
 	_ Expect = iota
 	ExpectVal
+	ExpectDefaultVarVal
 	ExpectDef
 	ExpectOprName
 	ExpectSelSet
@@ -423,6 +424,8 @@ func (e Expect) String() string {
 		return "operation name"
 	case ExpectVal:
 		return "value"
+	case ExpectDefaultVarVal:
+		return "default variable value"
 	case ExpectSelSet:
 		return "selection set"
 	case ExpectArgName:
