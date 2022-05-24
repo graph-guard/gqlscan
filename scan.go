@@ -365,7 +365,8 @@ AFTER_DIR_ARGS:
 			goto SELECTION_SET
 		}
 	default:
-		panic(fmt.Errorf("no: %#v", dirOn))
+		// This line is only executed if we forgot to handle a dirOn case.
+		panic(fmt.Errorf("unhandled dirOn case: %q", dirOn))
 	}
 
 AFTER_KEYWORD_FRAGMENT:
