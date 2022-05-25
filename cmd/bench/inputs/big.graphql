@@ -1,0 +1,73 @@
+query Q(
+    $variable: Foo,
+    $ v: [ [ Bar ] ] = [[{f:0}] null [null]]
+) {
+    foo_alias: foo(x: null) {
+        foobar_alias: foo_bar
+    }
+    bar
+    baz {
+        baz_fuzz {
+            ... on A {
+                baz_fuzz_taz_A
+                ...namedFragment1
+                ... namedFragment2
+            }
+            ... on B {
+                baz_fuzz_taz_B
+            }
+            baz_fuzz_taz1(bool: false)
+            baz_fuzz_taz2(bool: true)
+            baz_fuzz_taz3(string: "okay")
+            baz_fuzz_taz4(array: [])
+            baz_fuzz_taz5(variable: $variable)
+            baz_fuzz_taz6(variable: $v)
+            baz_fuzz_taz7(object: {
+                number0: 0
+                number1: 2
+                number2: 123456789.1234e2
+                arr0: [[] [{x:null}]]
+            })
+        }
+    }
+}
+mutation M($variable: Foo={f:2}, $v: [ [ Bar ] ]) {
+    foo(x: null) {
+        foo_bar
+    }
+    bar
+    baz {
+        baz_fuzz {
+            ... on A {
+                baz_fuzz_taz_A
+                ...namedFragment1
+                ... namedFragment2
+            }
+            ... on B {
+                baz_fuzz_taz_B
+            }
+            baz_fuzz_taz1(bool: false)
+            baz_fuzz_taz2(bool: true)
+            baz_fuzz_taz3(string: "okay")
+            baz_fuzz_taz4(array: [])
+            baz_fuzz_taz5(variable: $variable)
+            baz_fuzz_taz6(variable: $v)
+            baz_fuzz_taz7(object: {
+                number0: 0
+                number1: 2
+                number2: 123456789.1234e2
+                arr0: [[] [{x:null}]]
+            })
+        }
+    }
+}
+fragment f1 on Query { todos { ...f2 } }
+query Todos { ...f1 }
+fragment f2 on Todo { id text(
+    foo: 2,
+    bar: "ok",
+    baz: null,
+) done }
+subscription S($v:Input!){
+    sub(i: $v) {f}
+}

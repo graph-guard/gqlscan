@@ -29,7 +29,45 @@ of lexical analysis.
 
 ## Benchmark
 
-It takes gqlscan around 28 ns to scan a [tiny query](https://github.com/graph-guard/gqlscan/blob/2c7ec143c69e4a71b03adb63711be7cf7973549d/gqlscan_test.go#L29) (5 bytes) and around 2.5 µs to parse a [relatively complex](https://github.com/graph-guard/gqlscan/blob/2c7ec143c69e4a71b03adb63711be7cf7973549d/gqlscan_test.go#L212) (~1.4KB) one.
+All tests were performed on an Apple M1 Max 14" MBP running macOS Monterey 12.4.
+
+### Benchmark Suite
+
+The benchmark suite allows testing arbitrary query sets for throughput.
+
+```console
+go run cmd/bench/main.go -i cmd/bench/inputs
+```
+
+Single core:
+```console
+gathered 2 input file(s):
+ cmd/bench/inputs/big.graphql: 1.8 kB
+ cmd/bench/inputs/small.graphql: 28 B
+running 1 parallel goroutine(s) for 1m0s
+finished (1m0.000022792s)
+total processed: 34 GB (565 MB/s; 4.21 gbit/s)
+total errors: 0
+```
+
+Multicore:
+```console
+gathered 2 input file(s):
+ cmd/bench/inputs/big.graphql: 1.8 kB
+ cmd/bench/inputs/small.graphql: 28 B
+running 10 parallel goroutine(s) for 1m0s
+finished (1m0.000030625s)
+total processed: 264 GB (4.4 GB/s; 32.82 gbit/s)
+total errors: 0
+```
+
+### Test Benchmarks
+
+Тhe test benchmarks benchmark all test inputs.
+
+```console
+go test -v -bench . -benchmem ./...
+```
 
 ```console
 goos: darwin
@@ -43,4 +81,3 @@ BenchmarkScanAll/gqlscan_test.go:212-10        	 2415644	      2479 ns/op	      
 PASS
 ok  	github.com/graph-guard/gqlscan	17.708s
 ```
-The tests were performed on an Apple M1 Max 14" MBP running macOS Monterey 12.4.
