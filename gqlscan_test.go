@@ -213,8 +213,12 @@ var testdata = []TestInput{
 		$variable: Foo,
 		$ v: [ [ Bar ] ] = [[{f:0}] null [null]]
 	) {
+		__schema {
+			description
+		}
 		foo_alias: foo(x: null) {
 			foobar_alias: foo_bar
+			__typename
 		}
 		bar
 		baz {
@@ -307,6 +311,10 @@ var testdata = []TestInput{
 		Token(gqlscan.TokenArrEnd),
 		Token(gqlscan.TokenVarListEnd),
 		Token(gqlscan.TokenSet),
+		Token(gqlscan.TokenField, "__schema"),
+		Token(gqlscan.TokenSet),
+		Token(gqlscan.TokenField, "description"),
+		Token(gqlscan.TokenSetEnd),
 		Token(gqlscan.TokenFieldAlias, "foo_alias"),
 		Token(gqlscan.TokenField, "foo"),
 		Token(gqlscan.TokenArgList),
@@ -316,6 +324,7 @@ var testdata = []TestInput{
 		Token(gqlscan.TokenSet),
 		Token(gqlscan.TokenFieldAlias, "foobar_alias"),
 		Token(gqlscan.TokenField, "foo_bar"),
+		Token(gqlscan.TokenField, "__typename"),
 		Token(gqlscan.TokenSetEnd),
 		Token(gqlscan.TokenField, "bar"),
 		Token(gqlscan.TokenField, "baz"),
