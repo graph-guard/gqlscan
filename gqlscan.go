@@ -644,7 +644,6 @@ const (
 	ErrUnexpEOF
 	ErrIllegalFragName
 	ErrInvalNum
-	ErrInvalVal
 	ErrInvalType
 )
 
@@ -688,8 +687,6 @@ func (e Error) Error() string {
 		b.WriteString(": illegal fragment name")
 	case ErrInvalNum:
 		b.WriteString(": invalid number value")
-	case ErrInvalVal:
-		b.WriteString(": invalid value")
 	case ErrInvalType:
 		b.WriteString(": invalid type")
 	case ErrUnexpEOF:
