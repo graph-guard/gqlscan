@@ -81,6 +81,57 @@ var testdata = []TestInput{
 		Token(gqlscan.TokenArgListEnd),
 		Token(gqlscan.TokenSetEnd),
 	),
+	Input(`{f(
+		e1: ENUM_VAL
+		n1: n
+		n2: nu
+		n3: nul
+		n4: null1
+		t1: t
+		t2: tr
+		t3: tru
+		t4: true1
+		f1: f
+		f2: fa
+		f3: fal
+		f4: fals
+		f5: false1
+	)}`,
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenSet),
+		Token(gqlscan.TokenField, "f"),
+		Token(gqlscan.TokenArgList),
+		Token(gqlscan.TokenArgName, "e1"),
+		Token(gqlscan.TokenEnumVal, "ENUM_VAL"),
+		Token(gqlscan.TokenArgName, "n1"),
+		Token(gqlscan.TokenEnumVal, "n"),
+		Token(gqlscan.TokenArgName, "n2"),
+		Token(gqlscan.TokenEnumVal, "nu"),
+		Token(gqlscan.TokenArgName, "n3"),
+		Token(gqlscan.TokenEnumVal, "nul"),
+		Token(gqlscan.TokenArgName, "n4"),
+		Token(gqlscan.TokenEnumVal, "null1"),
+		Token(gqlscan.TokenArgName, "t1"),
+		Token(gqlscan.TokenEnumVal, "t"),
+		Token(gqlscan.TokenArgName, "t2"),
+		Token(gqlscan.TokenEnumVal, "tr"),
+		Token(gqlscan.TokenArgName, "t3"),
+		Token(gqlscan.TokenEnumVal, "tru"),
+		Token(gqlscan.TokenArgName, "t4"),
+		Token(gqlscan.TokenEnumVal, "true1"),
+		Token(gqlscan.TokenArgName, "f1"),
+		Token(gqlscan.TokenEnumVal, "f"),
+		Token(gqlscan.TokenArgName, "f2"),
+		Token(gqlscan.TokenEnumVal, "fa"),
+		Token(gqlscan.TokenArgName, "f3"),
+		Token(gqlscan.TokenEnumVal, "fal"),
+		Token(gqlscan.TokenArgName, "f4"),
+		Token(gqlscan.TokenEnumVal, "fals"),
+		Token(gqlscan.TokenArgName, "f5"),
+		Token(gqlscan.TokenEnumVal, "false1"),
+		Token(gqlscan.TokenArgListEnd),
+		Token(gqlscan.TokenSetEnd),
+	),
 	Input(`{f(f: [])}`,
 		Token(gqlscan.TokenDefQry),
 		Token(gqlscan.TokenSet),
@@ -971,6 +1022,12 @@ var testdata = []TestInput{
 				: # sample comment text line
 				# sample comment text line
 				1 # sample comment text line
+				# sample comment text line
+				e # sample comment text line
+				# sample comment text line
+				: # sample comment text line
+				# sample comment text line
+				ENUMVAL # sample comment text line
 			# sample comment text line
 			) # sample comment text line
 			# sample comment text line
@@ -1124,6 +1181,8 @@ var testdata = []TestInput{
 		Token(gqlscan.TokenArgList),
 		Token(gqlscan.TokenArgName, "x"),
 		Token(gqlscan.TokenInt, "1"),
+		Token(gqlscan.TokenArgName, "e"),
+		Token(gqlscan.TokenEnumVal, "ENUMVAL"),
 		Token(gqlscan.TokenArgListEnd),
 		Token(gqlscan.TokenSet),
 		Token(gqlscan.TokenField, "c"),
@@ -2108,10 +2167,6 @@ var testdataErr = []TestInputErr{
 		"{f(}",
 		"error at index 3 ('}'): unexpected token; expected argument name",
 	),
-	InputErr( // Invalid argument.
-		"{f(x:abc))}",
-		"error at index 5 ('a'): invalid value; expected value",
-	),
 	InputErr( // String argument missing closing quotes.
 		`{f(x:"))}`,
 		"error at index 9: unexpected end of file; expected end of string",
@@ -2325,15 +2380,18 @@ var testdataErr = []TestInputErr{
 	),
 	InputErr( // Unexpected EOF.
 		`{foo(name: f`,
-		"error at index 12: unexpected end of file; expected value",
+		"error at index 12: unexpected end of file; "+
+			"expected argument list closure or argument",
 	),
 	InputErr( // Unexpected EOF.
 		`{foo(name: t`,
-		"error at index 12: unexpected end of file; expected value",
+		"error at index 12: unexpected end of file; "+
+			"expected argument list closure or argument",
 	),
 	InputErr( // Unexpected EOF.
 		`{foo(name: n`,
-		"error at index 12: unexpected end of file; expected value",
+		"error at index 12: unexpected end of file; "+
+			"expected argument list closure or argument",
 	),
 	InputErr( // Unexpected EOF.
 		`{foo(name: 0`,
@@ -2403,20 +2461,20 @@ var testdataErr = []TestInputErr{
 			"expected field name or alias",
 	),
 
-	InputErr( // Invalid value.
+	InputErr( // Unexpected EOF.
 		"{x(p:falsa",
-		"error at index 5 ('f'): invalid value; "+
-			"expected value",
+		"error at index 10: unexpected end of file; "+
+			"expected argument list closure or argument",
 	),
-	InputErr( // Invalid value.
+	InputErr( // Unexpected EOF.
 		"{x(p:truu",
-		"error at index 5 ('t'): invalid value; "+
-			"expected value",
+		"error at index 9: unexpected end of file; "+
+			"expected argument list closure or argument",
 	),
-	InputErr( // Invalid value.
+	InputErr( // Unexpected EOF.
 		"{x(p:nuli",
-		"error at index 5 ('n'): invalid value; "+
-			"expected value",
+		"error at index 9: unexpected end of file; "+
+			"expected argument list closure or argument",
 	),
 	InputErr( // Unexpected EOF.
 		"{x(p:[",
@@ -2938,6 +2996,7 @@ func TestScanFuncErr(t *testing.T) {
 				... on B {
 					baz_fuzz_taz_B
 				}
+				baz_fuzz_taz0(enum: ENUM_VAL)
 				baz_fuzz_taz1(bool: false)
 				baz_fuzz_taz2(bool: true)
 				baz_fuzz_taz3(string: "okay")
@@ -3041,6 +3100,7 @@ func TestLevel(t *testing.T) {
 				... on B {
 					baz_fuzz_taz_B
 				}
+				baz_fuzz_taz0(enum: ENUM_VAL)
 				baz_fuzz_taz1(bool: false)
 				baz_fuzz_taz2(bool: true)
 				baz_fuzz_taz3(string: "okay")
@@ -3228,6 +3288,11 @@ func TestLevel(t *testing.T) {
 		TokenLevel(gqlscan.TokenSet, 3),
 		TokenLevel(gqlscan.TokenField, 4, "baz_fuzz_taz_B"),
 		TokenLevel(gqlscan.TokenSetEnd, 4),
+		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz0"),
+		TokenLevel(gqlscan.TokenArgList, 3),
+		TokenLevel(gqlscan.TokenArgName, 3, "enum"),
+		TokenLevel(gqlscan.TokenEnumVal, 3, "ENUM_VAL"),
+		TokenLevel(gqlscan.TokenArgListEnd, 3),
 		TokenLevel(gqlscan.TokenField, 3, "baz_fuzz_taz1"),
 		TokenLevel(gqlscan.TokenArgList, 3),
 		TokenLevel(gqlscan.TokenArgName, 3, "bool"),

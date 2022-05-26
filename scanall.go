@@ -685,68 +685,82 @@ VALUE:
 
 	case 'n':
 		// Null
-		if i.head+3 >= len(i.str) {
-			i.head += len(i.str) - i.head
-			i.errc = ErrUnexpEOF
-			i.expect = ExpectVal
-			goto ERROR
-		} else if i.str[i.head] != 'n' ||
-			i.str[i.head+1] != 'u' ||
-			i.str[i.head+2] != 'l' ||
-			i.str[i.head+3] != 'l' {
-			i.errc = ErrInvalVal
-			i.expect = ExpectVal
-			goto ERROR
-		}
-		i.tail = -1
-		i.head += len("null")
+		if i.head+4 < len(i.str) &&
+			i.str[i.head+3] == 'l' &&
+			i.str[i.head+2] == 'l' &&
+			i.str[i.head+1] == 'u' &&
+			i.str[i.head] == 'n' &&
+			(i.str[i.head+4] == ' ' ||
+				i.str[i.head+4] == '\t' ||
+				i.str[i.head+4] == '\r' ||
+				i.str[i.head+4] == '\n' ||
+				i.str[i.head+4] == ',' ||
+				i.str[i.head+4] == ')' ||
+				i.str[i.head+4] == '}' ||
+				i.str[i.head+4] == ']' ||
+				i.str[i.head+4] == '#') {
+			i.tail = -1
+			i.head += len("null")
 
-		// Callback for argument
-		i.token = TokenNull
-		fn(i)
+			// Callback for null value
+			i.token = TokenNull
+			fn(i)
+		} else {
+			i.expect = ExpectValEnum
+			goto NAME
+		}
 	case 't':
-		// Boolean true
-		if i.head+3 >= len(i.str) {
-			i.head += len(i.str) - i.head
-			i.errc = ErrUnexpEOF
-			i.expect = ExpectVal
-			goto ERROR
-		} else if i.str[i.head] != 't' ||
-			i.str[i.head+1] != 'r' ||
-			i.str[i.head+2] != 'u' ||
-			i.str[i.head+3] != 'e' {
-			i.errc = ErrInvalVal
-			i.expect = ExpectVal
-			goto ERROR
-		}
-		i.tail = -1
-		i.head += len("true")
+		if i.head+4 < len(i.str) &&
+			i.str[i.head+3] == 'e' &&
+			i.str[i.head+2] == 'u' &&
+			i.str[i.head+1] == 'r' &&
+			i.str[i.head] == 't' &&
+			(i.str[i.head+4] == ' ' ||
+				i.str[i.head+4] == '\t' ||
+				i.str[i.head+4] == '\r' ||
+				i.str[i.head+4] == '\n' ||
+				i.str[i.head+4] == ',' ||
+				i.str[i.head+4] == ')' ||
+				i.str[i.head+4] == '}' ||
+				i.str[i.head+4] == ']' ||
+				i.str[i.head+4] == '#') {
+			i.tail = -1
+			i.head += len("true")
 
-		// Callback for argument
-		i.token = TokenTrue
-		fn(i)
+			// Callback for true value
+			i.token = TokenTrue
+			fn(i)
+		} else {
+			i.expect = ExpectValEnum
+			goto NAME
+		}
 	case 'f':
-		// Boolean false
-		if i.head+4 >= len(i.str) {
-			i.head += len(i.str) - i.head
-			i.errc = ErrUnexpEOF
-			i.expect = ExpectVal
-			goto ERROR
-		} else if i.str[i.head] != 'f' ||
-			i.str[i.head+1] != 'a' ||
-			i.str[i.head+2] != 'l' ||
-			i.str[i.head+3] != 's' ||
-			i.str[i.head+4] != 'e' {
-			i.errc = ErrInvalVal
-			i.expect = ExpectVal
-			goto ERROR
-		}
-		i.tail = -1
-		i.head += len("false")
+		// False
+		if i.head+4 < len(i.str) &&
+			i.str[i.head+4] == 'e' &&
+			i.str[i.head+3] == 's' &&
+			i.str[i.head+2] == 'l' &&
+			i.str[i.head+1] == 'a' &&
+			i.str[i.head] == 'f' &&
+			(i.str[i.head+5] == ' ' ||
+				i.str[i.head+5] == '\t' ||
+				i.str[i.head+5] == '\r' ||
+				i.str[i.head+5] == '\n' ||
+				i.str[i.head+5] == ',' ||
+				i.str[i.head+5] == ')' ||
+				i.str[i.head+5] == '}' ||
+				i.str[i.head+5] == ']' ||
+				i.str[i.head+5] == '#') {
+			i.tail = -1
+			i.head += len("false")
 
-		// Callback for argument
-		i.token = TokenFalse
-		fn(i)
+			// Callback for false value
+			i.token = TokenFalse
+			fn(i)
+		} else {
+			i.expect = ExpectValEnum
+			goto NAME
+		}
 	case '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		// Number
 		i.tail = i.head
@@ -893,9 +907,8 @@ VALUE:
 		fn(i)
 	default:
 		// Invalid value
-		i.errc = ErrInvalVal
-		i.expect = ExpectVal
-		goto ERROR
+		i.expect = ExpectValEnum
+		goto NAME
 	}
 	i.expect = ExpectAfterValue
 	goto AFTER_VALUE_COMMENT
@@ -1329,6 +1342,13 @@ AFTER_FIELD_NAME:
 AFTER_NAME:
 	_ = 0 // Make code coverage count the label above
 	switch i.expect {
+	case ExpectValEnum:
+		// Enum value
+		i.token = TokenEnumVal
+		fn(i)
+		i.expect = ExpectAfterValue
+		goto AFTER_VALUE_COMMENT
+
 	case ExpectFieldNameOrAlias:
 		head := i.head
 		i.skipSTNRC()

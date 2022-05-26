@@ -388,6 +388,7 @@ type Expect int
 const (
 	_ Expect = iota
 	ExpectVal
+	ExpectValEnum
 	ExpectDefaultVarVal
 	ExpectDef
 	ExpectOprName
@@ -433,6 +434,8 @@ func (e Expect) String() string {
 		return "operation name"
 	case ExpectVal:
 		return "value"
+	case ExpectValEnum:
+		return "enum value"
 	case ExpectDefaultVarVal:
 		return "default variable value"
 	case ExpectSelSet:
@@ -528,6 +531,7 @@ const (
 	TokenFieldAlias
 	TokenField
 	TokenArgName
+	TokenEnumVal
 	TokenArr
 	TokenArrEnd
 	TokenStr
@@ -588,6 +592,8 @@ func (t Token) String() string {
 		return "field"
 	case TokenArgName:
 		return "argument name"
+	case TokenEnumVal:
+		return "enum value"
 	case TokenArr:
 		return "array"
 	case TokenArrEnd:
