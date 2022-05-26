@@ -752,7 +752,9 @@ VALUE:
 				i.str[i.head+4] == ',' ||
 				i.str[i.head+4] == ')' ||
 				i.str[i.head+4] == '}' ||
+				i.str[i.head+4] == '{' ||
 				i.str[i.head+4] == ']' ||
+				i.str[i.head+4] == '[' ||
 				i.str[i.head+4] == '#') {
 			i.tail = -1
 			i.head += len("null")
@@ -780,7 +782,9 @@ VALUE:
 				i.str[i.head+4] == ',' ||
 				i.str[i.head+4] == ')' ||
 				i.str[i.head+4] == '}' ||
+				i.str[i.head+4] == '{' ||
 				i.str[i.head+4] == ']' ||
+				i.str[i.head+4] == '[' ||
 				i.str[i.head+4] == '#') {
 			i.tail = -1
 			i.head += len("true")
@@ -810,7 +814,9 @@ VALUE:
 				i.str[i.head+5] == ',' ||
 				i.str[i.head+5] == ')' ||
 				i.str[i.head+5] == '}' ||
+				i.str[i.head+5] == '{' ||
 				i.str[i.head+5] == ']' ||
+				i.str[i.head+5] == '[' ||
 				i.str[i.head+5] == '#') {
 			i.tail = -1
 			i.head += len("false")
