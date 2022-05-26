@@ -797,7 +797,7 @@ VALUE:
 		}
 	case 'f':
 		// False
-		if i.head+4 < len(i.str) &&
+		if i.head+5 < len(i.str) &&
 			i.str[i.head+4] == 'e' &&
 			i.str[i.head+3] == 's' &&
 			i.str[i.head+2] == 'l' &&
