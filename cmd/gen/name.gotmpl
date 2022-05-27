@@ -1,0 +1,260 @@
+// <name followed by {{ get . "aftername" }}>
+if i.head >= len(i.str) {
+	i.errc = ErrUnexpEOF
+	goto ERROR
+}
+i.tail = i.head
+if i.isHeadNotNameStart() {
+	i.errc = ErrUnexpToken
+	goto ERROR
+}
+i.head++
+for {
+	if i.head+7 >= len(i.str) {
+		for ; i.head < len(i.str); i.head++ {
+			if i.isHeadNameBody() {
+				continue
+			} else if i.isHeadSNTRC() {
+				break
+			} else if i.isHeadCtrl() {
+				i.errc = ErrUnexpToken
+				goto ERROR
+			}
+			break
+		}
+		break
+	}
+	if !i.isHeadNameBody() {
+		break
+	}
+	i.head++
+	if !i.isHeadNameBody() {
+		break
+	}
+	i.head++
+	if !i.isHeadNameBody() {
+		break
+	}
+	i.head++
+	if !i.isHeadNameBody() {
+		break
+	}
+	i.head++
+	if !i.isHeadNameBody() {
+		break
+	}
+	i.head++
+	if !i.isHeadNameBody() {
+		break
+	}
+	i.head++
+	if !i.isHeadNameBody() {
+		break
+	}
+	i.head++
+	if !i.isHeadNameBody() {
+		break
+	}
+	i.head++
+}
+
+{{ if eq "valenum" (get . "aftername") }}
+
+// <ExpectValEnum after name>
+i.token = TokenEnumVal
+{{- template "callback" . -}}
+i.expect = ExpectAfterValue
+goto AFTER_VALUE_COMMENT
+// </ExpectValEnum after name>
+
+{{ else if eq "fieldnameoralias" (get . "aftername") }}
+
+// <ExpectFieldNameOrAlias after name>
+head := i.head
+{{ template "skip_irrelevant" }}
+if i.head >= len(i.str) {
+	i.errc = ErrUnexpEOF
+	goto ERROR
+} else if i.str[i.head] == ':' {
+	h2 := i.head
+	i.head = head
+	i.token = TokenFieldAlias
+	{{- template "callback" . -}}
+
+	i.head = h2 + 1
+	{{ template "skip_irrelevant" }}
+	i.expect = ExpectFieldName
+	{{ template "name" set . "aftername" "fieldname" }}
+}
+i.head = head
+i.token = TokenField
+{{- template "callback" . -}}
+goto AFTER_FIELD_NAME
+// </ExpectFieldNameOrAlias after name>
+
+{{ else if eq "fieldname" (get . "aftername") }}
+
+// <ExpectFieldName after name>
+i.token = TokenField
+{{- template "callback" . -}}
+goto AFTER_FIELD_NAME
+// </ExpectFieldName after name>
+
+{{ else if eq "dirname" (get . "aftername") }}
+
+// <ExpectDirName after name>
+i.token = TokenDirName
+{{- template "callback" . -}}
+goto AFTER_DIR_NAME
+// </ExpectDirName after name>
+
+{{ else if eq "argname" (get . "aftername") }}
+
+// <ExpectArgName after name>
+i.token = TokenArgName
+{{- template "callback" . -}}
+{{ template "skip_irrelevant" }}
+i.expect = ExpectColumnAfterArg
+goto COLUMN_AFTER_ARG_NAME
+// </ExpectArgName after name>
+
+{{ else if eq "objfieldname" (get . "aftername") }}
+
+// <ExpectObjFieldName after name>
+i.token = TokenObjField
+{{- template "callback" . -}}
+
+{{ template "skip_irrelevant" }}
+if i.head >= len(i.str) {
+	i.errc = ErrUnexpEOF
+	i.expect = ExpectColObjFieldName
+	goto ERROR
+} else if i.str[i.head] != ':' {
+	i.errc = ErrUnexpToken
+	i.expect = ExpectColObjFieldName
+	goto ERROR
+}
+i.head++
+{{ template "skip_irrelevant" }}
+i.expect = ExpectVal
+goto VALUE
+// </ExpectObjFieldName after name>
+
+{{ else if eq "varrefname" (get . "aftername") }}
+
+// <ExpectVarRefName after name>
+i.token = TokenVarRef
+{{- template "callback" . -}}
+i.expect = ExpectAfterValue
+goto AFTER_VALUE_COMMENT
+// </ExpectVarRefName after name>
+
+{{ else if eq "vartype" (get . "aftername") }}
+
+// <ExpectVarType after name>
+i.token = TokenVarTypeName
+{{- template "callback" . -}}
+i.expect = ExpectAfterVarTypeName
+goto AFTER_VAR_TYPE_NAME
+// </ExpectVarType after name>
+
+{{ else if eq "varname" (get . "aftername") }}
+
+// <ExpectVarName after name>
+i.token = TokenVarName
+{{- template "callback" . -}}
+i.expect = ExpectColumnAfterVar
+goto AFTER_DECL_VAR_NAME
+// </ExpectVarName after name>
+
+{{ else if eq "oprname" (get . "aftername") }}
+
+// <ExpectOprName after name>
+i.token = TokenOprName
+{{- template "callback" . -}}
+{{ template "skip_irrelevant" }}
+
+if i.head >= len(i.str) {
+	i.errc = ErrUnexpEOF
+	i.expect = ExpectSelSet
+	goto ERROR
+}
+switch i.str[i.head] {
+case '{':
+	i.expect = ExpectSelSet
+	goto SELECTION_SET
+case '(':
+	// Variable list
+	i.tail = -1
+	i.token = TokenVarList
+	{{- template "callback" . -}}
+	i.head++
+	i.expect = ExpectVar
+	goto OPR_VAR
+case '@':
+	i.head++
+	dirOn, i.expect = dirOpr, ExpectDir
+	goto DIR_NAME
+}
+i.errc = ErrUnexpToken
+i.expect = ExpectSelSet
+goto ERROR
+// </ExpectOprName after name>
+
+{{ else if eq "fraginlined" (get . "aftername") }}
+
+// <ExpectFragInlined after name>
+i.token = TokenFragInline
+{{- template "callback" . -}}
+i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
+goto AFTER_DIR_NAME
+// </ExpectFragInlined after name>
+
+{{ else if eq "spreadname" (get . "aftername") }}
+
+// <ExpectSpreadName after name>
+i.token = TokenNamedSpread
+{{- template "callback" . -}}
+i.expect, dirOn = ExpectDirName, dirFragRef
+goto AFTER_DIR_NAME
+// </ExpectSpreadName after name>
+
+{{ else if eq "fragname" (get . "aftername") }}
+
+// <ExpectFragName after name>
+if i.head-i.tail == 2 &&
+	i.str[i.tail+1] == 'n' &&
+	i.str[i.tail] == 'o' {
+	i.errc, i.head = ErrIllegalFragName, i.tail
+	goto ERROR
+}
+i.token = TokenFragName
+{{- template "callback" . -}}
+i.expect = ExpectFragKeywordOn
+goto FRAG_KEYWORD_ON
+// </ExpectFragName after name>
+
+{{ else if eq "fragtypecond" (get . "aftername") }}
+
+// <ExpectFragTypeCond after name>
+i.token = TokenFragTypeCond
+{{- template "callback" . -}}
+
+{{ template "skip_irrelevant" }}
+if i.head >= len(i.str) {
+	i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
+	goto ERROR
+} else if i.str[i.head] == '@' {
+	dirOn = dirFragInlineOrDef
+	goto AFTER_DIR_NAME
+}
+i.expect = ExpectSelSet
+goto SELECTION_SET
+// </ExpectFragTypeCond after name>
+
+{{ else }}
+
+⛔️ invalid aftername: "{{ get . "aftername" }}"
+
+{{ end }}
+// </name followed by {{ get . "aftername" }}>

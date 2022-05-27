@@ -93,7 +93,7 @@ case '@':
     goto DIR_NAME
 }
 i.expect = ExpectOprName
-goto NAME
+{{ template "name" set . "aftername" "oprname" }}
 
 AFTER_DIR_NAME:
 {{ template "skip_irrelevant" }}
@@ -335,7 +335,7 @@ if i.head >= len(i.str) {
 } else if i.str[i.head] == '#' {
     goto COMMENT
 }
-goto NAME
+{{ template "name" set . "aftername" "fragname" }}
 
 OPR_VAR:
 {{ template "skip_irrelevant" }}
@@ -463,7 +463,7 @@ case '{':
     {{ template "skip_irrelevant" }}
 
     i.expect = ExpectObjFieldName
-    goto NAME
+    {{ template "name" set . "aftername" "objfieldname" }}
 case '[':
     i.tail = -1
     // Callback for argument
@@ -672,7 +672,7 @@ case '$':
 
     // Variable name
     i.expect = ExpectVarRefName
-    goto VAR_NAME
+    goto VAR_REF_NAME
 
 case 'n':
     // Null
@@ -700,7 +700,7 @@ case 'n':
         {{- template "callback" . -}}
     } else {
         i.expect = ExpectValEnum
-        goto NAME
+        {{ template "name" set . "aftername" "valenum" }}
     }
 case 't':
     if i.head+4 < len(i.str) &&
@@ -727,7 +727,7 @@ case 't':
         {{- template "callback" . -}}
     } else {
         i.expect = ExpectValEnum
-        goto NAME
+        {{ template "name" set . "aftername" "valenum" }}
     }
 case 'f':
     // False
@@ -756,7 +756,7 @@ case 'f':
         {{- template "callback" . -}}
     } else {
         i.expect = ExpectValEnum
-        goto NAME
+        {{ template "name" set . "aftername" "valenum" }}
     }
 case '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
     // Number
@@ -905,7 +905,7 @@ ON_NUM_VAL:
 default:
     // Invalid value
     i.expect = ExpectValEnum
-    goto NAME
+    {{ template "name" set . "aftername" "valenum" }}
 }
 i.expect = ExpectAfterValue
 goto AFTER_VALUE_COMMENT
@@ -956,7 +956,7 @@ if t := i.stackTop(); t == TokenObj {
     } else {
         // Proceed to next field in the object
         i.expect = ExpectObjFieldName
-        goto NAME
+        {{ template "name" set . "aftername" "objfieldname" }}
     }
 } else if t == TokenArr {
     if i.str[i.head] == ']' {
@@ -1003,7 +1003,7 @@ if i.str[i.head] == ')' {
 
 // Proceed to the next argument
 i.expect = ExpectArgName
-goto NAME
+{{ template "name" set . "aftername" "argname" }}
 
 AFTER_ARG_LIST:
 if dirOn != 0 {
@@ -1045,7 +1045,7 @@ if i.head >= len(i.str) {
 } else if i.str[i.head] != '.' {
     // Field selection
     i.expect = ExpectFieldNameOrAlias
-    goto NAME
+    {{ template "name" set . "aftername" "fieldnameoralias"}}
 }
 
 i.expect = ExpectFrag
@@ -1103,12 +1103,12 @@ if i.head+1 >= len(i.str) {
         // ... on Type {
         i.head += len("on")
         i.expect = ExpectFragInlined
-        goto FRAG_TYPE_COND
+        goto FRAG_INLINED
     }
 }
 // ...fragmentName
 i.expect = ExpectSpreadName
-goto NAME
+{{ template "name" set . "aftername" "spreadname" }}
 
 AFTER_DECL_VAR_NAME:
 {{ template "skip_irrelevant" }}
@@ -1141,7 +1141,7 @@ if i.head >= len(i.str) {
     goto VAR_TYPE
 }
 i.expect = ExpectVarType
-goto NAME
+{{ template "name" set . "aftername" "vartype" }}
 
 VAR_NAME:
 {{ template "skip_irrelevant" }}
@@ -1151,7 +1151,17 @@ if i.head >= len(i.str) {
 } else if i.str[i.head] == '#' {
     goto COMMENT
 }
-goto NAME
+{{ template "name" set . "aftername" "varname" }}
+
+VAR_REF_NAME:
+{{ template "skip_irrelevant" }}
+if i.head >= len(i.str) {
+    i.errc = ErrUnexpEOF
+    goto ERROR
+} else if i.str[i.head] == '#' {
+    goto COMMENT
+}
+{{ template "name" set . "aftername" "varrefname" }}
 
 DIR_NAME:
 {{ template "skip_irrelevant" }}
@@ -1162,79 +1172,7 @@ if i.head >= len(i.str) {
     goto COMMENT
 }
 i.expect = ExpectDirName
-goto NAME
-
-NAME:
-if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
-}
-i.tail = i.head
-if i.isHeadNotNameStart() {
-    i.errc = ErrUnexpToken
-    goto ERROR
-}
-i.head++
-for {
-    if i.head+7 >= len(i.str) {
-        goto NAME_LOOP
-    }
-    if !i.isHeadNameBody() {
-        break
-    }
-    i.head++
-    if !i.isHeadNameBody() {
-        break
-    }
-    i.head++
-    if !i.isHeadNameBody() {
-        break
-    }
-    i.head++
-    if !i.isHeadNameBody() {
-        break
-    }
-    i.head++
-    if !i.isHeadNameBody() {
-        break
-    }
-    i.head++
-    if !i.isHeadNameBody() {
-        break
-    }
-    i.head++
-    if !i.isHeadNameBody() {
-        break
-    }
-    i.head++
-    if !i.isHeadNameBody() {
-        break
-    }
-    i.head++
-}
-if i.isHeadSNTRC() {
-    goto AFTER_NAME
-} else if i.isHeadCtrl() {
-    i.errc = ErrUnexpToken
-    goto ERROR
-}
-goto AFTER_NAME
-
-NAME_LOOP:
-_ = 0 // Make code coverage count the label above
-for ; i.head < len(i.str); i.head++ {
-    if i.isHeadNameBody() {
-        continue
-    } else if i.isHeadSNTRC() {
-        goto AFTER_NAME
-    } else if i.isHeadCtrl() {
-        i.errc = ErrUnexpToken
-        goto ERROR
-    }
-    break
-}
-
-goto AFTER_NAME
+{{ template "name" set . "aftername" "dirname" }}
 
 COLUMN_AFTER_ARG_NAME:
 {{ template "skip_irrelevant" }}
@@ -1259,7 +1197,7 @@ if i.head >= len(i.str) {
 } else if i.str[i.head] == '#' {
     goto COMMENT
 }
-goto NAME
+{{ template "name" set . "aftername" "argname" }}
 
 AFTER_VAR_TYPE_NAME:
 {{ template "skip_irrelevant" }}
@@ -1336,174 +1274,6 @@ case '@':
 i.expect = ExpectAfterSelection
 goto AFTER_SELECTION
 
-AFTER_NAME:
-_ = 0 // Make code coverage count the label above
-switch i.expect {
-case ExpectValEnum:
-    // Enum value
-    i.token = TokenEnumVal
-    {{- template "callback" . -}}
-    i.expect = ExpectAfterValue
-    goto AFTER_VALUE_COMMENT
-
-case ExpectFieldNameOrAlias:
-    head := i.head
-    {{ template "skip_irrelevant" }}
-    if i.head >= len(i.str) {
-        i.errc = ErrUnexpEOF
-        goto ERROR
-    } else if i.str[i.head] == ':' {
-        h2 := i.head
-        i.head = head
-        // Callback for field alias name
-        i.token = TokenFieldAlias
-        {{- template "callback" . -}}
-
-        i.head = h2 + 1
-        {{ template "skip_irrelevant" }}
-        i.expect = ExpectFieldName
-        goto NAME
-    }
-    i.head = head
-    fallthrough
-
-case ExpectFieldName:
-    // Callback for field name
-    i.token = TokenField
-    {{- template "callback" . -}}
-    goto AFTER_FIELD_NAME
-
-case ExpectDirName:
-    // Callback directive name
-    i.token = TokenDirName
-    {{- template "callback" . -}}
-    goto AFTER_DIR_NAME
-
-case ExpectArgName:
-    // Callback for argument name
-    i.token = TokenArgName
-    {{- template "callback" . -}}
-    {{ template "skip_irrelevant" }}
-    i.expect = ExpectColumnAfterArg
-    goto COLUMN_AFTER_ARG_NAME
-
-case ExpectObjFieldName:
-    // Callback for object field
-    i.token = TokenObjField
-    {{- template "callback" . -}}
-
-    {{ template "skip_irrelevant" }}
-    if i.head >= len(i.str) {
-        i.errc = ErrUnexpEOF
-        i.expect = ExpectColObjFieldName
-        goto ERROR
-    } else if i.str[i.head] != ':' {
-        i.errc = ErrUnexpToken
-        i.expect = ExpectColObjFieldName
-        goto ERROR
-    }
-    i.head++
-    {{ template "skip_irrelevant" }}
-    i.expect = ExpectVal
-    goto VALUE
-
-case ExpectVarRefName:
-    i.token = TokenVarRef
-    {{- template "callback" . -}}
-    i.expect = ExpectAfterValue
-    goto AFTER_VALUE_COMMENT
-
-case ExpectVarType:
-    i.token = TokenVarTypeName
-    {{- template "callback" . -}}
-    i.expect = ExpectAfterVarTypeName
-    goto AFTER_VAR_TYPE_NAME
-
-case ExpectVarName:
-    i.token = TokenVarName
-    {{- template "callback" . -}}
-    i.expect = ExpectColumnAfterVar
-    goto AFTER_DECL_VAR_NAME
-
-case ExpectOprName:
-    i.token = TokenOprName
-    {{- template "callback" . -}}
-    {{ template "skip_irrelevant" }}
-
-    if i.head >= len(i.str) {
-        i.errc = ErrUnexpEOF
-        i.expect = ExpectSelSet
-        goto ERROR
-    }
-    switch i.str[i.head] {
-    case '{':
-        i.expect = ExpectSelSet
-        goto SELECTION_SET
-    case '(':
-        // Variable list
-        i.tail = -1
-        i.token = TokenVarList
-        {{- template "callback" . -}}
-        i.head++
-        i.expect = ExpectVar
-        goto OPR_VAR
-    case '@':
-        i.head++
-        dirOn, i.expect = dirOpr, ExpectDir
-        goto DIR_NAME
-    }
-    i.errc = ErrUnexpToken
-    i.expect = ExpectSelSet
-    goto ERROR
-
-case ExpectFragInlined:
-    i.token = TokenFragInline
-    {{- template "callback" . -}}
-
-    i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
-    goto AFTER_DIR_NAME
-
-case ExpectSpreadName:
-    i.token = TokenNamedSpread
-    {{- template "callback" . -}}
-
-    i.expect, dirOn = ExpectDirName, dirFragRef
-    goto AFTER_DIR_NAME
-
-case ExpectFragName:
-    if i.head-i.tail == 2 &&
-        i.str[i.tail+1] == 'n' &&
-        i.str[i.tail] == 'o' {
-        i.errc, i.head = ErrIllegalFragName, i.tail
-        goto ERROR
-    }
-
-    i.token = TokenFragName
-    {{- template "callback" . -}}
-    i.expect = ExpectFragKeywordOn
-    goto FRAG_KEYWORD_ON
-
-case ExpectFragTypeCond:
-    i.token = TokenFragTypeCond
-    {{- template "callback" . -}}
-
-    {{ template "skip_irrelevant" }}
-    if i.head >= len(i.str) {
-        i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
-        goto ERROR
-    } else if i.str[i.head] == '@' {
-        dirOn = dirFragInlineOrDef
-        goto AFTER_DIR_NAME
-    }
-    i.expect = ExpectSelSet
-    goto SELECTION_SET
-
-default:
-    // This line should never be executed!
-    // The panic is triggered only if we forgot to handle an expectation.
-    panic(fmt.Errorf("unhandled expectation: %q", i.expect))
-}
-
 FRAG_KEYWORD_ON:
 {{ template "skip_irrelevant" }}
 if i.head+1 >= len(i.str) {
@@ -1528,7 +1298,18 @@ if i.head >= len(i.str) {
 } else if i.str[i.head] == '#' {
     goto COMMENT
 }
-goto NAME
+{{ template "name" set . "aftername" "fragtypecond" }}
+
+FRAG_INLINED:
+{{ template "skip_irrelevant" }}
+if i.head >= len(i.str) {
+    i.errc = ErrUnexpEOF
+    goto ERROR
+} else if i.str[i.head] == '#' {
+    goto COMMENT
+}
+{{ template "name" set . "aftername" "fraginlined" }}
+
 
 COMMENT:
 i.head++
@@ -1584,7 +1365,9 @@ for {
 i.tail = -1
 {{ template "skip_irrelevant" }}
 switch i.expect {
-case ExpectVarRefName, ExpectVarName:
+case ExpectVarRefName:
+    goto VAR_REF_NAME
+case ExpectVarName:
     goto VAR_NAME
 case ExpectDef:
     goto DEFINITION
@@ -1619,7 +1402,7 @@ case ExpectFragName:
 case ExpectFragKeywordOn:
     goto FRAG_KEYWORD_ON
 case ExpectFragInlined:
-    goto FRAG_TYPE_COND
+    goto FRAG_INLINED
 case ExpectFragTypeCond:
     goto FRAG_TYPE_COND
 case ExpectFrag:

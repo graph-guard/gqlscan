@@ -25,6 +25,9 @@ var tmplCallback string
 //go:embed skip_irrelevant.gotmpl
 var tmplSkipIrrelevant string
 
+//go:embed name.gotmpl
+var tmplName string
+
 func main() {
 	var fOutPath string
 	flag.StringVar(
@@ -57,6 +60,7 @@ func main() {
 		{"skip_irrelevant", tmplSkipIrrelevant},
 		{"scan_body", tmplScanBody},
 		{"callback", tmplCallback},
+		{"name", tmplName},
 	} {
 		if _, err := t.New(r.Name).Parse(r.Source); err != nil {
 			log.Fatalf("parsing template %q: %v", r.Name, err)
@@ -70,9 +74,12 @@ func main() {
 
 	p, err := format.Source(buf.Bytes())
 	if err != nil {
+		if _, err := fl.Write(buf.Bytes()); err != nil {
+			log.Fatalf("writing unformatted output: %v", err)
+		}
 		log.Fatalf("formatting: %v", err)
 	}
 	if _, err := fl.Write(p); err != nil {
-		log.Fatalf("writing output: %v", err)
+		log.Fatalf("writing formatted output: %v", err)
 	}
 }

@@ -292,7 +292,185 @@ AFTER_DEF_KEYWORD:
 		goto DIR_NAME
 	}
 	i.expect = ExpectOprName
-	goto NAME
+	// <name followed by oprname>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectOprName after name>
+	i.token = TokenOprName
+	if fn(i) {
+		i.errc = ErrCallbackFn
+		goto ERROR
+	}
+	// <skip irrelevant>
+	for {
+		if i.head+7 >= len(i.str) {
+			for i.head < len(i.str) {
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			break
+		}
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+	}
+	// </skip irrelevant>
+
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		i.expect = ExpectSelSet
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '{':
+		i.expect = ExpectSelSet
+		goto SELECTION_SET
+	case '(':
+		// Variable list
+		i.tail = -1
+		i.token = TokenVarList
+		if fn(i) {
+			i.errc = ErrCallbackFn
+			goto ERROR
+		}
+		i.head++
+		i.expect = ExpectVar
+		goto OPR_VAR
+	case '@':
+		i.head++
+		dirOn, i.expect = dirOpr, ExpectDir
+		goto DIR_NAME
+	}
+	i.errc = ErrUnexpToken
+	i.expect = ExpectSelSet
+	goto ERROR
+	// </ExpectOprName after name>
+
+	// </name followed by oprname>
 
 AFTER_DIR_NAME:
 	// <skip irrelevant>
@@ -1269,7 +1447,83 @@ AFTER_KEYWORD_FRAGMENT:
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	goto NAME
+	// <name followed by fragname>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectFragName after name>
+	if i.head-i.tail == 2 &&
+		i.str[i.tail+1] == 'n' &&
+		i.str[i.tail] == 'o' {
+		i.errc, i.head = ErrIllegalFragName, i.tail
+		goto ERROR
+	}
+	i.token = TokenFragName
+	if fn(i) {
+		i.errc = ErrCallbackFn
+		goto ERROR
+	}
+	i.expect = ExpectFragKeywordOn
+	goto FRAG_KEYWORD_ON
+	// </ExpectFragName after name>
+
+	// </name followed by fragname>
 
 OPR_VAR:
 	// <skip irrelevant>
@@ -2129,7 +2383,249 @@ VALUE:
 		// </skip irrelevant>
 
 		i.expect = ExpectObjFieldName
-		goto NAME
+		// <name followed by objfieldname>
+		if i.head >= len(i.str) {
+			i.errc = ErrUnexpEOF
+			goto ERROR
+		}
+		i.tail = i.head
+		if i.isHeadNotNameStart() {
+			i.errc = ErrUnexpToken
+			goto ERROR
+		}
+		i.head++
+		for {
+			if i.head+7 >= len(i.str) {
+				for ; i.head < len(i.str); i.head++ {
+					if i.isHeadNameBody() {
+						continue
+					} else if i.isHeadSNTRC() {
+						break
+					} else if i.isHeadCtrl() {
+						i.errc = ErrUnexpToken
+						goto ERROR
+					}
+					break
+				}
+				break
+			}
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+		}
+
+		// <ExpectObjFieldName after name>
+		i.token = TokenObjField
+		if fn(i) {
+			i.errc = ErrCallbackFn
+			goto ERROR
+		}
+		// <skip irrelevant>
+		for {
+			if i.head+7 >= len(i.str) {
+				for i.head < len(i.str) {
+					if i.str[i.head] != ',' &&
+						i.str[i.head] != ' ' &&
+						i.str[i.head] != '\n' &&
+						i.str[i.head] != '\t' &&
+						i.str[i.head] != '\r' {
+						break
+					}
+					i.head++
+				}
+				break
+			}
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+		}
+		// </skip irrelevant>
+		if i.head >= len(i.str) {
+			i.errc = ErrUnexpEOF
+			i.expect = ExpectColObjFieldName
+			goto ERROR
+		} else if i.str[i.head] != ':' {
+			i.errc = ErrUnexpToken
+			i.expect = ExpectColObjFieldName
+			goto ERROR
+		}
+		i.head++
+		// <skip irrelevant>
+		for {
+			if i.head+7 >= len(i.str) {
+				for i.head < len(i.str) {
+					if i.str[i.head] != ',' &&
+						i.str[i.head] != ' ' &&
+						i.str[i.head] != '\n' &&
+						i.str[i.head] != '\t' &&
+						i.str[i.head] != '\r' {
+						break
+					}
+					i.head++
+				}
+				break
+			}
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+		}
+		// </skip irrelevant>
+		i.expect = ExpectVal
+		goto VALUE
+	// </ExpectObjFieldName after name>
+
+	// </name followed by objfieldname>
 	case '[':
 		i.tail = -1
 		// Callback for argument
@@ -2427,7 +2923,7 @@ VALUE:
 
 		// Variable name
 		i.expect = ExpectVarRefName
-		goto VAR_NAME
+		goto VAR_REF_NAME
 
 	case 'n':
 		// Null
@@ -2458,7 +2954,77 @@ VALUE:
 			}
 		} else {
 			i.expect = ExpectValEnum
-			goto NAME
+			// <name followed by valenum>
+			if i.head >= len(i.str) {
+				i.errc = ErrUnexpEOF
+				goto ERROR
+			}
+			i.tail = i.head
+			if i.isHeadNotNameStart() {
+				i.errc = ErrUnexpToken
+				goto ERROR
+			}
+			i.head++
+			for {
+				if i.head+7 >= len(i.str) {
+					for ; i.head < len(i.str); i.head++ {
+						if i.isHeadNameBody() {
+							continue
+						} else if i.isHeadSNTRC() {
+							break
+						} else if i.isHeadCtrl() {
+							i.errc = ErrUnexpToken
+							goto ERROR
+						}
+						break
+					}
+					break
+				}
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+			}
+
+			// <ExpectValEnum after name>
+			i.token = TokenEnumVal
+			if fn(i) {
+				i.errc = ErrCallbackFn
+				goto ERROR
+			}
+			i.expect = ExpectAfterValue
+			goto AFTER_VALUE_COMMENT
+			// </ExpectValEnum after name>
+
+			// </name followed by valenum>
 		}
 	case 't':
 		if i.head+4 < len(i.str) &&
@@ -2488,7 +3054,77 @@ VALUE:
 			}
 		} else {
 			i.expect = ExpectValEnum
-			goto NAME
+			// <name followed by valenum>
+			if i.head >= len(i.str) {
+				i.errc = ErrUnexpEOF
+				goto ERROR
+			}
+			i.tail = i.head
+			if i.isHeadNotNameStart() {
+				i.errc = ErrUnexpToken
+				goto ERROR
+			}
+			i.head++
+			for {
+				if i.head+7 >= len(i.str) {
+					for ; i.head < len(i.str); i.head++ {
+						if i.isHeadNameBody() {
+							continue
+						} else if i.isHeadSNTRC() {
+							break
+						} else if i.isHeadCtrl() {
+							i.errc = ErrUnexpToken
+							goto ERROR
+						}
+						break
+					}
+					break
+				}
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+			}
+
+			// <ExpectValEnum after name>
+			i.token = TokenEnumVal
+			if fn(i) {
+				i.errc = ErrCallbackFn
+				goto ERROR
+			}
+			i.expect = ExpectAfterValue
+			goto AFTER_VALUE_COMMENT
+			// </ExpectValEnum after name>
+
+			// </name followed by valenum>
 		}
 	case 'f':
 		// False
@@ -2520,7 +3156,77 @@ VALUE:
 			}
 		} else {
 			i.expect = ExpectValEnum
-			goto NAME
+			// <name followed by valenum>
+			if i.head >= len(i.str) {
+				i.errc = ErrUnexpEOF
+				goto ERROR
+			}
+			i.tail = i.head
+			if i.isHeadNotNameStart() {
+				i.errc = ErrUnexpToken
+				goto ERROR
+			}
+			i.head++
+			for {
+				if i.head+7 >= len(i.str) {
+					for ; i.head < len(i.str); i.head++ {
+						if i.isHeadNameBody() {
+							continue
+						} else if i.isHeadSNTRC() {
+							break
+						} else if i.isHeadCtrl() {
+							i.errc = ErrUnexpToken
+							goto ERROR
+						}
+						break
+					}
+					break
+				}
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+			}
+
+			// <ExpectValEnum after name>
+			i.token = TokenEnumVal
+			if fn(i) {
+				i.errc = ErrCallbackFn
+				goto ERROR
+			}
+			i.expect = ExpectAfterValue
+			goto AFTER_VALUE_COMMENT
+			// </ExpectValEnum after name>
+
+			// </name followed by valenum>
 		}
 	case '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		// Number
@@ -2672,7 +3378,77 @@ VALUE:
 	default:
 		// Invalid value
 		i.expect = ExpectValEnum
-		goto NAME
+		// <name followed by valenum>
+		if i.head >= len(i.str) {
+			i.errc = ErrUnexpEOF
+			goto ERROR
+		}
+		i.tail = i.head
+		if i.isHeadNotNameStart() {
+			i.errc = ErrUnexpToken
+			goto ERROR
+		}
+		i.head++
+		for {
+			if i.head+7 >= len(i.str) {
+				for ; i.head < len(i.str); i.head++ {
+					if i.isHeadNameBody() {
+						continue
+					} else if i.isHeadSNTRC() {
+						break
+					} else if i.isHeadCtrl() {
+						i.errc = ErrUnexpToken
+						goto ERROR
+					}
+					break
+				}
+				break
+			}
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+		}
+
+		// <ExpectValEnum after name>
+		i.token = TokenEnumVal
+		if fn(i) {
+			i.errc = ErrCallbackFn
+			goto ERROR
+		}
+		i.expect = ExpectAfterValue
+		goto AFTER_VALUE_COMMENT
+		// </ExpectValEnum after name>
+
+		// </name followed by valenum>
 	}
 	i.expect = ExpectAfterValue
 	goto AFTER_VALUE_COMMENT
@@ -2888,7 +3664,249 @@ AFTER_VALUE_COMMENT:
 		} else {
 			// Proceed to next field in the object
 			i.expect = ExpectObjFieldName
-			goto NAME
+			// <name followed by objfieldname>
+			if i.head >= len(i.str) {
+				i.errc = ErrUnexpEOF
+				goto ERROR
+			}
+			i.tail = i.head
+			if i.isHeadNotNameStart() {
+				i.errc = ErrUnexpToken
+				goto ERROR
+			}
+			i.head++
+			for {
+				if i.head+7 >= len(i.str) {
+					for ; i.head < len(i.str); i.head++ {
+						if i.isHeadNameBody() {
+							continue
+						} else if i.isHeadSNTRC() {
+							break
+						} else if i.isHeadCtrl() {
+							i.errc = ErrUnexpToken
+							goto ERROR
+						}
+						break
+					}
+					break
+				}
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+			}
+
+			// <ExpectObjFieldName after name>
+			i.token = TokenObjField
+			if fn(i) {
+				i.errc = ErrCallbackFn
+				goto ERROR
+			}
+			// <skip irrelevant>
+			for {
+				if i.head+7 >= len(i.str) {
+					for i.head < len(i.str) {
+						if i.str[i.head] != ',' &&
+							i.str[i.head] != ' ' &&
+							i.str[i.head] != '\n' &&
+							i.str[i.head] != '\t' &&
+							i.str[i.head] != '\r' {
+							break
+						}
+						i.head++
+					}
+					break
+				}
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			// </skip irrelevant>
+			if i.head >= len(i.str) {
+				i.errc = ErrUnexpEOF
+				i.expect = ExpectColObjFieldName
+				goto ERROR
+			} else if i.str[i.head] != ':' {
+				i.errc = ErrUnexpToken
+				i.expect = ExpectColObjFieldName
+				goto ERROR
+			}
+			i.head++
+			// <skip irrelevant>
+			for {
+				if i.head+7 >= len(i.str) {
+					for i.head < len(i.str) {
+						if i.str[i.head] != ',' &&
+							i.str[i.head] != ' ' &&
+							i.str[i.head] != '\n' &&
+							i.str[i.head] != '\t' &&
+							i.str[i.head] != '\r' {
+							break
+						}
+						i.head++
+					}
+					break
+				}
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			// </skip irrelevant>
+			i.expect = ExpectVal
+			goto VALUE
+			// </ExpectObjFieldName after name>
+
+			// </name followed by objfieldname>
 		}
 	} else if t == TokenArr {
 		if i.str[i.head] == ']' {
@@ -3021,7 +4039,158 @@ AFTER_VALUE_COMMENT:
 
 	// Proceed to the next argument
 	i.expect = ExpectArgName
-	goto NAME
+	// <name followed by argname>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectArgName after name>
+	i.token = TokenArgName
+	if fn(i) {
+		i.errc = ErrCallbackFn
+		goto ERROR
+	}
+	// <skip irrelevant>
+	for {
+		if i.head+7 >= len(i.str) {
+			for i.head < len(i.str) {
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			break
+		}
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+	}
+	// </skip irrelevant>
+	i.expect = ExpectColumnAfterArg
+	goto COLUMN_AFTER_ARG_NAME
+	// </ExpectArgName after name>
+
+	// </name followed by argname>
 
 AFTER_ARG_LIST:
 	if dirOn != 0 {
@@ -3223,7 +4392,324 @@ SELECTION:
 	} else if i.str[i.head] != '.' {
 		// Field selection
 		i.expect = ExpectFieldNameOrAlias
-		goto NAME
+		// <name followed by fieldnameoralias>
+		if i.head >= len(i.str) {
+			i.errc = ErrUnexpEOF
+			goto ERROR
+		}
+		i.tail = i.head
+		if i.isHeadNotNameStart() {
+			i.errc = ErrUnexpToken
+			goto ERROR
+		}
+		i.head++
+		for {
+			if i.head+7 >= len(i.str) {
+				for ; i.head < len(i.str); i.head++ {
+					if i.isHeadNameBody() {
+						continue
+					} else if i.isHeadSNTRC() {
+						break
+					} else if i.isHeadCtrl() {
+						i.errc = ErrUnexpToken
+						goto ERROR
+					}
+					break
+				}
+				break
+			}
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+		}
+
+		// <ExpectFieldNameOrAlias after name>
+		head := i.head
+		// <skip irrelevant>
+		for {
+			if i.head+7 >= len(i.str) {
+				for i.head < len(i.str) {
+					if i.str[i.head] != ',' &&
+						i.str[i.head] != ' ' &&
+						i.str[i.head] != '\n' &&
+						i.str[i.head] != '\t' &&
+						i.str[i.head] != '\r' {
+						break
+					}
+					i.head++
+				}
+				break
+			}
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+		}
+		// </skip irrelevant>
+		if i.head >= len(i.str) {
+			i.errc = ErrUnexpEOF
+			goto ERROR
+		} else if i.str[i.head] == ':' {
+			h2 := i.head
+			i.head = head
+			i.token = TokenFieldAlias
+			if fn(i) {
+				i.errc = ErrCallbackFn
+				goto ERROR
+			}
+			i.head = h2 + 1
+			// <skip irrelevant>
+			for {
+				if i.head+7 >= len(i.str) {
+					for i.head < len(i.str) {
+						if i.str[i.head] != ',' &&
+							i.str[i.head] != ' ' &&
+							i.str[i.head] != '\n' &&
+							i.str[i.head] != '\t' &&
+							i.str[i.head] != '\r' {
+							break
+						}
+						i.head++
+					}
+					break
+				}
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			// </skip irrelevant>
+			i.expect = ExpectFieldName
+			// <name followed by fieldname>
+			if i.head >= len(i.str) {
+				i.errc = ErrUnexpEOF
+				goto ERROR
+			}
+			i.tail = i.head
+			if i.isHeadNotNameStart() {
+				i.errc = ErrUnexpToken
+				goto ERROR
+			}
+			i.head++
+			for {
+				if i.head+7 >= len(i.str) {
+					for ; i.head < len(i.str); i.head++ {
+						if i.isHeadNameBody() {
+							continue
+						} else if i.isHeadSNTRC() {
+							break
+						} else if i.isHeadCtrl() {
+							i.errc = ErrUnexpToken
+							goto ERROR
+						}
+						break
+					}
+					break
+				}
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+			}
+
+			// <ExpectFieldName after name>
+			i.token = TokenField
+			if fn(i) {
+				i.errc = ErrCallbackFn
+				goto ERROR
+			}
+			goto AFTER_FIELD_NAME
+			// </ExpectFieldName after name>
+
+			// </name followed by fieldname>
+		}
+		i.head = head
+		i.token = TokenField
+		if fn(i) {
+			i.errc = ErrCallbackFn
+			goto ERROR
+		}
+		goto AFTER_FIELD_NAME
+		// </ExpectFieldNameOrAlias after name>
+
+		// </name followed by fieldname>
 	}
 
 	i.expect = ExpectFrag
@@ -3367,12 +4853,82 @@ SPREAD:
 			// ... on Type {
 			i.head += len("on")
 			i.expect = ExpectFragInlined
-			goto FRAG_TYPE_COND
+			goto FRAG_INLINED
 		}
 	}
 	// ...fragmentName
 	i.expect = ExpectSpreadName
-	goto NAME
+	// <name followed by spreadname>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectSpreadName after name>
+	i.token = TokenNamedSpread
+	if fn(i) {
+		i.errc = ErrCallbackFn
+		goto ERROR
+	}
+	i.expect, dirOn = ExpectDirName, dirFragRef
+	goto AFTER_DIR_NAME
+	// </ExpectSpreadName after name>
+
+	// </name followed by spreadname>
 
 AFTER_DECL_VAR_NAME:
 	// <skip irrelevant>
@@ -3568,7 +5124,77 @@ VAR_TYPE:
 		goto VAR_TYPE
 	}
 	i.expect = ExpectVarType
-	goto NAME
+	// <name followed by vartype>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectVarType after name>
+	i.token = TokenVarTypeName
+	if fn(i) {
+		i.errc = ErrCallbackFn
+		goto ERROR
+	}
+	i.expect = ExpectAfterVarTypeName
+	goto AFTER_VAR_TYPE_NAME
+	// </ExpectVarType after name>
+
+	// </name followed by vartype>
 
 VAR_NAME:
 	// <skip irrelevant>
@@ -3658,7 +5284,237 @@ VAR_NAME:
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	goto NAME
+	// <name followed by varname>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectVarName after name>
+	i.token = TokenVarName
+	if fn(i) {
+		i.errc = ErrCallbackFn
+		goto ERROR
+	}
+	i.expect = ExpectColumnAfterVar
+	goto AFTER_DECL_VAR_NAME
+	// </ExpectVarName after name>
+
+	// </name followed by varname>
+
+VAR_REF_NAME:
+	// <skip irrelevant>
+	for {
+		if i.head+7 >= len(i.str) {
+			for i.head < len(i.str) {
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			break
+		}
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+	}
+	// </skip irrelevant>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	} else if i.str[i.head] == '#' {
+		goto COMMENT
+	}
+	// <name followed by varrefname>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectVarRefName after name>
+	i.token = TokenVarRef
+	if fn(i) {
+		i.errc = ErrCallbackFn
+		goto ERROR
+	}
+	i.expect = ExpectAfterValue
+	goto AFTER_VALUE_COMMENT
+	// </ExpectVarRefName after name>
+
+	// </name followed by varrefname>
 
 DIR_NAME:
 	// <skip irrelevant>
@@ -3749,9 +5605,7 @@ DIR_NAME:
 		goto COMMENT
 	}
 	i.expect = ExpectDirName
-	goto NAME
-
-NAME:
+	// <name followed by dirname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -3764,7 +5618,18 @@ NAME:
 	i.head++
 	for {
 		if i.head+7 >= len(i.str) {
-			goto NAME_LOOP
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
 		}
 		if !i.isHeadNameBody() {
 			break
@@ -3799,29 +5664,17 @@ NAME:
 		}
 		i.head++
 	}
-	if i.isHeadSNTRC() {
-		goto AFTER_NAME
-	} else if i.isHeadCtrl() {
-		i.errc = ErrUnexpToken
+
+	// <ExpectDirName after name>
+	i.token = TokenDirName
+	if fn(i) {
+		i.errc = ErrCallbackFn
 		goto ERROR
 	}
-	goto AFTER_NAME
+	goto AFTER_DIR_NAME
+	// </ExpectDirName after name>
 
-NAME_LOOP:
-	_ = 0 // Make code coverage count the label above
-	for ; i.head < len(i.str); i.head++ {
-		if i.isHeadNameBody() {
-			continue
-		} else if i.isHeadSNTRC() {
-			goto AFTER_NAME
-		} else if i.isHeadCtrl() {
-			i.errc = ErrUnexpToken
-			goto ERROR
-		}
-		break
-	}
-
-	goto AFTER_NAME
+	// </name followed by dirname>
 
 COLUMN_AFTER_ARG_NAME:
 	// <skip irrelevant>
@@ -3926,7 +5779,158 @@ ARG_LIST:
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	goto NAME
+	// <name followed by argname>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectArgName after name>
+	i.token = TokenArgName
+	if fn(i) {
+		i.errc = ErrCallbackFn
+		goto ERROR
+	}
+	// <skip irrelevant>
+	for {
+		if i.head+7 >= len(i.str) {
+			for i.head < len(i.str) {
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			break
+		}
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+	}
+	// </skip irrelevant>
+	i.expect = ExpectColumnAfterArg
+	goto COLUMN_AFTER_ARG_NAME
+	// </ExpectArgName after name>
+
+	// </name followed by argname>
 
 AFTER_VAR_TYPE_NAME:
 	// <skip irrelevant>
@@ -4415,774 +6419,6 @@ AFTER_FIELD_NAME:
 	i.expect = ExpectAfterSelection
 	goto AFTER_SELECTION
 
-AFTER_NAME:
-	_ = 0 // Make code coverage count the label above
-	switch i.expect {
-	case ExpectValEnum:
-		// Enum value
-		i.token = TokenEnumVal
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-		i.expect = ExpectAfterValue
-		goto AFTER_VALUE_COMMENT
-
-	case ExpectFieldNameOrAlias:
-		head := i.head
-		// <skip irrelevant>
-		for {
-			if i.head+7 >= len(i.str) {
-				for i.head < len(i.str) {
-					if i.str[i.head] != ',' &&
-						i.str[i.head] != ' ' &&
-						i.str[i.head] != '\n' &&
-						i.str[i.head] != '\t' &&
-						i.str[i.head] != '\r' {
-						break
-					}
-					i.head++
-				}
-				break
-			}
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-		}
-		// </skip irrelevant>
-		if i.head >= len(i.str) {
-			i.errc = ErrUnexpEOF
-			goto ERROR
-		} else if i.str[i.head] == ':' {
-			h2 := i.head
-			i.head = head
-			// Callback for field alias name
-			i.token = TokenFieldAlias
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
-			}
-			i.head = h2 + 1
-			// <skip irrelevant>
-			for {
-				if i.head+7 >= len(i.str) {
-					for i.head < len(i.str) {
-						if i.str[i.head] != ',' &&
-							i.str[i.head] != ' ' &&
-							i.str[i.head] != '\n' &&
-							i.str[i.head] != '\t' &&
-							i.str[i.head] != '\r' {
-							break
-						}
-						i.head++
-					}
-					break
-				}
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-			}
-			// </skip irrelevant>
-			i.expect = ExpectFieldName
-			goto NAME
-		}
-		i.head = head
-		fallthrough
-
-	case ExpectFieldName:
-		// Callback for field name
-		i.token = TokenField
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-		goto AFTER_FIELD_NAME
-
-	case ExpectDirName:
-		// Callback directive name
-		i.token = TokenDirName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-		goto AFTER_DIR_NAME
-
-	case ExpectArgName:
-		// Callback for argument name
-		i.token = TokenArgName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-		// <skip irrelevant>
-		for {
-			if i.head+7 >= len(i.str) {
-				for i.head < len(i.str) {
-					if i.str[i.head] != ',' &&
-						i.str[i.head] != ' ' &&
-						i.str[i.head] != '\n' &&
-						i.str[i.head] != '\t' &&
-						i.str[i.head] != '\r' {
-						break
-					}
-					i.head++
-				}
-				break
-			}
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-		}
-		// </skip irrelevant>
-		i.expect = ExpectColumnAfterArg
-		goto COLUMN_AFTER_ARG_NAME
-
-	case ExpectObjFieldName:
-		// Callback for object field
-		i.token = TokenObjField
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-		// <skip irrelevant>
-		for {
-			if i.head+7 >= len(i.str) {
-				for i.head < len(i.str) {
-					if i.str[i.head] != ',' &&
-						i.str[i.head] != ' ' &&
-						i.str[i.head] != '\n' &&
-						i.str[i.head] != '\t' &&
-						i.str[i.head] != '\r' {
-						break
-					}
-					i.head++
-				}
-				break
-			}
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-		}
-		// </skip irrelevant>
-		if i.head >= len(i.str) {
-			i.errc = ErrUnexpEOF
-			i.expect = ExpectColObjFieldName
-			goto ERROR
-		} else if i.str[i.head] != ':' {
-			i.errc = ErrUnexpToken
-			i.expect = ExpectColObjFieldName
-			goto ERROR
-		}
-		i.head++
-		// <skip irrelevant>
-		for {
-			if i.head+7 >= len(i.str) {
-				for i.head < len(i.str) {
-					if i.str[i.head] != ',' &&
-						i.str[i.head] != ' ' &&
-						i.str[i.head] != '\n' &&
-						i.str[i.head] != '\t' &&
-						i.str[i.head] != '\r' {
-						break
-					}
-					i.head++
-				}
-				break
-			}
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-		}
-		// </skip irrelevant>
-		i.expect = ExpectVal
-		goto VALUE
-
-	case ExpectVarRefName:
-		i.token = TokenVarRef
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-		i.expect = ExpectAfterValue
-		goto AFTER_VALUE_COMMENT
-
-	case ExpectVarType:
-		i.token = TokenVarTypeName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-		i.expect = ExpectAfterVarTypeName
-		goto AFTER_VAR_TYPE_NAME
-
-	case ExpectVarName:
-		i.token = TokenVarName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-		i.expect = ExpectColumnAfterVar
-		goto AFTER_DECL_VAR_NAME
-
-	case ExpectOprName:
-		i.token = TokenOprName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-		// <skip irrelevant>
-		for {
-			if i.head+7 >= len(i.str) {
-				for i.head < len(i.str) {
-					if i.str[i.head] != ',' &&
-						i.str[i.head] != ' ' &&
-						i.str[i.head] != '\n' &&
-						i.str[i.head] != '\t' &&
-						i.str[i.head] != '\r' {
-						break
-					}
-					i.head++
-				}
-				break
-			}
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-		}
-		// </skip irrelevant>
-
-		if i.head >= len(i.str) {
-			i.errc = ErrUnexpEOF
-			i.expect = ExpectSelSet
-			goto ERROR
-		}
-		switch i.str[i.head] {
-		case '{':
-			i.expect = ExpectSelSet
-			goto SELECTION_SET
-		case '(':
-			// Variable list
-			i.tail = -1
-			i.token = TokenVarList
-			if fn(i) {
-				i.errc = ErrCallbackFn
-				goto ERROR
-			}
-			i.head++
-			i.expect = ExpectVar
-			goto OPR_VAR
-		case '@':
-			i.head++
-			dirOn, i.expect = dirOpr, ExpectDir
-			goto DIR_NAME
-		}
-		i.errc = ErrUnexpToken
-		i.expect = ExpectSelSet
-		goto ERROR
-
-	case ExpectFragInlined:
-		i.token = TokenFragInline
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-		i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
-		goto AFTER_DIR_NAME
-
-	case ExpectSpreadName:
-		i.token = TokenNamedSpread
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-		i.expect, dirOn = ExpectDirName, dirFragRef
-		goto AFTER_DIR_NAME
-
-	case ExpectFragName:
-		if i.head-i.tail == 2 &&
-			i.str[i.tail+1] == 'n' &&
-			i.str[i.tail] == 'o' {
-			i.errc, i.head = ErrIllegalFragName, i.tail
-			goto ERROR
-		}
-
-		i.token = TokenFragName
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-		i.expect = ExpectFragKeywordOn
-		goto FRAG_KEYWORD_ON
-
-	case ExpectFragTypeCond:
-		i.token = TokenFragTypeCond
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-		// <skip irrelevant>
-		for {
-			if i.head+7 >= len(i.str) {
-				for i.head < len(i.str) {
-					if i.str[i.head] != ',' &&
-						i.str[i.head] != ' ' &&
-						i.str[i.head] != '\n' &&
-						i.str[i.head] != '\t' &&
-						i.str[i.head] != '\r' {
-						break
-					}
-					i.head++
-				}
-				break
-			}
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-		}
-		// </skip irrelevant>
-		if i.head >= len(i.str) {
-			i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
-			goto ERROR
-		} else if i.str[i.head] == '@' {
-			dirOn = dirFragInlineOrDef
-			goto AFTER_DIR_NAME
-		}
-		i.expect = ExpectSelSet
-		goto SELECTION_SET
-
-	default:
-		// This line should never be executed!
-		// The panic is triggered only if we forgot to handle an expectation.
-		panic(fmt.Errorf("unhandled expectation: %q", i.expect))
-	}
-
 FRAG_KEYWORD_ON:
 	// <skip irrelevant>
 	for {
@@ -5367,7 +6603,325 @@ FRAG_TYPE_COND:
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	goto NAME
+	// <name followed by fragtypecond>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectFragTypeCond after name>
+	i.token = TokenFragTypeCond
+	if fn(i) {
+		i.errc = ErrCallbackFn
+		goto ERROR
+	}
+	// <skip irrelevant>
+	for {
+		if i.head+7 >= len(i.str) {
+			for i.head < len(i.str) {
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			break
+		}
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+	}
+	// </skip irrelevant>
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
+		goto ERROR
+	} else if i.str[i.head] == '@' {
+		dirOn = dirFragInlineOrDef
+		goto AFTER_DIR_NAME
+	}
+	i.expect = ExpectSelSet
+	goto SELECTION_SET
+	// </ExpectFragTypeCond after name>
+
+	// </name followed by fragtypecond>
+
+FRAG_INLINED:
+	// <skip irrelevant>
+	for {
+		if i.head+7 >= len(i.str) {
+			for i.head < len(i.str) {
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			break
+		}
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+	}
+	// </skip irrelevant>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	} else if i.str[i.head] == '#' {
+		goto COMMENT
+	}
+	// <name followed by fraginlined>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectFragInlined after name>
+	i.token = TokenFragInline
+	if fn(i) {
+		i.errc = ErrCallbackFn
+		goto ERROR
+	}
+	i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
+	goto AFTER_DIR_NAME
+	// </ExpectFragInlined after name>
+
+	// </name followed by fraginlined>
 
 COMMENT:
 	i.head++
@@ -5503,7 +7057,9 @@ COMMENT:
 	}
 	// </skip irrelevant>
 	switch i.expect {
-	case ExpectVarRefName, ExpectVarName:
+	case ExpectVarRefName:
+		goto VAR_REF_NAME
+	case ExpectVarName:
 		goto VAR_NAME
 	case ExpectDef:
 		goto DEFINITION
@@ -5538,7 +7094,7 @@ COMMENT:
 	case ExpectFragKeywordOn:
 		goto FRAG_KEYWORD_ON
 	case ExpectFragInlined:
-		goto FRAG_TYPE_COND
+		goto FRAG_INLINED
 	case ExpectFragTypeCond:
 		goto FRAG_TYPE_COND
 	case ExpectFrag:
@@ -5920,7 +7476,179 @@ AFTER_DEF_KEYWORD:
 		goto DIR_NAME
 	}
 	i.expect = ExpectOprName
-	goto NAME
+	// <name followed by oprname>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectOprName after name>
+	i.token = TokenOprName
+	fn(i)
+	// <skip irrelevant>
+	for {
+		if i.head+7 >= len(i.str) {
+			for i.head < len(i.str) {
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			break
+		}
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+	}
+	// </skip irrelevant>
+
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		i.expect = ExpectSelSet
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '{':
+		i.expect = ExpectSelSet
+		goto SELECTION_SET
+	case '(':
+		// Variable list
+		i.tail = -1
+		i.token = TokenVarList
+		fn(i)
+		i.head++
+		i.expect = ExpectVar
+		goto OPR_VAR
+	case '@':
+		i.head++
+		dirOn, i.expect = dirOpr, ExpectDir
+		goto DIR_NAME
+	}
+	i.errc = ErrUnexpToken
+	i.expect = ExpectSelSet
+	goto ERROR
+	// </ExpectOprName after name>
+
+	// </name followed by oprname>
 
 AFTER_DIR_NAME:
 	// <skip irrelevant>
@@ -6882,7 +8610,80 @@ AFTER_KEYWORD_FRAGMENT:
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	goto NAME
+	// <name followed by fragname>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectFragName after name>
+	if i.head-i.tail == 2 &&
+		i.str[i.tail+1] == 'n' &&
+		i.str[i.tail] == 'o' {
+		i.errc, i.head = ErrIllegalFragName, i.tail
+		goto ERROR
+	}
+	i.token = TokenFragName
+	fn(i)
+	i.expect = ExpectFragKeywordOn
+	goto FRAG_KEYWORD_ON
+	// </ExpectFragName after name>
+
+	// </name followed by fragname>
 
 OPR_VAR:
 	// <skip irrelevant>
@@ -7730,7 +9531,246 @@ VALUE:
 		// </skip irrelevant>
 
 		i.expect = ExpectObjFieldName
-		goto NAME
+		// <name followed by objfieldname>
+		if i.head >= len(i.str) {
+			i.errc = ErrUnexpEOF
+			goto ERROR
+		}
+		i.tail = i.head
+		if i.isHeadNotNameStart() {
+			i.errc = ErrUnexpToken
+			goto ERROR
+		}
+		i.head++
+		for {
+			if i.head+7 >= len(i.str) {
+				for ; i.head < len(i.str); i.head++ {
+					if i.isHeadNameBody() {
+						continue
+					} else if i.isHeadSNTRC() {
+						break
+					} else if i.isHeadCtrl() {
+						i.errc = ErrUnexpToken
+						goto ERROR
+					}
+					break
+				}
+				break
+			}
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+		}
+
+		// <ExpectObjFieldName after name>
+		i.token = TokenObjField
+		fn(i)
+		// <skip irrelevant>
+		for {
+			if i.head+7 >= len(i.str) {
+				for i.head < len(i.str) {
+					if i.str[i.head] != ',' &&
+						i.str[i.head] != ' ' &&
+						i.str[i.head] != '\n' &&
+						i.str[i.head] != '\t' &&
+						i.str[i.head] != '\r' {
+						break
+					}
+					i.head++
+				}
+				break
+			}
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+		}
+		// </skip irrelevant>
+		if i.head >= len(i.str) {
+			i.errc = ErrUnexpEOF
+			i.expect = ExpectColObjFieldName
+			goto ERROR
+		} else if i.str[i.head] != ':' {
+			i.errc = ErrUnexpToken
+			i.expect = ExpectColObjFieldName
+			goto ERROR
+		}
+		i.head++
+		// <skip irrelevant>
+		for {
+			if i.head+7 >= len(i.str) {
+				for i.head < len(i.str) {
+					if i.str[i.head] != ',' &&
+						i.str[i.head] != ' ' &&
+						i.str[i.head] != '\n' &&
+						i.str[i.head] != '\t' &&
+						i.str[i.head] != '\r' {
+						break
+					}
+					i.head++
+				}
+				break
+			}
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+		}
+		// </skip irrelevant>
+		i.expect = ExpectVal
+		goto VALUE
+	// </ExpectObjFieldName after name>
+
+	// </name followed by objfieldname>
 	case '[':
 		i.tail = -1
 		// Callback for argument
@@ -8019,7 +10059,7 @@ VALUE:
 
 		// Variable name
 		i.expect = ExpectVarRefName
-		goto VAR_NAME
+		goto VAR_REF_NAME
 
 	case 'n':
 		// Null
@@ -8047,7 +10087,74 @@ VALUE:
 			fn(i)
 		} else {
 			i.expect = ExpectValEnum
-			goto NAME
+			// <name followed by valenum>
+			if i.head >= len(i.str) {
+				i.errc = ErrUnexpEOF
+				goto ERROR
+			}
+			i.tail = i.head
+			if i.isHeadNotNameStart() {
+				i.errc = ErrUnexpToken
+				goto ERROR
+			}
+			i.head++
+			for {
+				if i.head+7 >= len(i.str) {
+					for ; i.head < len(i.str); i.head++ {
+						if i.isHeadNameBody() {
+							continue
+						} else if i.isHeadSNTRC() {
+							break
+						} else if i.isHeadCtrl() {
+							i.errc = ErrUnexpToken
+							goto ERROR
+						}
+						break
+					}
+					break
+				}
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+			}
+
+			// <ExpectValEnum after name>
+			i.token = TokenEnumVal
+			fn(i)
+			i.expect = ExpectAfterValue
+			goto AFTER_VALUE_COMMENT
+			// </ExpectValEnum after name>
+
+			// </name followed by valenum>
 		}
 	case 't':
 		if i.head+4 < len(i.str) &&
@@ -8074,7 +10181,74 @@ VALUE:
 			fn(i)
 		} else {
 			i.expect = ExpectValEnum
-			goto NAME
+			// <name followed by valenum>
+			if i.head >= len(i.str) {
+				i.errc = ErrUnexpEOF
+				goto ERROR
+			}
+			i.tail = i.head
+			if i.isHeadNotNameStart() {
+				i.errc = ErrUnexpToken
+				goto ERROR
+			}
+			i.head++
+			for {
+				if i.head+7 >= len(i.str) {
+					for ; i.head < len(i.str); i.head++ {
+						if i.isHeadNameBody() {
+							continue
+						} else if i.isHeadSNTRC() {
+							break
+						} else if i.isHeadCtrl() {
+							i.errc = ErrUnexpToken
+							goto ERROR
+						}
+						break
+					}
+					break
+				}
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+			}
+
+			// <ExpectValEnum after name>
+			i.token = TokenEnumVal
+			fn(i)
+			i.expect = ExpectAfterValue
+			goto AFTER_VALUE_COMMENT
+			// </ExpectValEnum after name>
+
+			// </name followed by valenum>
 		}
 	case 'f':
 		// False
@@ -8103,7 +10277,74 @@ VALUE:
 			fn(i)
 		} else {
 			i.expect = ExpectValEnum
-			goto NAME
+			// <name followed by valenum>
+			if i.head >= len(i.str) {
+				i.errc = ErrUnexpEOF
+				goto ERROR
+			}
+			i.tail = i.head
+			if i.isHeadNotNameStart() {
+				i.errc = ErrUnexpToken
+				goto ERROR
+			}
+			i.head++
+			for {
+				if i.head+7 >= len(i.str) {
+					for ; i.head < len(i.str); i.head++ {
+						if i.isHeadNameBody() {
+							continue
+						} else if i.isHeadSNTRC() {
+							break
+						} else if i.isHeadCtrl() {
+							i.errc = ErrUnexpToken
+							goto ERROR
+						}
+						break
+					}
+					break
+				}
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+			}
+
+			// <ExpectValEnum after name>
+			i.token = TokenEnumVal
+			fn(i)
+			i.expect = ExpectAfterValue
+			goto AFTER_VALUE_COMMENT
+			// </ExpectValEnum after name>
+
+			// </name followed by valenum>
 		}
 	case '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		// Number
@@ -8252,7 +10493,74 @@ VALUE:
 	default:
 		// Invalid value
 		i.expect = ExpectValEnum
-		goto NAME
+		// <name followed by valenum>
+		if i.head >= len(i.str) {
+			i.errc = ErrUnexpEOF
+			goto ERROR
+		}
+		i.tail = i.head
+		if i.isHeadNotNameStart() {
+			i.errc = ErrUnexpToken
+			goto ERROR
+		}
+		i.head++
+		for {
+			if i.head+7 >= len(i.str) {
+				for ; i.head < len(i.str); i.head++ {
+					if i.isHeadNameBody() {
+						continue
+					} else if i.isHeadSNTRC() {
+						break
+					} else if i.isHeadCtrl() {
+						i.errc = ErrUnexpToken
+						goto ERROR
+					}
+					break
+				}
+				break
+			}
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+		}
+
+		// <ExpectValEnum after name>
+		i.token = TokenEnumVal
+		fn(i)
+		i.expect = ExpectAfterValue
+		goto AFTER_VALUE_COMMENT
+		// </ExpectValEnum after name>
+
+		// </name followed by valenum>
 	}
 	i.expect = ExpectAfterValue
 	goto AFTER_VALUE_COMMENT
@@ -8462,7 +10770,246 @@ AFTER_VALUE_COMMENT:
 		} else {
 			// Proceed to next field in the object
 			i.expect = ExpectObjFieldName
-			goto NAME
+			// <name followed by objfieldname>
+			if i.head >= len(i.str) {
+				i.errc = ErrUnexpEOF
+				goto ERROR
+			}
+			i.tail = i.head
+			if i.isHeadNotNameStart() {
+				i.errc = ErrUnexpToken
+				goto ERROR
+			}
+			i.head++
+			for {
+				if i.head+7 >= len(i.str) {
+					for ; i.head < len(i.str); i.head++ {
+						if i.isHeadNameBody() {
+							continue
+						} else if i.isHeadSNTRC() {
+							break
+						} else if i.isHeadCtrl() {
+							i.errc = ErrUnexpToken
+							goto ERROR
+						}
+						break
+					}
+					break
+				}
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+			}
+
+			// <ExpectObjFieldName after name>
+			i.token = TokenObjField
+			fn(i)
+			// <skip irrelevant>
+			for {
+				if i.head+7 >= len(i.str) {
+					for i.head < len(i.str) {
+						if i.str[i.head] != ',' &&
+							i.str[i.head] != ' ' &&
+							i.str[i.head] != '\n' &&
+							i.str[i.head] != '\t' &&
+							i.str[i.head] != '\r' {
+							break
+						}
+						i.head++
+					}
+					break
+				}
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			// </skip irrelevant>
+			if i.head >= len(i.str) {
+				i.errc = ErrUnexpEOF
+				i.expect = ExpectColObjFieldName
+				goto ERROR
+			} else if i.str[i.head] != ':' {
+				i.errc = ErrUnexpToken
+				i.expect = ExpectColObjFieldName
+				goto ERROR
+			}
+			i.head++
+			// <skip irrelevant>
+			for {
+				if i.head+7 >= len(i.str) {
+					for i.head < len(i.str) {
+						if i.str[i.head] != ',' &&
+							i.str[i.head] != ' ' &&
+							i.str[i.head] != '\n' &&
+							i.str[i.head] != '\t' &&
+							i.str[i.head] != '\r' {
+							break
+						}
+						i.head++
+					}
+					break
+				}
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			// </skip irrelevant>
+			i.expect = ExpectVal
+			goto VALUE
+			// </ExpectObjFieldName after name>
+
+			// </name followed by objfieldname>
 		}
 	} else if t == TokenArr {
 		if i.str[i.head] == ']' {
@@ -8589,7 +11136,155 @@ AFTER_VALUE_COMMENT:
 
 	// Proceed to the next argument
 	i.expect = ExpectArgName
-	goto NAME
+	// <name followed by argname>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectArgName after name>
+	i.token = TokenArgName
+	fn(i)
+	// <skip irrelevant>
+	for {
+		if i.head+7 >= len(i.str) {
+			for i.head < len(i.str) {
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			break
+		}
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+	}
+	// </skip irrelevant>
+	i.expect = ExpectColumnAfterArg
+	goto COLUMN_AFTER_ARG_NAME
+	// </ExpectArgName after name>
+
+	// </name followed by argname>
 
 AFTER_ARG_LIST:
 	if dirOn != 0 {
@@ -8791,7 +11486,315 @@ SELECTION:
 	} else if i.str[i.head] != '.' {
 		// Field selection
 		i.expect = ExpectFieldNameOrAlias
-		goto NAME
+		// <name followed by fieldnameoralias>
+		if i.head >= len(i.str) {
+			i.errc = ErrUnexpEOF
+			goto ERROR
+		}
+		i.tail = i.head
+		if i.isHeadNotNameStart() {
+			i.errc = ErrUnexpToken
+			goto ERROR
+		}
+		i.head++
+		for {
+			if i.head+7 >= len(i.str) {
+				for ; i.head < len(i.str); i.head++ {
+					if i.isHeadNameBody() {
+						continue
+					} else if i.isHeadSNTRC() {
+						break
+					} else if i.isHeadCtrl() {
+						i.errc = ErrUnexpToken
+						goto ERROR
+					}
+					break
+				}
+				break
+			}
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+			if !i.isHeadNameBody() {
+				break
+			}
+			i.head++
+		}
+
+		// <ExpectFieldNameOrAlias after name>
+		head := i.head
+		// <skip irrelevant>
+		for {
+			if i.head+7 >= len(i.str) {
+				for i.head < len(i.str) {
+					if i.str[i.head] != ',' &&
+						i.str[i.head] != ' ' &&
+						i.str[i.head] != '\n' &&
+						i.str[i.head] != '\t' &&
+						i.str[i.head] != '\r' {
+						break
+					}
+					i.head++
+				}
+				break
+			}
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+			if i.str[i.head] != ',' &&
+				i.str[i.head] != ' ' &&
+				i.str[i.head] != '\n' &&
+				i.str[i.head] != '\t' &&
+				i.str[i.head] != '\r' {
+				break
+			}
+			i.head++
+		}
+		// </skip irrelevant>
+		if i.head >= len(i.str) {
+			i.errc = ErrUnexpEOF
+			goto ERROR
+		} else if i.str[i.head] == ':' {
+			h2 := i.head
+			i.head = head
+			i.token = TokenFieldAlias
+			fn(i)
+			i.head = h2 + 1
+			// <skip irrelevant>
+			for {
+				if i.head+7 >= len(i.str) {
+					for i.head < len(i.str) {
+						if i.str[i.head] != ',' &&
+							i.str[i.head] != ' ' &&
+							i.str[i.head] != '\n' &&
+							i.str[i.head] != '\t' &&
+							i.str[i.head] != '\r' {
+							break
+						}
+						i.head++
+					}
+					break
+				}
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			// </skip irrelevant>
+			i.expect = ExpectFieldName
+			// <name followed by fieldname>
+			if i.head >= len(i.str) {
+				i.errc = ErrUnexpEOF
+				goto ERROR
+			}
+			i.tail = i.head
+			if i.isHeadNotNameStart() {
+				i.errc = ErrUnexpToken
+				goto ERROR
+			}
+			i.head++
+			for {
+				if i.head+7 >= len(i.str) {
+					for ; i.head < len(i.str); i.head++ {
+						if i.isHeadNameBody() {
+							continue
+						} else if i.isHeadSNTRC() {
+							break
+						} else if i.isHeadCtrl() {
+							i.errc = ErrUnexpToken
+							goto ERROR
+						}
+						break
+					}
+					break
+				}
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+				if !i.isHeadNameBody() {
+					break
+				}
+				i.head++
+			}
+
+			// <ExpectFieldName after name>
+			i.token = TokenField
+			fn(i)
+			goto AFTER_FIELD_NAME
+			// </ExpectFieldName after name>
+
+			// </name followed by fieldname>
+		}
+		i.head = head
+		i.token = TokenField
+		fn(i)
+		goto AFTER_FIELD_NAME
+		// </ExpectFieldNameOrAlias after name>
+
+		// </name followed by fieldname>
 	}
 
 	i.expect = ExpectFrag
@@ -8929,12 +11932,79 @@ SPREAD:
 			// ... on Type {
 			i.head += len("on")
 			i.expect = ExpectFragInlined
-			goto FRAG_TYPE_COND
+			goto FRAG_INLINED
 		}
 	}
 	// ...fragmentName
 	i.expect = ExpectSpreadName
-	goto NAME
+	// <name followed by spreadname>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectSpreadName after name>
+	i.token = TokenNamedSpread
+	fn(i)
+	i.expect, dirOn = ExpectDirName, dirFragRef
+	goto AFTER_DIR_NAME
+	// </ExpectSpreadName after name>
+
+	// </name followed by spreadname>
 
 AFTER_DECL_VAR_NAME:
 	// <skip irrelevant>
@@ -9127,7 +12197,74 @@ VAR_TYPE:
 		goto VAR_TYPE
 	}
 	i.expect = ExpectVarType
-	goto NAME
+	// <name followed by vartype>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectVarType after name>
+	i.token = TokenVarTypeName
+	fn(i)
+	i.expect = ExpectAfterVarTypeName
+	goto AFTER_VAR_TYPE_NAME
+	// </ExpectVarType after name>
+
+	// </name followed by vartype>
 
 VAR_NAME:
 	// <skip irrelevant>
@@ -9217,7 +12354,231 @@ VAR_NAME:
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	goto NAME
+	// <name followed by varname>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectVarName after name>
+	i.token = TokenVarName
+	fn(i)
+	i.expect = ExpectColumnAfterVar
+	goto AFTER_DECL_VAR_NAME
+	// </ExpectVarName after name>
+
+	// </name followed by varname>
+
+VAR_REF_NAME:
+	// <skip irrelevant>
+	for {
+		if i.head+7 >= len(i.str) {
+			for i.head < len(i.str) {
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			break
+		}
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+	}
+	// </skip irrelevant>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	} else if i.str[i.head] == '#' {
+		goto COMMENT
+	}
+	// <name followed by varrefname>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectVarRefName after name>
+	i.token = TokenVarRef
+	fn(i)
+	i.expect = ExpectAfterValue
+	goto AFTER_VALUE_COMMENT
+	// </ExpectVarRefName after name>
+
+	// </name followed by varrefname>
 
 DIR_NAME:
 	// <skip irrelevant>
@@ -9308,9 +12669,7 @@ DIR_NAME:
 		goto COMMENT
 	}
 	i.expect = ExpectDirName
-	goto NAME
-
-NAME:
+	// <name followed by dirname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -9323,7 +12682,18 @@ NAME:
 	i.head++
 	for {
 		if i.head+7 >= len(i.str) {
-			goto NAME_LOOP
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
 		}
 		if !i.isHeadNameBody() {
 			break
@@ -9357,30 +12727,15 @@ NAME:
 			break
 		}
 		i.head++
-	}
-	if i.isHeadSNTRC() {
-		goto AFTER_NAME
-	} else if i.isHeadCtrl() {
-		i.errc = ErrUnexpToken
-		goto ERROR
-	}
-	goto AFTER_NAME
-
-NAME_LOOP:
-	_ = 0 // Make code coverage count the label above
-	for ; i.head < len(i.str); i.head++ {
-		if i.isHeadNameBody() {
-			continue
-		} else if i.isHeadSNTRC() {
-			goto AFTER_NAME
-		} else if i.isHeadCtrl() {
-			i.errc = ErrUnexpToken
-			goto ERROR
-		}
-		break
 	}
 
-	goto AFTER_NAME
+	// <ExpectDirName after name>
+	i.token = TokenDirName
+	fn(i)
+	goto AFTER_DIR_NAME
+	// </ExpectDirName after name>
+
+	// </name followed by dirname>
 
 COLUMN_AFTER_ARG_NAME:
 	// <skip irrelevant>
@@ -9485,7 +12840,155 @@ ARG_LIST:
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	goto NAME
+	// <name followed by argname>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectArgName after name>
+	i.token = TokenArgName
+	fn(i)
+	// <skip irrelevant>
+	for {
+		if i.head+7 >= len(i.str) {
+			for i.head < len(i.str) {
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			break
+		}
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+	}
+	// </skip irrelevant>
+	i.expect = ExpectColumnAfterArg
+	goto COLUMN_AFTER_ARG_NAME
+	// </ExpectArgName after name>
+
+	// </name followed by argname>
 
 AFTER_VAR_TYPE_NAME:
 	// <skip irrelevant>
@@ -9962,729 +13465,6 @@ AFTER_FIELD_NAME:
 	i.expect = ExpectAfterSelection
 	goto AFTER_SELECTION
 
-AFTER_NAME:
-	_ = 0 // Make code coverage count the label above
-	switch i.expect {
-	case ExpectValEnum:
-		// Enum value
-		i.token = TokenEnumVal
-		fn(i)
-		i.expect = ExpectAfterValue
-		goto AFTER_VALUE_COMMENT
-
-	case ExpectFieldNameOrAlias:
-		head := i.head
-		// <skip irrelevant>
-		for {
-			if i.head+7 >= len(i.str) {
-				for i.head < len(i.str) {
-					if i.str[i.head] != ',' &&
-						i.str[i.head] != ' ' &&
-						i.str[i.head] != '\n' &&
-						i.str[i.head] != '\t' &&
-						i.str[i.head] != '\r' {
-						break
-					}
-					i.head++
-				}
-				break
-			}
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-		}
-		// </skip irrelevant>
-		if i.head >= len(i.str) {
-			i.errc = ErrUnexpEOF
-			goto ERROR
-		} else if i.str[i.head] == ':' {
-			h2 := i.head
-			i.head = head
-			// Callback for field alias name
-			i.token = TokenFieldAlias
-			fn(i)
-			i.head = h2 + 1
-			// <skip irrelevant>
-			for {
-				if i.head+7 >= len(i.str) {
-					for i.head < len(i.str) {
-						if i.str[i.head] != ',' &&
-							i.str[i.head] != ' ' &&
-							i.str[i.head] != '\n' &&
-							i.str[i.head] != '\t' &&
-							i.str[i.head] != '\r' {
-							break
-						}
-						i.head++
-					}
-					break
-				}
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-				if i.str[i.head] != ',' &&
-					i.str[i.head] != ' ' &&
-					i.str[i.head] != '\n' &&
-					i.str[i.head] != '\t' &&
-					i.str[i.head] != '\r' {
-					break
-				}
-				i.head++
-			}
-			// </skip irrelevant>
-			i.expect = ExpectFieldName
-			goto NAME
-		}
-		i.head = head
-		fallthrough
-
-	case ExpectFieldName:
-		// Callback for field name
-		i.token = TokenField
-		fn(i)
-		goto AFTER_FIELD_NAME
-
-	case ExpectDirName:
-		// Callback directive name
-		i.token = TokenDirName
-		fn(i)
-		goto AFTER_DIR_NAME
-
-	case ExpectArgName:
-		// Callback for argument name
-		i.token = TokenArgName
-		fn(i)
-		// <skip irrelevant>
-		for {
-			if i.head+7 >= len(i.str) {
-				for i.head < len(i.str) {
-					if i.str[i.head] != ',' &&
-						i.str[i.head] != ' ' &&
-						i.str[i.head] != '\n' &&
-						i.str[i.head] != '\t' &&
-						i.str[i.head] != '\r' {
-						break
-					}
-					i.head++
-				}
-				break
-			}
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-		}
-		// </skip irrelevant>
-		i.expect = ExpectColumnAfterArg
-		goto COLUMN_AFTER_ARG_NAME
-
-	case ExpectObjFieldName:
-		// Callback for object field
-		i.token = TokenObjField
-		fn(i)
-		// <skip irrelevant>
-		for {
-			if i.head+7 >= len(i.str) {
-				for i.head < len(i.str) {
-					if i.str[i.head] != ',' &&
-						i.str[i.head] != ' ' &&
-						i.str[i.head] != '\n' &&
-						i.str[i.head] != '\t' &&
-						i.str[i.head] != '\r' {
-						break
-					}
-					i.head++
-				}
-				break
-			}
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-		}
-		// </skip irrelevant>
-		if i.head >= len(i.str) {
-			i.errc = ErrUnexpEOF
-			i.expect = ExpectColObjFieldName
-			goto ERROR
-		} else if i.str[i.head] != ':' {
-			i.errc = ErrUnexpToken
-			i.expect = ExpectColObjFieldName
-			goto ERROR
-		}
-		i.head++
-		// <skip irrelevant>
-		for {
-			if i.head+7 >= len(i.str) {
-				for i.head < len(i.str) {
-					if i.str[i.head] != ',' &&
-						i.str[i.head] != ' ' &&
-						i.str[i.head] != '\n' &&
-						i.str[i.head] != '\t' &&
-						i.str[i.head] != '\r' {
-						break
-					}
-					i.head++
-				}
-				break
-			}
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-		}
-		// </skip irrelevant>
-		i.expect = ExpectVal
-		goto VALUE
-
-	case ExpectVarRefName:
-		i.token = TokenVarRef
-		fn(i)
-		i.expect = ExpectAfterValue
-		goto AFTER_VALUE_COMMENT
-
-	case ExpectVarType:
-		i.token = TokenVarTypeName
-		fn(i)
-		i.expect = ExpectAfterVarTypeName
-		goto AFTER_VAR_TYPE_NAME
-
-	case ExpectVarName:
-		i.token = TokenVarName
-		fn(i)
-		i.expect = ExpectColumnAfterVar
-		goto AFTER_DECL_VAR_NAME
-
-	case ExpectOprName:
-		i.token = TokenOprName
-		fn(i)
-		// <skip irrelevant>
-		for {
-			if i.head+7 >= len(i.str) {
-				for i.head < len(i.str) {
-					if i.str[i.head] != ',' &&
-						i.str[i.head] != ' ' &&
-						i.str[i.head] != '\n' &&
-						i.str[i.head] != '\t' &&
-						i.str[i.head] != '\r' {
-						break
-					}
-					i.head++
-				}
-				break
-			}
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-		}
-		// </skip irrelevant>
-
-		if i.head >= len(i.str) {
-			i.errc = ErrUnexpEOF
-			i.expect = ExpectSelSet
-			goto ERROR
-		}
-		switch i.str[i.head] {
-		case '{':
-			i.expect = ExpectSelSet
-			goto SELECTION_SET
-		case '(':
-			// Variable list
-			i.tail = -1
-			i.token = TokenVarList
-			fn(i)
-			i.head++
-			i.expect = ExpectVar
-			goto OPR_VAR
-		case '@':
-			i.head++
-			dirOn, i.expect = dirOpr, ExpectDir
-			goto DIR_NAME
-		}
-		i.errc = ErrUnexpToken
-		i.expect = ExpectSelSet
-		goto ERROR
-
-	case ExpectFragInlined:
-		i.token = TokenFragInline
-		fn(i)
-		i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
-		goto AFTER_DIR_NAME
-
-	case ExpectSpreadName:
-		i.token = TokenNamedSpread
-		fn(i)
-		i.expect, dirOn = ExpectDirName, dirFragRef
-		goto AFTER_DIR_NAME
-
-	case ExpectFragName:
-		if i.head-i.tail == 2 &&
-			i.str[i.tail+1] == 'n' &&
-			i.str[i.tail] == 'o' {
-			i.errc, i.head = ErrIllegalFragName, i.tail
-			goto ERROR
-		}
-
-		i.token = TokenFragName
-		fn(i)
-		i.expect = ExpectFragKeywordOn
-		goto FRAG_KEYWORD_ON
-
-	case ExpectFragTypeCond:
-		i.token = TokenFragTypeCond
-		fn(i)
-		// <skip irrelevant>
-		for {
-			if i.head+7 >= len(i.str) {
-				for i.head < len(i.str) {
-					if i.str[i.head] != ',' &&
-						i.str[i.head] != ' ' &&
-						i.str[i.head] != '\n' &&
-						i.str[i.head] != '\t' &&
-						i.str[i.head] != '\r' {
-						break
-					}
-					i.head++
-				}
-				break
-			}
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
-				break
-			}
-			i.head++
-		}
-		// </skip irrelevant>
-		if i.head >= len(i.str) {
-			i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
-			goto ERROR
-		} else if i.str[i.head] == '@' {
-			dirOn = dirFragInlineOrDef
-			goto AFTER_DIR_NAME
-		}
-		i.expect = ExpectSelSet
-		goto SELECTION_SET
-
-	default:
-		// This line should never be executed!
-		// The panic is triggered only if we forgot to handle an expectation.
-		panic(fmt.Errorf("unhandled expectation: %q", i.expect))
-	}
-
 FRAG_KEYWORD_ON:
 	// <skip irrelevant>
 	for {
@@ -10869,7 +13649,319 @@ FRAG_TYPE_COND:
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	goto NAME
+	// <name followed by fragtypecond>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectFragTypeCond after name>
+	i.token = TokenFragTypeCond
+	fn(i)
+	// <skip irrelevant>
+	for {
+		if i.head+7 >= len(i.str) {
+			for i.head < len(i.str) {
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			break
+		}
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+	}
+	// </skip irrelevant>
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
+		goto ERROR
+	} else if i.str[i.head] == '@' {
+		dirOn = dirFragInlineOrDef
+		goto AFTER_DIR_NAME
+	}
+	i.expect = ExpectSelSet
+	goto SELECTION_SET
+	// </ExpectFragTypeCond after name>
+
+	// </name followed by fragtypecond>
+
+FRAG_INLINED:
+	// <skip irrelevant>
+	for {
+		if i.head+7 >= len(i.str) {
+			for i.head < len(i.str) {
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			break
+		}
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+	}
+	// </skip irrelevant>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	} else if i.str[i.head] == '#' {
+		goto COMMENT
+	}
+	// <name followed by fraginlined>
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	i.tail = i.head
+	if i.isHeadNotNameStart() {
+		i.errc = ErrUnexpToken
+		goto ERROR
+	}
+	i.head++
+	for {
+		if i.head+7 >= len(i.str) {
+			for ; i.head < len(i.str); i.head++ {
+				if i.isHeadNameBody() {
+					continue
+				} else if i.isHeadSNTRC() {
+					break
+				} else if i.isHeadCtrl() {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
+				break
+			}
+			break
+		}
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+		if !i.isHeadNameBody() {
+			break
+		}
+		i.head++
+	}
+
+	// <ExpectFragInlined after name>
+	i.token = TokenFragInline
+	fn(i)
+	i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
+	goto AFTER_DIR_NAME
+	// </ExpectFragInlined after name>
+
+	// </name followed by fraginlined>
 
 COMMENT:
 	i.head++
@@ -11005,7 +14097,9 @@ COMMENT:
 	}
 	// </skip irrelevant>
 	switch i.expect {
-	case ExpectVarRefName, ExpectVarName:
+	case ExpectVarRefName:
+		goto VAR_REF_NAME
+	case ExpectVarName:
 		goto VAR_NAME
 	case ExpectDef:
 		goto DEFINITION
@@ -11040,7 +14134,7 @@ COMMENT:
 	case ExpectFragKeywordOn:
 		goto FRAG_KEYWORD_ON
 	case ExpectFragInlined:
-		goto FRAG_TYPE_COND
+		goto FRAG_INLINED
 	case ExpectFragTypeCond:
 		goto FRAG_TYPE_COND
 	case ExpectFrag:
