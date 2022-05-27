@@ -11219,17 +11219,6 @@ var iteratorPool = sync.Pool{
 	},
 }
 
-func acquireIterator(str []byte) *Iterator {
-	i := iteratorPool.Get().(*Iterator)
-	i.stackReset()
-	i.expect = ExpectDef
-	i.tail, i.head = -1, 0
-	i.str = str
-	i.levelSel = 0
-	i.errc = 0
-	return i
-}
-
 // LevelSelect returns the current selector level.
 func (i *Iterator) LevelSelect() int {
 	return i.levelSel
