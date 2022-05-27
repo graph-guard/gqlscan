@@ -9,16 +9,18 @@ import (
 	"log"
 	"os"
 	"text/template"
+
+	"github.com/Masterminds/sprig/v3"
 )
 
 //go:embed gqlscan.gotmpl
 var tmplGqlscan string
 
-//go:embed scan.gotmpl
-var tmplScan string
+//go:embed scan_body.gotmpl
+var tmplScanBody string
 
-//go:embed scan_all.gotmpl
-var tmplScanAll string
+//go:embed callback.gotmpl
+var tmplCallback string
 
 //go:embed skip_irrelevant.gotmpl
 var tmplSkipIrrelevant string
@@ -43,16 +45,18 @@ func main() {
 	}
 	defer fl.Close()
 
-	t, err := template.New("gqlscan").Parse(tmplGqlscan)
+	t, err := template.New("gqlscan").
+		Funcs(sprig.TxtFuncMap()).
+		Parse(tmplGqlscan)
 	if err != nil {
 		log.Fatalf("parsing main template: %v", err)
 	}
 	for _, r := range []struct {
 		Name, Source string
 	}{
-		{"scan", tmplScan},
-		{"scan_all", tmplScanAll},
 		{"skip_irrelevant", tmplSkipIrrelevant},
+		{"scan_body", tmplScanBody},
+		{"callback", tmplCallback},
 	} {
 		if _, err := t.New(r.Name).Parse(r.Source); err != nil {
 			log.Fatalf("parsing template %q: %v", r.Name, err)

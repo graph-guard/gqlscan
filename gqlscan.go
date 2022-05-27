@@ -19,7 +19,13 @@ import (
 // used after Scan returns because it's returned to the pool
 // and may be acquired by another call to Scan!
 func Scan(str []byte, fn func(*Iterator) (err bool)) Error {
-	i := acquireIterator(str)
+	i := iteratorPool.Get().(*Iterator)
+	i.stackReset()
+	i.expect = ExpectDef
+	i.tail, i.head = -1, 0
+	i.str = str
+	i.levelSel = 0
+	i.errc = 0
 	defer iteratorPool.Put(i)
 
 	// inDefVal triggers different expectations after values
@@ -2793,7 +2799,6 @@ AFTER_VALUE_COMMENT:
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
-
 			i.head++
 			// <skip irrelevant>
 			for {
@@ -4518,7 +4523,6 @@ AFTER_NAME:
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
-
 			i.head = h2 + 1
 			// <skip irrelevant>
 			for {
@@ -4723,7 +4727,6 @@ AFTER_NAME:
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
-
 		// <skip irrelevant>
 		for {
 			if i.head+7 >= len(i.str) {
@@ -5049,7 +5052,6 @@ AFTER_NAME:
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
-
 		i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
 		goto AFTER_DIR_NAME
 
@@ -5059,7 +5061,6 @@ AFTER_NAME:
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
-
 		i.expect, dirOn = ExpectDirName, dirFragRef
 		goto AFTER_DIR_NAME
 
@@ -5085,7 +5086,6 @@ AFTER_NAME:
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
-
 		// <skip irrelevant>
 		for {
 			if i.head+7 >= len(i.str) {
@@ -5665,7 +5665,13 @@ ERROR:
 // used after ScanAll returns because it's returned to the pool
 // and may be acquired by another call to ScanAll!
 func ScanAll(str []byte, fn func(*Iterator)) Error {
-	i := acquireIterator(str)
+	i := iteratorPool.Get().(*Iterator)
+	i.stackReset()
+	i.expect = ExpectDef
+	i.tail, i.head = -1, 0
+	i.str = str
+	i.levelSel = 0
+	i.errc = 0
 	defer iteratorPool.Put(i)
 
 	// inDefVal triggers different expectations after values
@@ -8367,7 +8373,6 @@ AFTER_VALUE_COMMENT:
 			// Callback for end of object
 			i.token = TokenObjEnd
 			fn(i)
-
 			i.head++
 			// <skip irrelevant>
 			for {
@@ -10059,7 +10064,6 @@ AFTER_NAME:
 			// Callback for field alias name
 			i.token = TokenFieldAlias
 			fn(i)
-
 			i.head = h2 + 1
 			// <skip irrelevant>
 			for {
@@ -10252,7 +10256,6 @@ AFTER_NAME:
 		// Callback for object field
 		i.token = TokenObjField
 		fn(i)
-
 		// <skip irrelevant>
 		for {
 			if i.head+7 >= len(i.str) {
@@ -10560,14 +10563,12 @@ AFTER_NAME:
 	case ExpectFragInlined:
 		i.token = TokenFragInline
 		fn(i)
-
 		i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
 		goto AFTER_DIR_NAME
 
 	case ExpectSpreadName:
 		i.token = TokenNamedSpread
 		fn(i)
-
 		i.expect, dirOn = ExpectDirName, dirFragRef
 		goto AFTER_DIR_NAME
 
@@ -10587,7 +10588,6 @@ AFTER_NAME:
 	case ExpectFragTypeCond:
 		i.token = TokenFragTypeCond
 		fn(i)
-
 		// <skip irrelevant>
 		for {
 			if i.head+7 >= len(i.str) {

@@ -1,0 +1,8 @@
+{{ if get . "checkfn" }}
+if fn(i) {
+i.errc = ErrCallbackFn
+	goto ERROR
+}
+{{ else }}
+fn(i)
+{{ end }}
