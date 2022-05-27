@@ -8,3 +8,5 @@
 // values match their declared types, etc. as this is outside the scope
 // of lexical analysis.
 package gqlscan
+
+//go:generate go run cmd/gen/main.go
