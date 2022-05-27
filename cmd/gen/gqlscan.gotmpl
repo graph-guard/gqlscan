@@ -263,39 +263,6 @@ func (i *Iterator) ScanInterpreted(
 	}
 }
 
-// isHeadNameBody returns true if the current head is a
-// legal name body character, otherwise returns false.
-func (i *Iterator) isHeadNameBody() bool {
-	return i.str[i.head] == '_' ||
-		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
-		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
-		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')
-}
-
-// isHeadSNTRC returns true if the current head is a space, line-feed,
-// horizontal tab, carriage-return or comma, otherwise returns false.
-func (i *Iterator) isHeadSNTRC() bool {
-	return i.str[i.head] == ' ' ||
-		i.str[i.head] == '\n' ||
-		i.str[i.head] == '\r' ||
-		i.str[i.head] == '\t' ||
-		i.str[i.head] == ','
-}
-
-// isHeadNotNameStart returns true if the current head is not
-// a legal name start character, otherwise returns false.
-func (i *Iterator) isHeadNotNameStart() bool {
-	return i.str[i.head] != '_' &&
-		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
-		(i.str[i.head] < 'A' || i.str[i.head] > 'Z')
-}
-
-// isHeadCtrl returns true if the current head is a control character,
-// otherwise returns false.
-func (i *Iterator) isHeadCtrl() bool {
-	return i.str[i.head] < 0x20
-}
-
 // isHeadDigit returns true if the current head is
 // a number start character, otherwise returns false.
 func (i *Iterator) isHeadDigit() bool {

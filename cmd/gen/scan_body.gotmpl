@@ -560,7 +560,7 @@ case '"':
 		if i.head >= len(i.str) {
 			break
 		}
-		if i.isHeadCtrl() {
+		if i.str[i.head] < 0x20 {
 			i.errc = ErrUnexpToken
 			i.expect = ExpectEndOfString
 			goto ERROR

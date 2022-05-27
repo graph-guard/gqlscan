@@ -45,8 +45,8 @@ gathered 2 input file(s):
  cmd/bench/inputs/big.graphql: 1.8 kB
  cmd/bench/inputs/small.graphql: 28 B
 running 1 parallel goroutine(s) for 1m0s
-finished (1m0.000022792s)
-total processed: 34 GB (565 MB/s; 4.21 gbit/s)
+finished (1m0.0000245s)
+total processed: 45 GB (753 MB/s; 5.61 gbit/s)
 total errors: 0
 ```
 
@@ -56,8 +56,8 @@ gathered 2 input file(s):
  cmd/bench/inputs/big.graphql: 1.8 kB
  cmd/bench/inputs/small.graphql: 28 B
 running 10 parallel goroutine(s) for 1m0s
-finished (1m0.000030625s)
-total processed: 264 GB (4.4 GB/s; 32.82 gbit/s)
+finished (1m0.000032583s)
+total processed: 345 GB (5.8 GB/s; 42.86 gbit/s)
 total errors: 0
 ```
 

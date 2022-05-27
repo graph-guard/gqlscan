@@ -4,7 +4,9 @@ if i.head >= len(i.str) {
 	goto ERROR
 }
 i.tail = i.head
-if i.isHeadNotNameStart() {
+if i.str[i.head] != '_' &&
+	(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
+	(i.str[i.head] < 'A' || i.str[i.head] > 'Z') {
 	i.errc = ErrUnexpToken
 	goto ERROR
 }
@@ -12,11 +14,18 @@ i.head++
 for {
 	if i.head+7 >= len(i.str) {
 		for ; i.head < len(i.str); i.head++ {
-			if i.isHeadNameBody() {
+			if i.str[i.head] == '_' ||
+				(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
+				(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
+				(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z') {
 				continue
-			} else if i.isHeadSNTRC() {
+			} else if i.str[i.head] == ' ' ||
+				i.str[i.head] == '\n' ||
+				i.str[i.head] == '\r' ||
+				i.str[i.head] == '\t' ||
+				i.str[i.head] == ',' {
 				break
-			} else if i.isHeadCtrl() {
+			} else if i.str[i.head] < 0x20 {
 				i.errc = ErrUnexpToken
 				goto ERROR
 			}
@@ -24,35 +33,59 @@ for {
 		}
 		break
 	}
-	if !i.isHeadNameBody() {
+	if !(i.str[i.head] == '_' ||
+		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
+		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
+		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
 		break
 	}
 	i.head++
-	if !i.isHeadNameBody() {
+	if !(i.str[i.head] == '_' ||
+		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
+		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
+		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
 		break
 	}
 	i.head++
-	if !i.isHeadNameBody() {
+	if !(i.str[i.head] == '_' ||
+		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
+		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
+		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
 		break
 	}
 	i.head++
-	if !i.isHeadNameBody() {
+	if !(i.str[i.head] == '_' ||
+		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
+		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
+		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
 		break
 	}
 	i.head++
-	if !i.isHeadNameBody() {
+	if !(i.str[i.head] == '_' ||
+		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
+		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
+		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
 		break
 	}
 	i.head++
-	if !i.isHeadNameBody() {
+	if !(i.str[i.head] == '_' ||
+		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
+		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
+		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
 		break
 	}
 	i.head++
-	if !i.isHeadNameBody() {
+	if !(i.str[i.head] == '_' ||
+		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
+		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
+		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
 		break
 	}
 	i.head++
-	if !i.isHeadNameBody() {
+	if !(i.str[i.head] == '_' ||
+		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
+		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
+		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
 		break
 	}
 	i.head++
