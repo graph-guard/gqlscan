@@ -16,51 +16,51 @@ var dirOn dirTarget
 {{ template "skip_irrelevant" }}
 
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    i.expect = ExpectDef
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	i.expect = ExpectDef
+	goto ERROR
 }
 
 DEFINITION:
 if i.head >= len(i.str) {
-    goto DEFINITION_END
+	goto DEFINITION_END
 } else if i.str[i.head] == '#' {
-    i.expect = ExpectDef
-    goto COMMENT
+	i.expect = ExpectDef
+	goto COMMENT
 } else if i.str[i.head] == '{' {
-    i.token = TokenDefQry
-    {{- template "callback" . -}}
-    i.expect = ExpectSelSet
-    goto SELECTION_SET
+	i.token = TokenDefQry
+	{{- template "callback" . -}}
+	i.expect = ExpectSelSet
+	goto SELECTION_SET
 } else if i.isHeadKeywordQuery() {
-    // Query
-    i.token = TokenDefQry
-    {{- template "callback" . -}}
-    i.head += len("query")
-    i.expect = ExpectAfterDefKeyword
-    goto AFTER_DEF_KEYWORD
+	// Query
+	i.token = TokenDefQry
+	{{- template "callback" . -}}
+	i.head += len("query")
+	i.expect = ExpectAfterDefKeyword
+	goto AFTER_DEF_KEYWORD
 } else if i.isHeadKeywordMutation() {
-    // Mutation
-    i.token = TokenDefMut
-    {{- template "callback" . -}}
-    i.head += len("mutation")
-    i.expect = ExpectAfterDefKeyword
-    goto AFTER_DEF_KEYWORD
+	// Mutation
+	i.token = TokenDefMut
+	{{- template "callback" . -}}
+	i.head += len("mutation")
+	i.expect = ExpectAfterDefKeyword
+	goto AFTER_DEF_KEYWORD
 } else if i.isHeadKeywordSubscription() {
-    // Subscription
-    i.token = TokenDefSub
-    {{- template "callback" . -}}
-    i.head += len("subscription")
-    i.expect = ExpectAfterDefKeyword
-    goto AFTER_DEF_KEYWORD
+	// Subscription
+	i.token = TokenDefSub
+	{{- template "callback" . -}}
+	i.head += len("subscription")
+	i.expect = ExpectAfterDefKeyword
+	goto AFTER_DEF_KEYWORD
 } else if i.isHeadKeywordFragment() {
-    // Fragment
-    i.tail = -1
-    i.token = TokenDefFrag
-    {{- template "callback" . -}}
-    i.head += len("fragment")
-    i.expect = ExpectFragName
-    goto AFTER_KEYWORD_FRAGMENT
+	// Fragment
+	i.tail = -1
+	i.token = TokenDefFrag
+	{{- template "callback" . -}}
+	i.head += len("fragment")
+	i.expect = ExpectFragName
+	goto AFTER_KEYWORD_FRAGMENT
 }
 
 i.errc = ErrUnexpToken
@@ -70,27 +70,27 @@ goto ERROR
 AFTER_DEF_KEYWORD:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 }
 switch i.str[i.head] {
 case '#':
-    goto COMMENT
+	goto COMMENT
 case '{':
-    i.expect = ExpectSelSet
-    goto SELECTION_SET
+	i.expect = ExpectSelSet
+	goto SELECTION_SET
 case '(':
-    // Variable list
-    i.tail = -1
-    i.token = TokenVarList
-    {{- template "callback" . -}}
-    i.head++
-    i.expect = ExpectVar
-    goto OPR_VAR
+	// Variable list
+	i.tail = -1
+	i.token = TokenVarList
+	{{- template "callback" . -}}
+	i.head++
+	i.expect = ExpectVar
+	goto OPR_VAR
 case '@':
-    i.head++
-    dirOn, i.expect = dirOpr, ExpectDir
-    goto DIR_NAME
+	i.head++
+	dirOn, i.expect = dirOpr, ExpectDir
+	goto DIR_NAME
 }
 i.expect = ExpectOprName
 {{ template "name" set . "aftername" "oprname" }}
@@ -99,257 +99,257 @@ AFTER_DIR_NAME:
 {{ template "skip_irrelevant" }}
 switch dirOn {
 case dirField:
-    if i.head >= len(i.str) {
-        i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
-        goto ERROR
-    }
-    switch i.str[i.head] {
-    case '#':
-        goto COMMENT
-    case '(':
-        // Directive argument list
-        i.tail = -1
-        i.token = TokenArgList
-        {{- template "callback" . -}}
-        i.head++
-        {{ template "skip_irrelevant" }}
-        i.expect = ExpectArgName
-        goto ARG_LIST
-    case '@':
-        i.head++
-        i.expect = ExpectDir
-        goto DIR_NAME
-    case '{':
-        // Field selector expands without arguments
-        i.expect = ExpectSelSet
-        goto SELECTION_SET
-    default:
-        i.expect, dirOn = ExpectAfterSelection, 0
-        goto AFTER_SELECTION
-    }
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '(':
+		// Directive argument list
+		i.tail = -1
+		i.token = TokenArgList
+		{{- template "callback" . -}}
+		i.head++
+		{{ template "skip_irrelevant" }}
+		i.expect = ExpectArgName
+		goto ARG_LIST
+	case '@':
+		i.head++
+		i.expect = ExpectDir
+		goto DIR_NAME
+	case '{':
+		// Field selector expands without arguments
+		i.expect = ExpectSelSet
+		goto SELECTION_SET
+	default:
+		i.expect, dirOn = ExpectAfterSelection, 0
+		goto AFTER_SELECTION
+	}
 case dirOpr:
-    if i.head >= len(i.str) {
-        i.errc, i.expect = ErrUnexpEOF, ExpectAfterDefKeyword
-        goto ERROR
-    }
-    switch i.str[i.head] {
-    case '#':
-        goto COMMENT
-    case '(':
-        // Directive argument list
-        i.tail = -1
-        i.token = TokenArgList
-        {{- template "callback" . -}}
-        i.head++
-        {{ template "skip_irrelevant" }}
-        i.expect = ExpectArgName
-        goto ARG_LIST
-    case '@':
-        i.head++
-        i.expect = ExpectDir
-        goto DIR_NAME
-    default:
-        i.expect, dirOn = ExpectSelSet, 0
-        goto SELECTION_SET
-    }
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectAfterDefKeyword
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '(':
+		// Directive argument list
+		i.tail = -1
+		i.token = TokenArgList
+		{{- template "callback" . -}}
+		i.head++
+		{{ template "skip_irrelevant" }}
+		i.expect = ExpectArgName
+		goto ARG_LIST
+	case '@':
+		i.head++
+		i.expect = ExpectDir
+		goto DIR_NAME
+	default:
+		i.expect, dirOn = ExpectSelSet, 0
+		goto SELECTION_SET
+	}
 case dirVar:
-    if i.head >= len(i.str) {
-        i.errc, i.expect = ErrUnexpEOF, ExpectAfterVarType
-        goto ERROR
-    }
-    switch i.str[i.head] {
-    case '#':
-        goto COMMENT
-    case '(':
-        // Directive argument list
-        i.tail = -1
-        i.token = TokenArgList
-        {{- template "callback" . -}}
-        i.head++
-        {{ template "skip_irrelevant" }}
-        i.expect = ExpectArgName
-        goto ARG_LIST
-    case '@':
-        i.head++
-        i.expect = ExpectDir
-        goto DIR_NAME
-    case ')':
-        dirOn = 0
-        goto VAR_LIST_END
-    default:
-        i.expect, dirOn = ExpectVar, 0
-        goto OPR_VAR
-    }
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectAfterVarType
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '(':
+		// Directive argument list
+		i.tail = -1
+		i.token = TokenArgList
+		{{- template "callback" . -}}
+		i.head++
+		{{ template "skip_irrelevant" }}
+		i.expect = ExpectArgName
+		goto ARG_LIST
+	case '@':
+		i.head++
+		i.expect = ExpectDir
+		goto DIR_NAME
+	case ')':
+		dirOn = 0
+		goto VAR_LIST_END
+	default:
+		i.expect, dirOn = ExpectVar, 0
+		goto OPR_VAR
+	}
 case dirFragRef:
-    if i.head >= len(i.str) {
-        i.errc, i.expect = ErrUnexpEOF, ExpectAfterSelection
-        goto ERROR
-    }
-    switch i.str[i.head] {
-    case '#':
-        goto COMMENT
-    case '(':
-        // Directive argument list
-        i.tail = -1
-        i.token = TokenArgList
-        {{- template "callback" . -}}
-        i.head++
-        {{ template "skip_irrelevant" }}
-        i.expect = ExpectArgName
-        goto ARG_LIST
-    case '@':
-        i.head++
-        i.expect = ExpectDir
-        goto DIR_NAME
-    default:
-        i.expect, dirOn = ExpectAfterSelection, 0
-        goto AFTER_SELECTION
-    }
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectAfterSelection
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '(':
+		// Directive argument list
+		i.tail = -1
+		i.token = TokenArgList
+		{{- template "callback" . -}}
+		i.head++
+		{{ template "skip_irrelevant" }}
+		i.expect = ExpectArgName
+		goto ARG_LIST
+	case '@':
+		i.head++
+		i.expect = ExpectDir
+		goto DIR_NAME
+	default:
+		i.expect, dirOn = ExpectAfterSelection, 0
+		goto AFTER_SELECTION
+	}
 case dirFragInlineOrDef:
-    if i.head >= len(i.str) {
-        i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
-        goto ERROR
-    }
-    switch i.str[i.head] {
-    case '#':
-        goto COMMENT
-    case '(':
-        // Directive argument list
-        i.tail = -1
-        i.token = TokenArgList
-        {{- template "callback" . -}}
-        i.head++
-        {{ template "skip_irrelevant" }}
-        i.expect = ExpectArgName
-        goto ARG_LIST
-    case '@':
-        i.head++
-        i.expect = ExpectDir
-        goto DIR_NAME
-    default:
-        i.expect, dirOn = ExpectSelSet, 0
-        goto SELECTION_SET
-    }
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '(':
+		// Directive argument list
+		i.tail = -1
+		i.token = TokenArgList
+		{{- template "callback" . -}}
+		i.head++
+		{{ template "skip_irrelevant" }}
+		i.expect = ExpectArgName
+		goto ARG_LIST
+	case '@':
+		i.head++
+		i.expect = ExpectDir
+		goto DIR_NAME
+	default:
+		i.expect, dirOn = ExpectSelSet, 0
+		goto SELECTION_SET
+	}
 default:
-    // This line is only executed if we forgot to handle a dirOn case.
-    panic(fmt.Errorf("unhandled dirOn case: %#v", dirOn))
+	// This line is only executed if we forgot to handle a dirOn case.
+	panic(fmt.Errorf("unhandled dirOn case: %#v", dirOn))
 }
 
 AFTER_DIR_ARGS:
 {{ template "skip_irrelevant" }}
 switch dirOn {
 case dirField:
-    if i.head >= len(i.str) {
-        i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
-        goto ERROR
-    }
-    switch i.str[i.head] {
-    case '#':
-        goto COMMENT
-    case '@':
-        i.head++
-        i.expect = ExpectDir
-        goto DIR_NAME
-    case '{':
-        i.expect = ExpectSelSet
-        goto SELECTION_SET
-    default:
-        i.expect, dirOn = ExpectAfterSelection, 0
-        goto AFTER_SELECTION
-    }
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '@':
+		i.head++
+		i.expect = ExpectDir
+		goto DIR_NAME
+	case '{':
+		i.expect = ExpectSelSet
+		goto SELECTION_SET
+	default:
+		i.expect, dirOn = ExpectAfterSelection, 0
+		goto AFTER_SELECTION
+	}
 case dirOpr:
-    if i.head >= len(i.str) {
-        i.errc, i.expect = ErrUnexpEOF, ExpectAfterDefKeyword
-        goto ERROR
-    }
-    switch i.str[i.head] {
-    case '#':
-        goto COMMENT
-    case '@':
-        i.head++
-        i.expect = ExpectDir
-        goto DIR_NAME
-    default:
-        i.expect, dirOn = ExpectSelSet, 0
-        goto SELECTION_SET
-    }
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectAfterDefKeyword
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '@':
+		i.head++
+		i.expect = ExpectDir
+		goto DIR_NAME
+	default:
+		i.expect, dirOn = ExpectSelSet, 0
+		goto SELECTION_SET
+	}
 case dirVar:
-    {{ template "skip_irrelevant" }}
-    if i.head >= len(i.str) {
-        i.errc, i.expect = ErrUnexpEOF, ExpectAfterVarType
-        goto ERROR
-    }
-    switch i.str[i.head] {
-    case '#':
-        goto COMMENT
-    case '@':
-        i.head++
-        i.expect = ExpectDir
-        goto DIR_NAME
-    default:
-        i.expect, dirOn = ExpectAfterVarType, 0
-        goto OPR_VAR
-    }
+	{{ template "skip_irrelevant" }}
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectAfterVarType
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '@':
+		i.head++
+		i.expect = ExpectDir
+		goto DIR_NAME
+	default:
+		i.expect, dirOn = ExpectAfterVarType, 0
+		goto OPR_VAR
+	}
 case dirFragRef:
-    if i.head >= len(i.str) {
-        i.errc, i.expect = ErrUnexpEOF, ExpectAfterSelection
-        goto ERROR
-    }
-    switch i.str[i.head] {
-    case '#':
-        goto COMMENT
-    case '@':
-        i.head++
-        i.expect = ExpectDir
-        goto DIR_NAME
-    default:
-        i.expect, dirOn = ExpectAfterSelection, 0
-        goto AFTER_SELECTION
-    }
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectAfterSelection
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '@':
+		i.head++
+		i.expect = ExpectDir
+		goto DIR_NAME
+	default:
+		i.expect, dirOn = ExpectAfterSelection, 0
+		goto AFTER_SELECTION
+	}
 case dirFragInlineOrDef:
-    if i.head >= len(i.str) {
-        i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
-        goto ERROR
-    }
-    switch i.str[i.head] {
-    case '#':
-        goto COMMENT
-    case '@':
-        i.head++
-        i.expect = ExpectDir
-        goto DIR_NAME
-    default:
-        i.expect = ExpectSelSet
-        goto SELECTION_SET
-    }
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '@':
+		i.head++
+		i.expect = ExpectDir
+		goto DIR_NAME
+	default:
+		i.expect = ExpectSelSet
+		goto SELECTION_SET
+	}
 default:
-    // This line is only executed if we forgot to handle a dirOn case.
-    panic(fmt.Errorf("unhandled dirOn case: %#v", dirOn))
+	// This line is only executed if we forgot to handle a dirOn case.
+	panic(fmt.Errorf("unhandled dirOn case: %#v", dirOn))
 }
 
 AFTER_KEYWORD_FRAGMENT:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 }
 {{ template "name" set . "aftername" "fragname" }}
 
 OPR_VAR:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 }
 
 // Variable name
 if i.str[i.head] != '$' {
-    i.errc = ErrUnexpToken
-    goto ERROR
+	i.errc = ErrUnexpToken
+	goto ERROR
 }
 i.head++
 i.expect = ExpectVarName
@@ -358,26 +358,26 @@ goto VAR_NAME
 AFTER_VAR_TYPE:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 } else if typeArrLvl != 0 {
-    i.head--
-    i.errc = ErrInvalType
-    i.expect = ExpectVarType
-    goto ERROR
+	i.head--
+	i.errc = ErrInvalType
+	i.expect = ExpectVarType
+	goto ERROR
 } else if i.str[i.head] == '@' {
-    i.head++
-    dirOn, i.expect = dirVar, ExpectDir
-    goto DIR_NAME
+	i.head++
+	dirOn, i.expect = dirVar, ExpectDir
+	goto DIR_NAME
 } else if i.str[i.head] == '=' {
-    i.head++
-    {{ template "skip_irrelevant" }}
-    i.expect, inDefVal = ExpectVal, true
-    goto VALUE
+	i.head++
+	{{ template "skip_irrelevant" }}
+	i.expect, inDefVal = ExpectVal, true
+	goto VALUE
 } else if i.str[i.head] == ')' {
-    goto VAR_LIST_END
+	goto VAR_LIST_END
 }
 i.expect = ExpectAfterVarType
 goto OPR_VAR
@@ -390,25 +390,25 @@ i.head++
 {{ template "skip_irrelevant" }}
 i.expect = ExpectSelSet
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    dirOn, i.expect = dirOpr, ExpectDirName
-    goto AFTER_DIR_NAME
+	dirOn, i.expect = dirOpr, ExpectDirName
+	goto AFTER_DIR_NAME
 } else if i.str[i.head] == '@' {
-    i.head++
-    dirOn, i.expect = dirOpr, ExpectDir
-    goto DIR_NAME
+	i.head++
+	dirOn, i.expect = dirOpr, ExpectDir
+	goto DIR_NAME
 }
 goto SELECTION_SET
 
 SELECTION_SET:
 {{ template "skip_irrelevant" }}
 if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 } else if i.str[i.head] != '{' {
-    i.errc = ErrUnexpToken
-    goto ERROR
+	i.errc = ErrUnexpToken
+	goto ERROR
 }
 i.tail = -1
 i.token = TokenSet
@@ -421,12 +421,12 @@ goto SELECTION
 AFTER_SELECTION:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 } else if i.str[i.head] == '}' {
-    goto SEL_END
+	goto SEL_END
 }
 i.expect = ExpectSel
 goto SELECTION
@@ -439,473 +439,473 @@ i.levelSel--
 i.head++
 {{ template "skip_irrelevant" }}
 if i.levelSel < 1 {
-    goto DEFINITION_END
+	goto DEFINITION_END
 }
 goto AFTER_SELECTION
 
 VALUE:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 }
 switch i.str[i.head] {
 case '#':
-    goto COMMENT
+	goto COMMENT
 case '{':
-    // Object begin
-    i.tail = -1
-    // Callback for argument
-    i.token = TokenObj
-    {{- template "callback" . -}}
-    i.stackPush(TokenObj)
-    i.head++
-    {{ template "skip_irrelevant" }}
+	// Object begin
+	i.tail = -1
+	// Callback for argument
+	i.token = TokenObj
+	{{- template "callback" . -}}
+	i.stackPush(TokenObj)
+	i.head++
+	{{ template "skip_irrelevant" }}
 
-    i.expect = ExpectObjFieldName
-    {{ template "name" set . "aftername" "objfieldname" }}
+	i.expect = ExpectObjFieldName
+	{{ template "name" set . "aftername" "objfieldname" }}
 case '[':
-    i.tail = -1
-    // Callback for argument
-    i.token = TokenArr
-    {{- template "callback" . -}}
-    i.head++
-    {{ template "skip_irrelevant" }}
+	i.tail = -1
+	// Callback for argument
+	i.token = TokenArr
+	{{- template "callback" . -}}
+	i.head++
+	{{ template "skip_irrelevant" }}
 
-    // Lookahead
-    if i.head >= len(i.str) {
-        i.errc = ErrUnexpEOF
-        i.expect = ExpectVal
-        goto ERROR
-    } else if i.str[i.head] == ']' {
-        i.token = TokenArrEnd
-        {{- template "callback" . -}}
-        i.head++
-        i.expect = ExpectAfterValue
-        goto AFTER_VALUE_COMMENT
-    }
-    i.stackPush(TokenArr)
-    i.expect = ExpectAfterValue
-    goto AFTER_VALUE_COMMENT
+	// Lookahead
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		i.expect = ExpectVal
+		goto ERROR
+	} else if i.str[i.head] == ']' {
+		i.token = TokenArrEnd
+		{{- template "callback" . -}}
+		i.head++
+		i.expect = ExpectAfterValue
+		goto AFTER_VALUE_COMMENT
+	}
+	i.stackPush(TokenArr)
+	i.expect = ExpectAfterValue
+	goto AFTER_VALUE_COMMENT
 
 case '"':
-    i.head++
-    i.tail = i.head
+	i.head++
+	i.tail = i.head
 
-    if i.head+1 < len(i.str) &&
-        i.str[i.head] == '"' &&
-        i.str[i.head+1] == '"' {
-        i.head += 2
-        i.tail = i.head
-        goto BLOCK_STRING
-    }
+	if i.head+1 < len(i.str) &&
+		i.str[i.head] == '"' &&
+		i.str[i.head+1] == '"' {
+		i.head += 2
+		i.tail = i.head
+		goto BLOCK_STRING
+	}
 
-    // String value
-    escaped := false
-    if i.head < len(i.str) && i.str[i.head] == '"' {
-        goto AFTER_STR_VAL
-    }
-    for {
-        for !escaped && i.head+7 < len(i.str) {
-            // Fast path
-            if i.str[i.head] == '"' ||
-                i.str[i.head] == '\\' ||
-                i.str[i.head] < 0x20 {
-                break
-            }
-            i.head++
-            if i.str[i.head] == '"' ||
-                i.str[i.head] == '\\' ||
-                i.str[i.head] < 0x20 {
-                break
-            }
-            i.head++
-            if i.str[i.head] == '"' ||
-                i.str[i.head] == '\\' ||
-                i.str[i.head] < 0x20 {
-                break
-            }
-            i.head++
-            if i.str[i.head] == '"' ||
-                i.str[i.head] == '\\' ||
-                i.str[i.head] < 0x20 {
-                break
-            }
-            i.head++
-            if i.str[i.head] == '"' ||
-                i.str[i.head] == '\\' ||
-                i.str[i.head] < 0x20 {
-                break
-            }
-            i.head++
-            if i.str[i.head] == '"' ||
-                i.str[i.head] == '\\' ||
-                i.str[i.head] < 0x20 {
-                break
-            }
-            i.head++
-            if i.str[i.head] == '"' ||
-                i.str[i.head] == '\\' ||
-                i.str[i.head] < 0x20 {
-                break
-            }
-            i.head++
-            if i.str[i.head] == '"' ||
-                i.str[i.head] == '\\' ||
-                i.str[i.head] < 0x20 {
-                break
-            }
-            i.head++
-        }
-        if i.head >= len(i.str) {
-            break
-        }
-        if i.isHeadCtrl() {
-            i.errc = ErrUnexpToken
-            i.expect = ExpectEndOfString
-            goto ERROR
-        }
-        if escaped {
-            switch i.str[i.head] {
-            case '\\':
-                // Backslash
-                i.head++
-            case '/':
-                // Solidus
-                i.head++
-            case '"':
-                // Double-quotes
-                i.head++
-            case 'b':
-                // Backspace
-                i.head++
-            case 'f':
-                // Form-feed
-                i.head++
-            case 'r':
-                // Carriage-return
-                i.head++
-            case 'n':
-                // Line-break
-                i.head++
-            case 't':
-                // Tab
-                i.head++
-            case 'u':
-                // Unicode sequence
-                i.head++
-                if i.head >= len(i.str) {
-                    i.errc = ErrUnexpEOF
-                    i.expect = ExpectEscapedUnicodeSequence
-                    goto ERROR
-                }
-                if !i.isHeadHexDigit() {
-                    i.errc = ErrUnexpToken
-                    i.expect = ExpectEscapedUnicodeSequence
-                    goto ERROR
-                }
-                i.head++
-                if i.head >= len(i.str) {
-                    i.errc = ErrUnexpEOF
-                    i.expect = ExpectEscapedUnicodeSequence
-                    goto ERROR
-                }
-                if !i.isHeadHexDigit() {
-                    i.errc = ErrUnexpToken
-                    i.expect = ExpectEscapedUnicodeSequence
-                    goto ERROR
-                }
-                i.head++
-                if i.head >= len(i.str) {
-                    i.errc = ErrUnexpEOF
-                    i.expect = ExpectEscapedUnicodeSequence
-                    goto ERROR
-                }
-                if !i.isHeadHexDigit() {
-                    i.errc = ErrUnexpToken
-                    i.expect = ExpectEscapedUnicodeSequence
-                    goto ERROR
-                }
-                i.head++
-                if i.head >= len(i.str) {
-                    i.errc = ErrUnexpEOF
-                    i.expect = ExpectEscapedUnicodeSequence
-                    goto ERROR
-                }
-                if !i.isHeadHexDigit() {
-                    i.errc = ErrUnexpToken
-                    i.expect = ExpectEscapedUnicodeSequence
-                    goto ERROR
-                }
-            default:
-                i.errc = ErrUnexpToken
-                i.expect = ExpectEscapedSequence
-                goto ERROR
-            }
-            escaped = false
-            continue
-        } else if i.str[i.head] == '"' {
-            goto AFTER_STR_VAL
-        } else if i.str[i.head] == '\\' {
-            escaped = true
-        }
-        i.head++
-    }
-    i.errc = ErrUnexpEOF
-    i.expect = ExpectEndOfString
-    goto ERROR
+	// String value
+	escaped := false
+	if i.head < len(i.str) && i.str[i.head] == '"' {
+		goto AFTER_STR_VAL
+	}
+	for {
+		for !escaped && i.head+7 < len(i.str) {
+			// Fast path
+			if i.str[i.head] == '"' ||
+				i.str[i.head] == '\\' ||
+				i.str[i.head] < 0x20 {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '"' ||
+				i.str[i.head] == '\\' ||
+				i.str[i.head] < 0x20 {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '"' ||
+				i.str[i.head] == '\\' ||
+				i.str[i.head] < 0x20 {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '"' ||
+				i.str[i.head] == '\\' ||
+				i.str[i.head] < 0x20 {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '"' ||
+				i.str[i.head] == '\\' ||
+				i.str[i.head] < 0x20 {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '"' ||
+				i.str[i.head] == '\\' ||
+				i.str[i.head] < 0x20 {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '"' ||
+				i.str[i.head] == '\\' ||
+				i.str[i.head] < 0x20 {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '"' ||
+				i.str[i.head] == '\\' ||
+				i.str[i.head] < 0x20 {
+				break
+			}
+			i.head++
+		}
+		if i.head >= len(i.str) {
+			break
+		}
+		if i.isHeadCtrl() {
+			i.errc = ErrUnexpToken
+			i.expect = ExpectEndOfString
+			goto ERROR
+		}
+		if escaped {
+			switch i.str[i.head] {
+			case '\\':
+				// Backslash
+				i.head++
+			case '/':
+				// Solidus
+				i.head++
+			case '"':
+				// Double-quotes
+				i.head++
+			case 'b':
+				// Backspace
+				i.head++
+			case 'f':
+				// Form-feed
+				i.head++
+			case 'r':
+				// Carriage-return
+				i.head++
+			case 'n':
+				// Line-break
+				i.head++
+			case 't':
+				// Tab
+				i.head++
+			case 'u':
+				// Unicode sequence
+				i.head++
+				if i.head >= len(i.str) {
+					i.errc = ErrUnexpEOF
+					i.expect = ExpectEscapedUnicodeSequence
+					goto ERROR
+				}
+				if !i.isHeadHexDigit() {
+					i.errc = ErrUnexpToken
+					i.expect = ExpectEscapedUnicodeSequence
+					goto ERROR
+				}
+				i.head++
+				if i.head >= len(i.str) {
+					i.errc = ErrUnexpEOF
+					i.expect = ExpectEscapedUnicodeSequence
+					goto ERROR
+				}
+				if !i.isHeadHexDigit() {
+					i.errc = ErrUnexpToken
+					i.expect = ExpectEscapedUnicodeSequence
+					goto ERROR
+				}
+				i.head++
+				if i.head >= len(i.str) {
+					i.errc = ErrUnexpEOF
+					i.expect = ExpectEscapedUnicodeSequence
+					goto ERROR
+				}
+				if !i.isHeadHexDigit() {
+					i.errc = ErrUnexpToken
+					i.expect = ExpectEscapedUnicodeSequence
+					goto ERROR
+				}
+				i.head++
+				if i.head >= len(i.str) {
+					i.errc = ErrUnexpEOF
+					i.expect = ExpectEscapedUnicodeSequence
+					goto ERROR
+				}
+				if !i.isHeadHexDigit() {
+					i.errc = ErrUnexpToken
+					i.expect = ExpectEscapedUnicodeSequence
+					goto ERROR
+				}
+			default:
+				i.errc = ErrUnexpToken
+				i.expect = ExpectEscapedSequence
+				goto ERROR
+			}
+			escaped = false
+			continue
+		} else if i.str[i.head] == '"' {
+			goto AFTER_STR_VAL
+		} else if i.str[i.head] == '\\' {
+			escaped = true
+		}
+		i.head++
+	}
+	i.errc = ErrUnexpEOF
+	i.expect = ExpectEndOfString
+	goto ERROR
 
 AFTER_STR_VAL:
-    // Callback for argument
-    i.token = TokenStr
-    {{- template "callback" . -}}
-    // Advance head index to include the closing double-quotes
-    i.head++
+	// Callback for argument
+	i.token = TokenStr
+	{{- template "callback" . -}}
+	// Advance head index to include the closing double-quotes
+	i.head++
 case '$':
-    if inDefVal {
-        i.errc, i.expect = ErrUnexpToken, ExpectDefaultVarVal
-        goto ERROR
-    }
+	if inDefVal {
+		i.errc, i.expect = ErrUnexpToken, ExpectDefaultVarVal
+		goto ERROR
+	}
 
-    // Variable reference
-    i.head++
+	// Variable reference
+	i.head++
 
-    // Variable name
-    i.expect = ExpectVarRefName
-    goto VAR_REF_NAME
+	// Variable name
+	i.expect = ExpectVarRefName
+	goto VAR_REF_NAME
 
 case 'n':
-    // Null
-    if i.head+4 < len(i.str) &&
-        i.str[i.head+3] == 'l' &&
-        i.str[i.head+2] == 'l' &&
-        i.str[i.head+1] == 'u' &&
-        i.str[i.head] == 'n' &&
-        (i.str[i.head+4] == ' ' ||
-            i.str[i.head+4] == '\t' ||
-            i.str[i.head+4] == '\r' ||
-            i.str[i.head+4] == '\n' ||
-            i.str[i.head+4] == ',' ||
-            i.str[i.head+4] == ')' ||
-            i.str[i.head+4] == '}' ||
-            i.str[i.head+4] == '{' ||
-            i.str[i.head+4] == ']' ||
-            i.str[i.head+4] == '[' ||
-            i.str[i.head+4] == '#') {
-        i.tail = -1
-        i.head += len("null")
+	// Null
+	if i.head+4 < len(i.str) &&
+		i.str[i.head+3] == 'l' &&
+		i.str[i.head+2] == 'l' &&
+		i.str[i.head+1] == 'u' &&
+		i.str[i.head] == 'n' &&
+		(i.str[i.head+4] == ' ' ||
+			i.str[i.head+4] == '\t' ||
+			i.str[i.head+4] == '\r' ||
+			i.str[i.head+4] == '\n' ||
+			i.str[i.head+4] == ',' ||
+			i.str[i.head+4] == ')' ||
+			i.str[i.head+4] == '}' ||
+			i.str[i.head+4] == '{' ||
+			i.str[i.head+4] == ']' ||
+			i.str[i.head+4] == '[' ||
+			i.str[i.head+4] == '#') {
+		i.tail = -1
+		i.head += len("null")
 
-        // Callback for null value
-        i.token = TokenNull
-        {{- template "callback" . -}}
-    } else {
-        i.expect = ExpectValEnum
-        {{ template "name" set . "aftername" "valenum" }}
-    }
+		// Callback for null value
+		i.token = TokenNull
+		{{- template "callback" . -}}
+	} else {
+		i.expect = ExpectValEnum
+		{{ template "name" set . "aftername" "valenum" }}
+	}
 case 't':
-    if i.head+4 < len(i.str) &&
-        i.str[i.head+3] == 'e' &&
-        i.str[i.head+2] == 'u' &&
-        i.str[i.head+1] == 'r' &&
-        i.str[i.head] == 't' &&
-        (i.str[i.head+4] == ' ' ||
-            i.str[i.head+4] == '\t' ||
-            i.str[i.head+4] == '\r' ||
-            i.str[i.head+4] == '\n' ||
-            i.str[i.head+4] == ',' ||
-            i.str[i.head+4] == ')' ||
-            i.str[i.head+4] == '}' ||
-            i.str[i.head+4] == '{' ||
-            i.str[i.head+4] == ']' ||
-            i.str[i.head+4] == '[' ||
-            i.str[i.head+4] == '#') {
-        i.tail = -1
-        i.head += len("true")
+	if i.head+4 < len(i.str) &&
+		i.str[i.head+3] == 'e' &&
+		i.str[i.head+2] == 'u' &&
+		i.str[i.head+1] == 'r' &&
+		i.str[i.head] == 't' &&
+		(i.str[i.head+4] == ' ' ||
+			i.str[i.head+4] == '\t' ||
+			i.str[i.head+4] == '\r' ||
+			i.str[i.head+4] == '\n' ||
+			i.str[i.head+4] == ',' ||
+			i.str[i.head+4] == ')' ||
+			i.str[i.head+4] == '}' ||
+			i.str[i.head+4] == '{' ||
+			i.str[i.head+4] == ']' ||
+			i.str[i.head+4] == '[' ||
+			i.str[i.head+4] == '#') {
+		i.tail = -1
+		i.head += len("true")
 
-        // Callback for true value
-        i.token = TokenTrue
-        {{- template "callback" . -}}
-    } else {
-        i.expect = ExpectValEnum
-        {{ template "name" set . "aftername" "valenum" }}
-    }
+		// Callback for true value
+		i.token = TokenTrue
+		{{- template "callback" . -}}
+	} else {
+		i.expect = ExpectValEnum
+		{{ template "name" set . "aftername" "valenum" }}
+	}
 case 'f':
-    // False
-    if i.head+5 < len(i.str) &&
-        i.str[i.head+4] == 'e' &&
-        i.str[i.head+3] == 's' &&
-        i.str[i.head+2] == 'l' &&
-        i.str[i.head+1] == 'a' &&
-        i.str[i.head] == 'f' &&
-        (i.str[i.head+5] == ' ' ||
-            i.str[i.head+5] == '\t' ||
-            i.str[i.head+5] == '\r' ||
-            i.str[i.head+5] == '\n' ||
-            i.str[i.head+5] == ',' ||
-            i.str[i.head+5] == ')' ||
-            i.str[i.head+5] == '}' ||
-            i.str[i.head+5] == '{' ||
-            i.str[i.head+5] == ']' ||
-            i.str[i.head+5] == '[' ||
-            i.str[i.head+5] == '#') {
-        i.tail = -1
-        i.head += len("false")
+	// False
+	if i.head+5 < len(i.str) &&
+		i.str[i.head+4] == 'e' &&
+		i.str[i.head+3] == 's' &&
+		i.str[i.head+2] == 'l' &&
+		i.str[i.head+1] == 'a' &&
+		i.str[i.head] == 'f' &&
+		(i.str[i.head+5] == ' ' ||
+			i.str[i.head+5] == '\t' ||
+			i.str[i.head+5] == '\r' ||
+			i.str[i.head+5] == '\n' ||
+			i.str[i.head+5] == ',' ||
+			i.str[i.head+5] == ')' ||
+			i.str[i.head+5] == '}' ||
+			i.str[i.head+5] == '{' ||
+			i.str[i.head+5] == ']' ||
+			i.str[i.head+5] == '[' ||
+			i.str[i.head+5] == '#') {
+		i.tail = -1
+		i.head += len("false")
 
-        // Callback for false value
-        i.token = TokenFalse
-        {{- template "callback" . -}}
-    } else {
-        i.expect = ExpectValEnum
-        {{ template "name" set . "aftername" "valenum" }}
-    }
+		// Callback for false value
+		i.token = TokenFalse
+		{{- template "callback" . -}}
+	} else {
+		i.expect = ExpectValEnum
+		{{ template "name" set . "aftername" "valenum" }}
+	}
 case '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
-    // Number
-    i.tail = i.head
+	// Number
+	i.tail = i.head
 
-    var s int
+	var s int
 
-    switch i.str[i.head] {
-    case '-':
-        // Signed
-        i.head++
-        if i.head >= len(i.str) {
-            // Expected at least one digit
-            i.errc = ErrUnexpEOF
-            i.expect = ExpectVal
-            goto ERROR
-        }
-    case '0':
-        // Leading zero
-        i.head++
-        if len(i.str) > i.head {
-            if i.str[i.head] == '.' {
-                i.head++
-                goto FRACTION
-            } else if i.str[i.head] == 'e' || i.str[i.head] == 'E' {
-                i.head++
-                goto EXPONENT_SIGN
-            } else if i.isHeadNumEnd() {
-                i.token = TokenInt
-                goto ON_NUM_VAL
-            } else {
-                i.errc = ErrInvalNum
-                i.expect = ExpectVal
-                goto ERROR
-            }
-        }
-    }
+	switch i.str[i.head] {
+	case '-':
+		// Signed
+		i.head++
+		if i.head >= len(i.str) {
+			// Expected at least one digit
+			i.errc = ErrUnexpEOF
+			i.expect = ExpectVal
+			goto ERROR
+		}
+	case '0':
+		// Leading zero
+		i.head++
+		if len(i.str) > i.head {
+			if i.str[i.head] == '.' {
+				i.head++
+				goto FRACTION
+			} else if i.str[i.head] == 'e' || i.str[i.head] == 'E' {
+				i.head++
+				goto EXPONENT_SIGN
+			} else if i.isHeadNumEnd() {
+				i.token = TokenInt
+				goto ON_NUM_VAL
+			} else {
+				i.errc = ErrInvalNum
+				i.expect = ExpectVal
+				goto ERROR
+			}
+		}
+	}
 
-    // Integer
-    for s = i.head; i.head < len(i.str); i.head++ {
-        if i.isHeadDigit() {
-            continue
-        } else if i.str[i.head] == '.' {
-            i.head++
-            goto FRACTION
-        } else if i.isHeadNumEnd() {
-            if i.head == s {
-                // Expected at least one digit
-                i.errc = ErrInvalNum
-                i.expect = ExpectVal
-                goto ERROR
-            }
-            // Integer
-            i.token = TokenInt
-            goto ON_NUM_VAL
-        } else if i.str[i.head] == 'e' || i.str[i.head] == 'E' {
-            i.head++
-            goto EXPONENT_SIGN
-        }
+	// Integer
+	for s = i.head; i.head < len(i.str); i.head++ {
+		if i.isHeadDigit() {
+			continue
+		} else if i.str[i.head] == '.' {
+			i.head++
+			goto FRACTION
+		} else if i.isHeadNumEnd() {
+			if i.head == s {
+				// Expected at least one digit
+				i.errc = ErrInvalNum
+				i.expect = ExpectVal
+				goto ERROR
+			}
+			// Integer
+			i.token = TokenInt
+			goto ON_NUM_VAL
+		} else if i.str[i.head] == 'e' || i.str[i.head] == 'E' {
+			i.head++
+			goto EXPONENT_SIGN
+		}
 
-        // Unexpected rune
-        i.errc = ErrInvalNum
-        i.expect = ExpectVal
-        goto ERROR
-    }
+		// Unexpected rune
+		i.errc = ErrInvalNum
+		i.expect = ExpectVal
+		goto ERROR
+	}
 
-    if i.head >= len(i.str) {
-        // Integer without exponent
-        i.token = TokenInt
-        goto ON_NUM_VAL
-    }
-    // Continue to fraction
+	if i.head >= len(i.str) {
+		// Integer without exponent
+		i.token = TokenInt
+		goto ON_NUM_VAL
+	}
+	// Continue to fraction
 
 FRACTION:
-    _ = 0 // Make code coverage count the label above
-    for s = i.head; i.head < len(i.str); i.head++ {
-        if i.isHeadDigit() {
-            continue
-        } else if i.isHeadNumEnd() {
-            if i.head == s {
-                // Expected at least one digit
-                i.errc = ErrInvalNum
-                i.expect = ExpectVal
-                goto ERROR
-            }
-            // Number with fraction
-            i.token = TokenFloat
-            goto ON_NUM_VAL
-        } else if i.str[i.head] == 'e' || i.str[i.head] == 'E' {
-            i.head++
-            goto EXPONENT_SIGN
-        }
+	_ = 0 // Make code coverage count the label above
+	for s = i.head; i.head < len(i.str); i.head++ {
+		if i.isHeadDigit() {
+			continue
+		} else if i.isHeadNumEnd() {
+			if i.head == s {
+				// Expected at least one digit
+				i.errc = ErrInvalNum
+				i.expect = ExpectVal
+				goto ERROR
+			}
+			// Number with fraction
+			i.token = TokenFloat
+			goto ON_NUM_VAL
+		} else if i.str[i.head] == 'e' || i.str[i.head] == 'E' {
+			i.head++
+			goto EXPONENT_SIGN
+		}
 
-        // Unexpected rune
-        i.errc = ErrInvalNum
-        i.expect = ExpectVal
-        goto ERROR
-    }
-    if s == i.head {
-        // Unexpected end of number
-        i.errc = ErrUnexpEOF
-        i.expect = ExpectVal
-        goto ERROR
-    }
+		// Unexpected rune
+		i.errc = ErrInvalNum
+		i.expect = ExpectVal
+		goto ERROR
+	}
+	if s == i.head {
+		// Unexpected end of number
+		i.errc = ErrUnexpEOF
+		i.expect = ExpectVal
+		goto ERROR
+	}
 
-    if i.head >= len(i.str) {
-        // Number (with fraction but) without exponent
-        i.token = TokenFloat
-        goto ON_NUM_VAL
-    }
+	if i.head >= len(i.str) {
+		// Number (with fraction but) without exponent
+		i.token = TokenFloat
+		goto ON_NUM_VAL
+	}
 
 EXPONENT_SIGN:
-    if i.head >= len(i.str) {
-        // Missing exponent value
-        i.errc = ErrUnexpEOF
-        i.expect = ExpectVal
-        goto ERROR
-    }
-    if i.str[i.head] == '-' || i.str[i.head] == '+' {
-        i.head++
-    }
-    for s = i.head; i.head < len(i.str); i.head++ {
-        if i.isHeadDigit() {
-            continue
-        } else if i.isHeadNumEnd() {
-            if i.head == s {
-                // Expected at least one digit
-                i.errc = ErrInvalNum
-                i.expect = ExpectVal
-                goto ERROR
-            }
-            // Number with (fraction and) exponent
-            i.token = TokenFloat
-            goto ON_NUM_VAL
-        }
-        break
-    }
-    // Unexpected rune
-    i.errc = ErrInvalNum
-    i.expect = ExpectVal
-    goto ERROR
+	if i.head >= len(i.str) {
+		// Missing exponent value
+		i.errc = ErrUnexpEOF
+		i.expect = ExpectVal
+		goto ERROR
+	}
+	if i.str[i.head] == '-' || i.str[i.head] == '+' {
+		i.head++
+	}
+	for s = i.head; i.head < len(i.str); i.head++ {
+		if i.isHeadDigit() {
+			continue
+		} else if i.isHeadNumEnd() {
+			if i.head == s {
+				// Expected at least one digit
+				i.errc = ErrInvalNum
+				i.expect = ExpectVal
+				goto ERROR
+			}
+			// Number with (fraction and) exponent
+			i.token = TokenFloat
+			goto ON_NUM_VAL
+		}
+		break
+	}
+	// Unexpected rune
+	i.errc = ErrInvalNum
+	i.expect = ExpectVal
+	goto ERROR
 
 ON_NUM_VAL:
-    // Callback for argument
-    {{- template "callback" . -}}
+	// Callback for argument
+	{{- template "callback" . -}}
 default:
-    // Invalid value
-    i.expect = ExpectValEnum
-    {{ template "name" set . "aftername" "valenum" }}
+	// Invalid value
+	i.expect = ExpectValEnum
+	{{ template "name" set . "aftername" "valenum" }}
 }
 i.expect = ExpectAfterValue
 goto AFTER_VALUE_COMMENT
@@ -913,92 +913,92 @@ goto AFTER_VALUE_COMMENT
 BLOCK_STRING:
 i.expect = ExpectEndOfBlockString
 for ; i.head < len(i.str); i.head++ {
-    if i.str[i.head] == '\\' &&
-        i.str[i.head+3] == '"' &&
-        i.str[i.head+2] == '"' &&
-        i.str[i.head+1] == '"' {
-        i.head += 3
-        continue
-    }
-    if i.str[i.head] == '"' &&
-        i.str[i.head+1] == '"' &&
-        i.str[i.head+2] == '"' {
-        i.token = TokenStrBlock
-        {{- template "callback" . -}}
-        i.head += 3
-        goto AFTER_VALUE_COMMENT
-    }
+	if i.str[i.head] == '\\' &&
+		i.str[i.head+3] == '"' &&
+		i.str[i.head+2] == '"' &&
+		i.str[i.head+1] == '"' {
+		i.head += 3
+		continue
+	}
+	if i.str[i.head] == '"' &&
+		i.str[i.head+1] == '"' &&
+		i.str[i.head+2] == '"' {
+		i.token = TokenStrBlock
+		{{- template "callback" . -}}
+		i.head += 3
+		goto AFTER_VALUE_COMMENT
+	}
 }
 
 AFTER_VALUE_COMMENT:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 }
 if t := i.stackTop(); t == TokenObj {
-    if i.str[i.head] == '}' {
-        i.tail = -1
-        i.stackPop()
+	if i.str[i.head] == '}' {
+		i.tail = -1
+		i.stackPop()
 
-        // Callback for end of object
-        i.token = TokenObjEnd
-        {{- template "callback" . -}}
+		// Callback for end of object
+		i.token = TokenObjEnd
+		{{- template "callback" . -}}
 
-        i.head++
-        {{ template "skip_irrelevant" }}
-        if i.stackLen() > 0 {
-            i.expect = ExpectAfterValue
-            goto AFTER_VALUE_COMMENT
-        }
-    } else {
-        // Proceed to next field in the object
-        i.expect = ExpectObjFieldName
-        {{ template "name" set . "aftername" "objfieldname" }}
-    }
+		i.head++
+		{{ template "skip_irrelevant" }}
+		if i.stackLen() > 0 {
+			i.expect = ExpectAfterValue
+			goto AFTER_VALUE_COMMENT
+		}
+	} else {
+		// Proceed to next field in the object
+		i.expect = ExpectObjFieldName
+		{{ template "name" set . "aftername" "objfieldname" }}
+	}
 } else if t == TokenArr {
-    if i.str[i.head] == ']' {
-        i.tail = -1
-        i.stackPop()
+	if i.str[i.head] == ']' {
+		i.tail = -1
+		i.stackPop()
 
-        // Callback for end of array
-        i.token = TokenArrEnd
-        {{- template "callback" . -}}
-        i.head++
-        {{ template "skip_irrelevant" }}
-        if i.stackLen() > 0 {
-            i.expect = ExpectAfterValue
-            goto AFTER_VALUE_COMMENT
-        }
-    } else {
-        // Proceed to next value in the array
-        goto VALUE
-    }
+		// Callback for end of array
+		i.token = TokenArrEnd
+		{{- template "callback" . -}}
+		i.head++
+		{{ template "skip_irrelevant" }}
+		if i.stackLen() > 0 {
+			i.expect = ExpectAfterValue
+			goto AFTER_VALUE_COMMENT
+		}
+	} else {
+		// Proceed to next value in the array
+		goto VALUE
+	}
 }
 
 if inDefVal {
-    inDefVal = false
-    if i.str[i.head] == ')' {
-        goto VAR_LIST_END
-    } else if i.str[i.head] == '@' {
-        i.head++
-        dirOn, i.expect = dirVar, ExpectDir
-        goto DIR_NAME
-    }
-    i.expect = ExpectVar
-    goto OPR_VAR
+	inDefVal = false
+	if i.str[i.head] == ')' {
+		goto VAR_LIST_END
+	} else if i.str[i.head] == '@' {
+		i.head++
+		dirOn, i.expect = dirVar, ExpectDir
+		goto DIR_NAME
+	}
+	i.expect = ExpectVar
+	goto OPR_VAR
 }
 
 if i.str[i.head] == ')' {
-    // End of argument list
-    i.tail = -1
-    i.token = TokenArgListEnd
-    {{- template "callback" . -}}
-    i.head++
-    i.expect = ExpectAfterArgList
-    goto AFTER_ARG_LIST
+	// End of argument list
+	i.tail = -1
+	i.token = TokenArgListEnd
+	{{- template "callback" . -}}
+	i.head++
+	i.expect = ExpectAfterArgList
+	goto AFTER_ARG_LIST
 }
 
 // Proceed to the next argument
@@ -1007,28 +1007,28 @@ i.expect = ExpectArgName
 
 AFTER_ARG_LIST:
 if dirOn != 0 {
-    goto AFTER_DIR_ARGS
+	goto AFTER_DIR_ARGS
 }
 
 {{ template "skip_irrelevant" }}
 
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 }
 
 if i.str[i.head] == '{' {
-    i.expect = ExpectSelSet
-    goto SELECTION_SET
+	i.expect = ExpectSelSet
+	goto SELECTION_SET
 } else if i.str[i.head] == '}' {
-    i.expect = ExpectAfterSelection
-    goto AFTER_SELECTION
+	i.expect = ExpectAfterSelection
+	goto AFTER_SELECTION
 } else if i.str[i.head] == '@' {
-    i.head++
-    dirOn, i.expect = dirField, ExpectDir
-    goto DIR_NAME
+	i.head++
+	dirOn, i.expect = dirField, ExpectDir
+	goto DIR_NAME
 }
 i.expect = ExpectSel
 goto SELECTION
@@ -1036,36 +1036,36 @@ goto SELECTION
 SELECTION:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    i.expect = ExpectSel
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	i.expect = ExpectSel
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    i.expect = ExpectSel
-    goto COMMENT
+	i.expect = ExpectSel
+	goto COMMENT
 } else if i.str[i.head] != '.' {
-    // Field selection
-    i.expect = ExpectFieldNameOrAlias
-    {{ template "name" set . "aftername" "fieldnameoralias"}}
+	// Field selection
+	i.expect = ExpectFieldNameOrAlias
+	{{ template "name" set . "aftername" "fieldnameoralias"}}
 }
 
 i.expect = ExpectFrag
 if i.head+2 >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    if i.head+1 >= len(i.str) {
-        i.head++
-    } else {
-        i.head += 2
-    }
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	if i.head+1 >= len(i.str) {
+		i.head++
+	} else {
+		i.head += 2
+	}
+	goto ERROR
 } else if i.str[i.head+2] != '.' ||
-    i.str[i.head+1] != '.' {
-    i.errc = ErrUnexpToken
-    if i.str[i.head+1] != '.' {
-        i.head += 1
-    } else if i.str[i.head+2] != '.' {
-        i.head += 2
-    }
-    goto ERROR
+	i.str[i.head+1] != '.' {
+	i.errc = ErrUnexpToken
+	if i.str[i.head+1] != '.' {
+		i.head += 1
+	} else if i.str[i.head+2] != '.' {
+		i.head += 2
+	}
+	goto ERROR
 }
 
 i.head += len("...")
@@ -1074,37 +1074,37 @@ goto SPREAD
 SPREAD:
 {{ template "skip_irrelevant" }}
 if i.head+1 >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 } else if i.str[i.head] == '{' {
-    i.token, i.tail = TokenFragInline, -1
-    {{- template "callback" . -}}
-    i.expect = ExpectSelSet
-    goto SELECTION_SET
+	i.token, i.tail = TokenFragInline, -1
+	{{- template "callback" . -}}
+	i.expect = ExpectSelSet
+	goto SELECTION_SET
 } else if i.str[i.head] == '@' {
-    i.token, i.tail = TokenFragInline, -1
-    {{- template "callback" . -}}
-    i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
-    goto AFTER_DIR_NAME
+	i.token, i.tail = TokenFragInline, -1
+	{{- template "callback" . -}}
+	i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
+	goto AFTER_DIR_NAME
 } else if i.str[i.head+1] == 'n' &&
-    i.str[i.head] == 'o' {
-    if i.head+2 >= len(i.str) {
-        i.head = len(i.str)
-        i.errc = ErrUnexpEOF
-        goto ERROR
-    } else if i.str[i.head+2] == ' ' ||
-        i.str[i.head+2] == '\n' ||
-        i.str[i.head+2] == '\r' ||
-        i.str[i.head+2] == '\t' ||
-        i.str[i.head+2] == ',' ||
-        i.str[i.head+2] == '#' {
-        // ... on Type {
-        i.head += len("on")
-        i.expect = ExpectFragInlined
-        goto FRAG_INLINED
-    }
+	i.str[i.head] == 'o' {
+	if i.head+2 >= len(i.str) {
+		i.head = len(i.str)
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	} else if i.str[i.head+2] == ' ' ||
+		i.str[i.head+2] == '\n' ||
+		i.str[i.head+2] == '\r' ||
+		i.str[i.head+2] == '\t' ||
+		i.str[i.head+2] == ',' ||
+		i.str[i.head+2] == '#' {
+		// ... on Type {
+		i.head += len("on")
+		i.expect = ExpectFragInlined
+		goto FRAG_INLINED
+	}
 }
 // ...fragmentName
 i.expect = ExpectSpreadName
@@ -1113,13 +1113,13 @@ i.expect = ExpectSpreadName
 AFTER_DECL_VAR_NAME:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 } else if i.str[i.head] != ':' {
-    i.errc = ErrUnexpToken
-    goto ERROR
+	i.errc = ErrUnexpToken
+	goto ERROR
 }
 i.head++
 i.expect = ExpectVarType
@@ -1128,17 +1128,17 @@ goto VAR_TYPE
 VAR_TYPE:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 } else if i.str[i.head] == '[' {
-    i.tail = -1
-    i.token = TokenVarTypeArr
-    {{- template "callback" . -}}
-    i.head++
-    typeArrLvl++
-    goto VAR_TYPE
+	i.tail = -1
+	i.token = TokenVarTypeArr
+	{{- template "callback" . -}}
+	i.head++
+	typeArrLvl++
+	goto VAR_TYPE
 }
 i.expect = ExpectVarType
 {{ template "name" set . "aftername" "vartype" }}
@@ -1146,30 +1146,30 @@ i.expect = ExpectVarType
 VAR_NAME:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 }
 {{ template "name" set . "aftername" "varname" }}
 
 VAR_REF_NAME:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 }
 {{ template "name" set . "aftername" "varrefname" }}
 
 DIR_NAME:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 }
 i.expect = ExpectDirName
 {{ template "name" set . "aftername" "dirname" }}
@@ -1177,13 +1177,13 @@ i.expect = ExpectDirName
 COLUMN_AFTER_ARG_NAME:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 } else if i.str[i.head] != ':' {
-    i.errc = ErrUnexpToken
-    goto ERROR
+	i.errc = ErrUnexpToken
+	goto ERROR
 }
 i.head++
 i.stackReset()
@@ -1192,52 +1192,52 @@ goto VALUE
 
 ARG_LIST:
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 }
 {{ template "name" set . "aftername" "argname" }}
 
 AFTER_VAR_TYPE_NAME:
 {{ template "skip_irrelevant" }}
 if i.head < len(i.str) && i.str[i.head] == '!' {
-    i.tail = -1
-    i.token = TokenVarTypeNotNull
-    {{- template "callback" . -}}
-    i.head++
+	i.tail = -1
+	i.token = TokenVarTypeNotNull
+	{{- template "callback" . -}}
+	i.head++
 }
 goto AFTER_VAR_TYPE_NOT_NULL
 
 AFTER_VAR_TYPE_NOT_NULL:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 } else if i.str[i.head] == ']' {
-    if typeArrLvl < 1 {
-        i.errc, i.expect = ErrUnexpToken, ExpectVar
-        goto ERROR
-    }
-    i.tail = -1
-    i.token = TokenVarTypeArrEnd
-    {{- template "callback" . -}}
-    i.head++
-    typeArrLvl--
+	if typeArrLvl < 1 {
+		i.errc, i.expect = ErrUnexpToken, ExpectVar
+		goto ERROR
+	}
+	i.tail = -1
+	i.token = TokenVarTypeArrEnd
+	{{- template "callback" . -}}
+	i.head++
+	typeArrLvl--
 
-    {{ template "skip_irrelevant" }}
-    if i.head < len(i.str) && i.str[i.head] == '!' {
-        i.tail = -1
-        i.token = TokenVarTypeNotNull
-        {{- template "callback" . -}}
-        i.head++
-    }
+	{{ template "skip_irrelevant" }}
+	if i.head < len(i.str) && i.str[i.head] == '!' {
+		i.tail = -1
+		i.token = TokenVarTypeNotNull
+		{{- template "callback" . -}}
+		i.head++
+	}
 
-    if typeArrLvl > 0 {
-        goto AFTER_VAR_TYPE_NAME
-    }
+	if typeArrLvl > 0 {
+		goto AFTER_VAR_TYPE_NAME
+	}
 }
 i.expect = ExpectAfterVarType
 goto AFTER_VAR_TYPE
@@ -1245,31 +1245,31 @@ goto AFTER_VAR_TYPE
 AFTER_FIELD_NAME:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 }
 // Lookahead
 switch i.str[i.head] {
 case '(':
-    // Argument list
-    i.tail = -1
-    i.token = TokenArgList
-    {{- template "callback" . -}}
-    i.head++
-    {{ template "skip_irrelevant" }}
-    i.expect = ExpectArgName
-    goto ARG_LIST
+	// Argument list
+	i.tail = -1
+	i.token = TokenArgList
+	{{- template "callback" . -}}
+	i.head++
+	{{ template "skip_irrelevant" }}
+	i.expect = ExpectArgName
+	goto ARG_LIST
 case '{':
-    // Field selector expands without arguments
-    i.expect = ExpectSelSet
-    goto SELECTION_SET
+	// Field selector expands without arguments
+	i.expect = ExpectSelSet
+	goto SELECTION_SET
 case '#':
-    i.expect = ExpectAfterFieldName
-    goto COMMENT
+	i.expect = ExpectAfterFieldName
+	goto COMMENT
 case '@':
-    i.head++
-    dirOn, i.expect = dirField, ExpectDir
-    goto DIR_NAME
+	i.head++
+	dirOn, i.expect = dirField, ExpectDir
+	goto DIR_NAME
 }
 i.expect = ExpectAfterSelection
 goto AFTER_SELECTION
@@ -1277,14 +1277,14 @@ goto AFTER_SELECTION
 FRAG_KEYWORD_ON:
 {{ template "skip_irrelevant" }}
 if i.head+1 >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 } else if i.str[i.head+1] != 'n' ||
-    i.str[i.head] != 'o' {
-    i.errc = ErrUnexpToken
-    goto ERROR
+	i.str[i.head] != 'o' {
+	i.errc = ErrUnexpToken
+	goto ERROR
 }
 i.head += len("on")
 i.expect = ExpectFragTypeCond
@@ -1293,20 +1293,20 @@ goto FRAG_TYPE_COND
 FRAG_TYPE_COND:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 }
 {{ template "name" set . "aftername" "fragtypecond" }}
 
 FRAG_INLINED:
 {{ template "skip_irrelevant" }}
 if i.head >= len(i.str) {
-    i.errc = ErrUnexpEOF
-    goto ERROR
+	i.errc = ErrUnexpEOF
+	goto ERROR
 } else if i.str[i.head] == '#' {
-    goto COMMENT
+	goto COMMENT
 }
 {{ template "name" set . "aftername" "fraginlined" }}
 
@@ -1314,107 +1314,107 @@ if i.head >= len(i.str) {
 COMMENT:
 i.head++
 for {
-    if i.head+7 >= len(i.str) {
-        for ; i.head < len(i.str) && i.str[i.head] != '\n'; i.head++ {
-        }
-        break
-    }
-    if i.str[i.head] != '\n' &&
-        i.str[i.head+1] != '\n' &&
-        i.str[i.head+2] != '\n' &&
-        i.str[i.head+3] != '\n' &&
-        i.str[i.head+4] != '\n' &&
-        i.str[i.head+5] != '\n' &&
-        i.str[i.head+6] != '\n' &&
-        i.str[i.head+7] != '\n' {
-        i.head += 8
-        continue
-    }
-    if i.str[i.head] == '\n' {
-        break
-    }
-    i.head++
-    if i.str[i.head] == '\n' {
-        break
-    }
-    i.head++
-    if i.str[i.head] == '\n' {
-        break
-    }
-    i.head++
-    if i.str[i.head] == '\n' {
-        break
-    }
-    i.head++
-    if i.str[i.head] == '\n' {
-        break
-    }
-    i.head++
-    if i.str[i.head] == '\n' {
-        break
-    }
-    i.head++
-    if i.str[i.head] == '\n' {
-        break
-    }
-    i.head++
-    if i.str[i.head] == '\n' {
-        break
-    }
+	if i.head+7 >= len(i.str) {
+		for ; i.head < len(i.str) && i.str[i.head] != '\n'; i.head++ {
+		}
+		break
+	}
+	if i.str[i.head] != '\n' &&
+		i.str[i.head+1] != '\n' &&
+		i.str[i.head+2] != '\n' &&
+		i.str[i.head+3] != '\n' &&
+		i.str[i.head+4] != '\n' &&
+		i.str[i.head+5] != '\n' &&
+		i.str[i.head+6] != '\n' &&
+		i.str[i.head+7] != '\n' {
+		i.head += 8
+		continue
+	}
+	if i.str[i.head] == '\n' {
+		break
+	}
+	i.head++
+	if i.str[i.head] == '\n' {
+		break
+	}
+	i.head++
+	if i.str[i.head] == '\n' {
+		break
+	}
+	i.head++
+	if i.str[i.head] == '\n' {
+		break
+	}
+	i.head++
+	if i.str[i.head] == '\n' {
+		break
+	}
+	i.head++
+	if i.str[i.head] == '\n' {
+		break
+	}
+	i.head++
+	if i.str[i.head] == '\n' {
+		break
+	}
+	i.head++
+	if i.str[i.head] == '\n' {
+		break
+	}
 }
 i.tail = -1
 {{ template "skip_irrelevant" }}
 switch i.expect {
 case ExpectVarRefName:
-    goto VAR_REF_NAME
+	goto VAR_REF_NAME
 case ExpectVarName:
-    goto VAR_NAME
+	goto VAR_NAME
 case ExpectDef:
-    goto DEFINITION
+	goto DEFINITION
 case ExpectDir:
-    goto DIR_NAME
+	goto DIR_NAME
 case ExpectDirName:
-    goto AFTER_DIR_NAME
+	goto AFTER_DIR_NAME
 case ExpectSelSet:
-    goto SELECTION_SET
+	goto SELECTION_SET
 case ExpectSel:
-    goto SELECTION
+	goto SELECTION
 case ExpectAfterSelection:
-    goto AFTER_SELECTION
+	goto AFTER_SELECTION
 case ExpectVar:
-    goto OPR_VAR
+	goto OPR_VAR
 case ExpectArgName:
-    goto ARG_LIST
+	goto ARG_LIST
 case ExpectColumnAfterArg:
-    goto COLUMN_AFTER_ARG_NAME
+	goto COLUMN_AFTER_ARG_NAME
 case ExpectVal:
-    goto VALUE
+	goto VALUE
 case ExpectAfterFieldName:
-    goto AFTER_FIELD_NAME
+	goto AFTER_FIELD_NAME
 case ExpectAfterValue:
-    goto AFTER_VALUE_COMMENT
+	goto AFTER_VALUE_COMMENT
 case ExpectAfterArgList:
-    goto AFTER_ARG_LIST
+	goto AFTER_ARG_LIST
 case ExpectAfterDefKeyword:
-    goto AFTER_DEF_KEYWORD
+	goto AFTER_DEF_KEYWORD
 case ExpectFragName:
-    goto AFTER_KEYWORD_FRAGMENT
+	goto AFTER_KEYWORD_FRAGMENT
 case ExpectFragKeywordOn:
-    goto FRAG_KEYWORD_ON
+	goto FRAG_KEYWORD_ON
 case ExpectFragInlined:
-    goto FRAG_INLINED
+	goto FRAG_INLINED
 case ExpectFragTypeCond:
-    goto FRAG_TYPE_COND
+	goto FRAG_TYPE_COND
 case ExpectFrag:
-    goto SPREAD
+	goto SPREAD
 case ExpectColumnAfterVar:
-    goto AFTER_DECL_VAR_NAME
+	goto AFTER_DECL_VAR_NAME
 case ExpectVarType:
-    goto VAR_TYPE
+	goto VAR_TYPE
 case ExpectAfterVarType:
-    goto AFTER_VAR_TYPE
+	goto AFTER_VAR_TYPE
 case ExpectAfterVarTypeName:
-    goto AFTER_VAR_TYPE_NAME
+	goto AFTER_VAR_TYPE_NAME
 }
 
 DEFINITION_END:
@@ -1422,20 +1422,20 @@ i.levelSel, i.expect = 0, ExpectDef
 // Expect end of file
 {{ template "skip_irrelevant" }}
 if i.head < len(i.str) {
-    goto DEFINITION
+	goto DEFINITION
 }
 return Error{}
 
 ERROR:
 {
-    var atIndex rune
-    if i.head < len(i.str) {
-        atIndex, _ = utf8.DecodeRune(i.str[i.head:])
-    }
-    return Error{
-        Index:       i.head,
-        AtIndex:     atIndex,
-        Code:        i.errc,
-        Expectation: i.expect,
-    }
+	var atIndex rune
+	if i.head < len(i.str) {
+		atIndex, _ = utf8.DecodeRune(i.str[i.head:])
+	}
+	return Error{
+		Index:       i.head,
+		AtIndex:     atIndex,
+		Code:        i.errc,
+		Expectation: i.expect,
+	}
 }
