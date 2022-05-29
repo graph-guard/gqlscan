@@ -1,0 +1,139 @@
+AFTER_DIR_NAME:
+{{ template "skip_irrelevant" }}
+switch dirOn {
+case dirField:
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '(':
+		// Directive argument list
+		i.tail = -1
+		i.token = TokenArgList
+		{{- template "callback" . -}}
+		i.head++
+		{{ template "skip_irrelevant" }}
+		i.expect = ExpectArgName
+		goto ARG_LIST
+	case '@':
+		i.head++
+		i.expect = ExpectDir
+		goto DIR_NAME
+	case '{':
+		// Field selector expands without arguments
+		i.expect = ExpectSelSet
+		goto SELECTION_SET
+	default:
+		i.expect, dirOn = ExpectAfterSelection, 0
+		goto AFTER_SELECTION
+	}
+case dirOpr:
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectAfterDefKeyword
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '(':
+		// Directive argument list
+		i.tail = -1
+		i.token = TokenArgList
+		{{- template "callback" . -}}
+		i.head++
+		{{ template "skip_irrelevant" }}
+		i.expect = ExpectArgName
+		goto ARG_LIST
+	case '@':
+		i.head++
+		i.expect = ExpectDir
+		goto DIR_NAME
+	default:
+		i.expect, dirOn = ExpectSelSet, 0
+		goto SELECTION_SET
+	}
+case dirVar:
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectAfterVarType
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '(':
+		// Directive argument list
+		i.tail = -1
+		i.token = TokenArgList
+		{{- template "callback" . -}}
+		i.head++
+		{{ template "skip_irrelevant" }}
+		i.expect = ExpectArgName
+		goto ARG_LIST
+	case '@':
+		i.head++
+		i.expect = ExpectDir
+		goto DIR_NAME
+	case ')':
+		dirOn = 0
+		goto VAR_LIST_END
+	default:
+		i.expect, dirOn = ExpectVar, 0
+		goto OPR_VAR
+	}
+case dirFragRef:
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectAfterSelection
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '(':
+		// Directive argument list
+		i.tail = -1
+		i.token = TokenArgList
+		{{- template "callback" . -}}
+		i.head++
+		{{ template "skip_irrelevant" }}
+		i.expect = ExpectArgName
+		goto ARG_LIST
+	case '@':
+		i.head++
+		i.expect = ExpectDir
+		goto DIR_NAME
+	default:
+		i.expect, dirOn = ExpectAfterSelection, 0
+		goto AFTER_SELECTION
+	}
+case dirFragInlineOrDef:
+	if i.head >= len(i.str) {
+		i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '(':
+		// Directive argument list
+		i.tail = -1
+		i.token = TokenArgList
+		{{- template "callback" . -}}
+		i.head++
+		{{ template "skip_irrelevant" }}
+		i.expect = ExpectArgName
+		goto ARG_LIST
+	case '@':
+		i.head++
+		i.expect = ExpectDir
+		goto DIR_NAME
+	default:
+		i.expect, dirOn = ExpectSelSet, 0
+		goto SELECTION_SET
+	}
+default:
+	// This line is only executed if we forgot to handle a dirOn case.
+	panic(fmt.Errorf("unhandled dirOn case: %#v", dirOn))
+}

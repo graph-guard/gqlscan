@@ -1,0 +1,27 @@
+AFTER_DEF_KEYWORD:
+{{ template "skip_irrelevant" }}
+if i.head >= len(i.str) {
+	i.errc = ErrUnexpEOF
+	goto ERROR
+}
+switch i.str[i.head] {
+case '#':
+	goto COMMENT
+case '{':
+	i.expect = ExpectSelSet
+	goto SELECTION_SET
+case '(':
+	// Variable list
+	i.tail = -1
+	i.token = TokenVarList
+	{{- template "callback" . -}}
+	i.head++
+	i.expect = ExpectVar
+	goto OPR_VAR
+case '@':
+	i.head++
+	dirOn, i.expect = dirOpr, ExpectDir
+	goto DIR_NAME
+}
+i.expect = ExpectOprName
+{{ template "name" set . "aftername" "oprname" }}

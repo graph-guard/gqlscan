@@ -1,0 +1,15 @@
+SELECTION_SET:
+{{ template "skip_irrelevant" }}
+if i.str[i.head] == '#' {
+	goto COMMENT
+} else if i.str[i.head] != '{' {
+	i.errc = ErrUnexpToken
+	goto ERROR
+}
+i.tail = -1
+i.token = TokenSet
+{{- template "callback" . -}}
+i.levelSel++
+i.head++
+i.expect = ExpectSel
+goto SELECTION

@@ -1,0 +1,82 @@
+VALUE:
+{{ template "skip_irrelevant" }}
+if i.head >= len(i.str) {
+	i.errc = ErrUnexpEOF
+	goto ERROR
+}
+switch i.str[i.head] {
+case '#':
+	goto COMMENT
+
+case '{':
+	// Object begin
+	i.tail = -1
+	// Callback for argument
+	i.token = TokenObj
+	{{- template "callback" . -}}
+	i.stackPush(TokenObj)
+	i.head++
+	{{ template "skip_irrelevant" }}
+
+	i.expect = ExpectObjFieldName
+	{{ template "name" set . "aftername" "objfieldname" }}
+
+case '[':
+	i.tail = -1
+	// Callback for argument
+	i.token = TokenArr
+	{{- template "callback" . -}}
+	i.head++
+	{{ template "skip_irrelevant" }}
+
+	// Lookahead
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		i.expect = ExpectVal
+		goto ERROR
+	} else if i.str[i.head] == ']' {
+		i.token = TokenArrEnd
+		{{- template "callback" . -}}
+		i.head++
+		i.expect = ExpectAfterValue
+		goto AFTER_VALUE_COMMENT
+	}
+	i.stackPush(TokenArr)
+	i.expect = ExpectAfterValue
+	goto AFTER_VALUE_COMMENT
+
+case '"':
+	{{ template "str" }}
+
+case '$':
+	if inDefVal {
+		i.errc, i.expect = ErrUnexpToken, ExpectDefaultVarVal
+		goto ERROR
+	}
+
+	// Variable reference
+	i.head++
+
+	// Variable name
+	i.expect = ExpectVarRefName
+	goto VAR_REF_NAME
+
+case 'n':
+	{{ template "null" . }}
+
+case 't':
+	{{ template "true" . }}
+
+case 'f':
+	{{ template "false" . }}
+
+case '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+	{{ template "num" . }}
+	
+default:
+	// Invalid value
+	i.expect = ExpectValEnum
+	{{ template "name" set . "aftername" "valenum" }}
+}
+i.expect = ExpectAfterValue
+goto AFTER_VALUE_COMMENT

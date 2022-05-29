@@ -19,6 +19,8 @@ import (
 // used after Scan returns because it's returned to the pool
 // and may be acquired by another call to Scan!
 func Scan(str []byte, fn func(*Iterator) (err bool)) Error {
+
+	/*<scan_body>*/
 	i := iteratorPool.Get().(*Iterator)
 	i.stackReset()
 	i.expect = ExpectDef
@@ -34,7 +36,7 @@ func Scan(str []byte, fn func(*Iterator) (err bool)) Error {
 	var typeArrLvl int
 	var dirOn dirTarget
 
-	// <skip irrelevant>
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -114,7 +116,7 @@ func Scan(str []byte, fn func(*Iterator) (err bool)) Error {
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
 
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
@@ -122,6 +124,7 @@ func Scan(str []byte, fn func(*Iterator) (err bool)) Error {
 		goto ERROR
 	}
 
+	/*<l_definition>*/
 DEFINITION:
 	if i.head >= len(i.str) {
 		goto DEFINITION_END
@@ -130,39 +133,55 @@ DEFINITION:
 		goto COMMENT
 	} else if i.str[i.head] == '{' {
 		i.token = TokenDefQry
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.expect = ExpectSelSet
 		goto SELECTION_SET
 	} else if i.isHeadKeywordQuery() {
 		// Query
 		i.token = TokenDefQry
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.head += len("query")
 		i.expect = ExpectAfterDefKeyword
 		goto AFTER_DEF_KEYWORD
 	} else if i.isHeadKeywordMutation() {
 		// Mutation
 		i.token = TokenDefMut
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.head += len("mutation")
 		i.expect = ExpectAfterDefKeyword
 		goto AFTER_DEF_KEYWORD
 	} else if i.isHeadKeywordSubscription() {
 		// Subscription
 		i.token = TokenDefSub
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.head += len("subscription")
 		i.expect = ExpectAfterDefKeyword
 		goto AFTER_DEF_KEYWORD
@@ -170,10 +189,14 @@ DEFINITION:
 		// Fragment
 		i.tail = -1
 		i.token = TokenDefFrag
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.head += len("fragment")
 		i.expect = ExpectFragName
 		goto AFTER_KEYWORD_FRAGMENT
@@ -182,9 +205,12 @@ DEFINITION:
 	i.errc = ErrUnexpToken
 	i.expect = ExpectDef
 	goto ERROR
+	/*</l_definition>*/
 
+	/*<l_after_def_keyword>*/
 AFTER_DEF_KEYWORD:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -264,7 +290,8 @@ AFTER_DEF_KEYWORD:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -279,10 +306,14 @@ AFTER_DEF_KEYWORD:
 		// Variable list
 		i.tail = -1
 		i.token = TokenVarList
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.head++
 		i.expect = ExpectVar
 		goto OPR_VAR
@@ -292,7 +323,9 @@ AFTER_DEF_KEYWORD:
 		goto DIR_NAME
 	}
 	i.expect = ExpectOprName
-	// <name followed by oprname>
+
+	/*<name>*/
+	// Followed by oprname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -387,11 +420,16 @@ AFTER_DEF_KEYWORD:
 
 	// <ExpectOprName after name>
 	i.token = TokenOprName
+	/*<callback>*/
+
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
 	}
-	// <skip irrelevant>
+
+	/*</callback>*/
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -471,7 +509,7 @@ AFTER_DEF_KEYWORD:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
 
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
@@ -486,10 +524,14 @@ AFTER_DEF_KEYWORD:
 		// Variable list
 		i.tail = -1
 		i.token = TokenVarList
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.head++
 		i.expect = ExpectVar
 		goto OPR_VAR
@@ -503,10 +545,14 @@ AFTER_DEF_KEYWORD:
 	goto ERROR
 	// </ExpectOprName after name>
 
-	// </name followed by oprname>
+	/*</name>*/
 
+	/*</l_after_def_keyword>*/
+
+	/*<l_after_dir_name>*/
 AFTER_DIR_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -586,7 +632,8 @@ AFTER_DIR_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	switch dirOn {
 	case dirField:
 		if i.head >= len(i.str) {
@@ -600,12 +647,17 @@ AFTER_DIR_NAME:
 			// Directive argument list
 			i.tail = -1
 			i.token = TokenArgList
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -685,7 +737,8 @@ AFTER_DIR_NAME:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			i.expect = ExpectArgName
 			goto ARG_LIST
 		case '@':
@@ -712,12 +765,17 @@ AFTER_DIR_NAME:
 			// Directive argument list
 			i.tail = -1
 			i.token = TokenArgList
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -797,7 +855,8 @@ AFTER_DIR_NAME:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			i.expect = ExpectArgName
 			goto ARG_LIST
 		case '@':
@@ -820,12 +879,17 @@ AFTER_DIR_NAME:
 			// Directive argument list
 			i.tail = -1
 			i.token = TokenArgList
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -905,7 +969,8 @@ AFTER_DIR_NAME:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			i.expect = ExpectArgName
 			goto ARG_LIST
 		case '@':
@@ -931,12 +996,17 @@ AFTER_DIR_NAME:
 			// Directive argument list
 			i.tail = -1
 			i.token = TokenArgList
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -1016,7 +1086,8 @@ AFTER_DIR_NAME:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			i.expect = ExpectArgName
 			goto ARG_LIST
 		case '@':
@@ -1039,12 +1110,17 @@ AFTER_DIR_NAME:
 			// Directive argument list
 			i.tail = -1
 			i.token = TokenArgList
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -1124,7 +1200,8 @@ AFTER_DIR_NAME:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			i.expect = ExpectArgName
 			goto ARG_LIST
 		case '@':
@@ -1139,9 +1216,12 @@ AFTER_DIR_NAME:
 		// This line is only executed if we forgot to handle a dirOn case.
 		panic(fmt.Errorf("unhandled dirOn case: %#v", dirOn))
 	}
+	/*</l_after_dir_name>*/
 
+	/*<l_after_dir_args>*/
 AFTER_DIR_ARGS:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -1221,7 +1301,8 @@ AFTER_DIR_ARGS:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	switch dirOn {
 	case dirField:
 		if i.head >= len(i.str) {
@@ -1259,7 +1340,8 @@ AFTER_DIR_ARGS:
 			goto SELECTION_SET
 		}
 	case dirVar:
-		// <skip irrelevant>
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -1339,7 +1421,8 @@ AFTER_DIR_ARGS:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
+
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterVarType
 			goto ERROR
@@ -1391,9 +1474,12 @@ AFTER_DIR_ARGS:
 		// This line is only executed if we forgot to handle a dirOn case.
 		panic(fmt.Errorf("unhandled dirOn case: %#v", dirOn))
 	}
+	/*</l_after_dir_args>*/
 
+	/*<l_after_keyword_fragment>*/
 AFTER_KEYWORD_FRAGMENT:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -1473,14 +1559,17 @@ AFTER_KEYWORD_FRAGMENT:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	// <name followed by fragname>
+
+	/*<name>*/
+	// Followed by fragname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -1581,18 +1670,26 @@ AFTER_KEYWORD_FRAGMENT:
 		goto ERROR
 	}
 	i.token = TokenFragName
+	/*<callback>*/
+
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
 	}
+
+	/*</callback>*/
 	i.expect = ExpectFragKeywordOn
 	goto FRAG_KEYWORD_ON
 	// </ExpectFragName after name>
 
-	// </name followed by fragname>
+	/*</name>*/
 
+	/*</l_after_keyword_fragment>*/
+
+	/*<l_opr_var>*/
 OPR_VAR:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -1672,7 +1769,8 @@ OPR_VAR:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -1688,9 +1786,12 @@ OPR_VAR:
 	i.head++
 	i.expect = ExpectVarName
 	goto VAR_NAME
+	/*</l_opr_var>*/
 
+	/*<l_after_var_type>*/
 AFTER_VAR_TYPE:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -1770,7 +1871,8 @@ AFTER_VAR_TYPE:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -1787,7 +1889,8 @@ AFTER_VAR_TYPE:
 		goto DIR_NAME
 	} else if i.str[i.head] == '=' {
 		i.head++
-		// <skip irrelevant>
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -1867,7 +1970,8 @@ AFTER_VAR_TYPE:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
+
 		i.expect, inDefVal = ExpectVal, true
 		goto VALUE
 	} else if i.str[i.head] == ')' {
@@ -1875,16 +1979,23 @@ AFTER_VAR_TYPE:
 	}
 	i.expect = ExpectAfterVarType
 	goto OPR_VAR
+	/*</l_after_var_type>*/
 
+	/*<l_var_list_end>*/
 VAR_LIST_END:
 	i.tail = -1
 	i.token = TokenVarListEnd
+	/*<callback>*/
+
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
 	}
+
+	/*</callback>*/
 	i.head++
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -1964,7 +2075,8 @@ VAR_LIST_END:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	i.expect = ExpectSelSet
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
@@ -1978,9 +2090,12 @@ VAR_LIST_END:
 		goto DIR_NAME
 	}
 	goto SELECTION_SET
+	/*</l_var_list_end>*/
 
+	/*<l_selection_set>*/
 SELECTION_SET:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -2060,7 +2175,8 @@ SELECTION_SET:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if i.str[i.head] != '{' {
@@ -2069,17 +2185,24 @@ SELECTION_SET:
 	}
 	i.tail = -1
 	i.token = TokenSet
+	/*<callback>*/
+
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
 	}
+
+	/*</callback>*/
 	i.levelSel++
 	i.head++
 	i.expect = ExpectSel
 	goto SELECTION
+	/*</l_selection_set>*/
 
+	/*<l_after_selection>*/
 AFTER_SELECTION:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -2159,7 +2282,8 @@ AFTER_SELECTION:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -2170,17 +2294,24 @@ AFTER_SELECTION:
 	}
 	i.expect = ExpectSel
 	goto SELECTION
+	/*</l_after_selection>*/
 
+	/*<l_sel_end>*/
 SEL_END:
 	i.tail = -1
 	i.token = TokenSetEnd
+	/*<callback>*/
+
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
 	}
+
+	/*</callback>*/
 	i.levelSel--
 	i.head++
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -2260,14 +2391,18 @@ SEL_END:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.levelSel < 1 {
 		goto DEFINITION_END
 	}
 	goto AFTER_SELECTION
+	/*</l_sel_end>*/
 
+	/*<l_value>*/
 VALUE:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -2347,7 +2482,8 @@ VALUE:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -2355,18 +2491,24 @@ VALUE:
 	switch i.str[i.head] {
 	case '#':
 		goto COMMENT
+
 	case '{':
 		// Object begin
 		i.tail = -1
 		// Callback for argument
 		i.token = TokenObj
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.stackPush(TokenObj)
 		i.head++
-		// <skip irrelevant>
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -2446,10 +2588,12 @@ VALUE:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
 
 		i.expect = ExpectObjFieldName
-		// <name followed by objfieldname>
+
+		/*<name>*/
+		// Followed by objfieldname>
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
@@ -2544,11 +2688,16 @@ VALUE:
 
 		// <ExpectObjFieldName after name>
 		i.token = TokenObjField
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
-		// <skip irrelevant>
+
+		/*</callback>*/
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -2628,7 +2777,8 @@ VALUE:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
+
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			i.expect = ExpectColObjFieldName
@@ -2639,7 +2789,8 @@ VALUE:
 			goto ERROR
 		}
 		i.head++
-		// <skip irrelevant>
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -2719,22 +2870,29 @@ VALUE:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
+
 		i.expect = ExpectVal
 		goto VALUE
 	// </ExpectObjFieldName after name>
 
-	// </name followed by objfieldname>
+	/*</name>*/
+
 	case '[':
 		i.tail = -1
 		// Callback for argument
 		i.token = TokenArr
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.head++
-		// <skip irrelevant>
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -2814,7 +2972,7 @@ VALUE:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
 
 		// Lookahead
 		if i.head >= len(i.str) {
@@ -2823,10 +2981,14 @@ VALUE:
 			goto ERROR
 		} else if i.str[i.head] == ']' {
 			i.token = TokenArrEnd
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 			i.head++
 			i.expect = ExpectAfterValue
 			goto AFTER_VALUE_COMMENT
@@ -2836,6 +2998,8 @@ VALUE:
 		goto AFTER_VALUE_COMMENT
 
 	case '"':
+
+		/*<str>*/
 		i.head++
 		i.tail = i.head
 
@@ -3005,12 +3169,15 @@ VALUE:
 	AFTER_STR_VAL:
 		// Callback for argument
 		i.token = TokenStr
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
+		/*<callback>*/
+
+		fn(i)
+
+		/*</callback>*/
 		// Advance head index to include the closing double-quotes
 		i.head++
+	/*</str>*/
+
 	case '$':
 		if inDefVal {
 			i.errc, i.expect = ErrUnexpToken, ExpectDefaultVarVal
@@ -3025,7 +3192,8 @@ VALUE:
 		goto VAR_REF_NAME
 
 	case 'n':
-		// Null
+
+		/*<null>*/
 		if i.head+4 < len(i.str) &&
 			i.str[i.head+3] == 'l' &&
 			i.str[i.head+2] == 'l' &&
@@ -3047,13 +3215,19 @@ VALUE:
 
 			// Callback for null value
 			i.token = TokenNull
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 		} else {
 			i.expect = ExpectValEnum
-			// <name followed by valenum>
+
+			/*<name>*/
+			// Followed by valenum>
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
@@ -3148,17 +3322,26 @@ VALUE:
 
 			// <ExpectValEnum after name>
 			i.token = TokenEnumVal
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 			i.expect = ExpectAfterValue
 			goto AFTER_VALUE_COMMENT
 			// </ExpectValEnum after name>
 
-			// </name followed by valenum>
+			/*</name>*/
+
 		}
+	/*</null>*/
+
 	case 't':
+
+		/*<true>*/
 		if i.head+4 < len(i.str) &&
 			i.str[i.head+3] == 'e' &&
 			i.str[i.head+2] == 'u' &&
@@ -3180,13 +3363,19 @@ VALUE:
 
 			// Callback for true value
 			i.token = TokenTrue
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 		} else {
 			i.expect = ExpectValEnum
-			// <name followed by valenum>
+
+			/*<name>*/
+			// Followed by valenum>
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
@@ -3281,18 +3470,26 @@ VALUE:
 
 			// <ExpectValEnum after name>
 			i.token = TokenEnumVal
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 			i.expect = ExpectAfterValue
 			goto AFTER_VALUE_COMMENT
 			// </ExpectValEnum after name>
 
-			// </name followed by valenum>
+			/*</name>*/
+
 		}
+	/*</true>*/
+
 	case 'f':
-		// False
+
+		/*<false>*/
 		if i.head+5 < len(i.str) &&
 			i.str[i.head+4] == 'e' &&
 			i.str[i.head+3] == 's' &&
@@ -3315,13 +3512,19 @@ VALUE:
 
 			// Callback for false value
 			i.token = TokenFalse
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 		} else {
 			i.expect = ExpectValEnum
-			// <name followed by valenum>
+
+			/*<name>*/
+			// Followed by valenum>
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
@@ -3416,17 +3619,26 @@ VALUE:
 
 			// <ExpectValEnum after name>
 			i.token = TokenEnumVal
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 			i.expect = ExpectAfterValue
 			goto AFTER_VALUE_COMMENT
 			// </ExpectValEnum after name>
 
-			// </name followed by valenum>
+			/*</name>*/
+
 		}
+	/*</false>*/
+
 	case '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+
+		/*<num>*/
 		// Number
 		i.tail = i.head
 
@@ -3569,14 +3781,22 @@ VALUE:
 
 	ON_NUM_VAL:
 		// Callback for argument
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+	/*</callback>*/
+	/*</num>*/
+
 	default:
 		// Invalid value
 		i.expect = ExpectValEnum
-		// <name followed by valenum>
+
+		/*<name>*/
+		// Followed by valenum>
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
@@ -3671,19 +3891,26 @@ VALUE:
 
 		// <ExpectValEnum after name>
 		i.token = TokenEnumVal
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.expect = ExpectAfterValue
 		goto AFTER_VALUE_COMMENT
 		// </ExpectValEnum after name>
 
-		// </name followed by valenum>
+		/*</name>*/
+
 	}
 	i.expect = ExpectAfterValue
 	goto AFTER_VALUE_COMMENT
+	/*</l_value>*/
 
+	/*<l_block_string>*/
 BLOCK_STRING:
 	i.expect = ExpectEndOfBlockString
 	for ; i.head < len(i.str); i.head++ {
@@ -3698,17 +3925,24 @@ BLOCK_STRING:
 			i.str[i.head+1] == '"' &&
 			i.str[i.head+2] == '"' {
 			i.token = TokenStrBlock
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 			i.head += 3
 			goto AFTER_VALUE_COMMENT
 		}
 	}
+	/*</l_block_string>*/
 
+	/*<l_after_value_comment>*/
 AFTER_VALUE_COMMENT:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -3788,7 +4022,8 @@ AFTER_VALUE_COMMENT:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -3802,12 +4037,17 @@ AFTER_VALUE_COMMENT:
 
 			// Callback for end of object
 			i.token = TokenObjEnd
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -3887,7 +4127,8 @@ AFTER_VALUE_COMMENT:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			if i.stackLen() > 0 {
 				i.expect = ExpectAfterValue
 				goto AFTER_VALUE_COMMENT
@@ -3895,7 +4136,9 @@ AFTER_VALUE_COMMENT:
 		} else {
 			// Proceed to next field in the object
 			i.expect = ExpectObjFieldName
-			// <name followed by objfieldname>
+
+			/*<name>*/
+			// Followed by objfieldname>
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
@@ -3990,11 +4233,16 @@ AFTER_VALUE_COMMENT:
 
 			// <ExpectObjFieldName after name>
 			i.token = TokenObjField
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
-			// <skip irrelevant>
+
+			/*</callback>*/
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -4074,7 +4322,8 @@ AFTER_VALUE_COMMENT:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				i.expect = ExpectColObjFieldName
@@ -4085,7 +4334,8 @@ AFTER_VALUE_COMMENT:
 				goto ERROR
 			}
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -4165,12 +4415,14 @@ AFTER_VALUE_COMMENT:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			i.expect = ExpectVal
 			goto VALUE
 			// </ExpectObjFieldName after name>
 
-			// </name followed by objfieldname>
+			/*</name>*/
+
 		}
 	} else if t == TokenArr {
 		if i.str[i.head] == ']' {
@@ -4179,12 +4431,17 @@ AFTER_VALUE_COMMENT:
 
 			// Callback for end of array
 			i.token = TokenArrEnd
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -4264,7 +4521,8 @@ AFTER_VALUE_COMMENT:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			if i.stackLen() > 0 {
 				i.expect = ExpectAfterValue
 				goto AFTER_VALUE_COMMENT
@@ -4292,10 +4550,14 @@ AFTER_VALUE_COMMENT:
 		// End of argument list
 		i.tail = -1
 		i.token = TokenArgListEnd
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.head++
 		i.expect = ExpectAfterArgList
 		goto AFTER_ARG_LIST
@@ -4303,7 +4565,9 @@ AFTER_VALUE_COMMENT:
 
 	// Proceed to the next argument
 	i.expect = ExpectArgName
-	// <name followed by argname>
+
+	/*<name>*/
+	// Followed by argname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -4398,11 +4662,16 @@ AFTER_VALUE_COMMENT:
 
 	// <ExpectArgName after name>
 	i.token = TokenArgName
+	/*<callback>*/
+
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
 	}
-	// <skip irrelevant>
+
+	/*</callback>*/
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -4482,19 +4751,23 @@ AFTER_VALUE_COMMENT:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	i.expect = ExpectColumnAfterArg
 	goto COLUMN_AFTER_ARG_NAME
 	// </ExpectArgName after name>
 
-	// </name followed by argname>
+	/*</name>*/
 
+	/*</l_after_value_comment>*/
+
+	/*<l_after_arg_list>*/
 AFTER_ARG_LIST:
 	if dirOn != 0 {
 		goto AFTER_DIR_ARGS
 	}
 
-	// <skip irrelevant>
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -4574,7 +4847,7 @@ AFTER_ARG_LIST:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
 
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
@@ -4596,9 +4869,12 @@ AFTER_ARG_LIST:
 	}
 	i.expect = ExpectSel
 	goto SELECTION
+	/*</l_after_arg_list>*/
 
+	/*<l_selection>*/
 SELECTION:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -4678,7 +4954,8 @@ SELECTION:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		i.expect = ExpectSel
@@ -4689,7 +4966,9 @@ SELECTION:
 	} else if i.str[i.head] != '.' {
 		// Field selection
 		i.expect = ExpectFieldNameOrAlias
-		// <name followed by fieldnameoralias>
+
+		/*<name>*/
+		// Followed by fieldnameoralias>
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
@@ -4784,7 +5063,8 @@ SELECTION:
 
 		// <ExpectFieldNameOrAlias after name>
 		head := i.head
-		// <skip irrelevant>
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -4864,7 +5144,8 @@ SELECTION:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
+
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
@@ -4872,12 +5153,17 @@ SELECTION:
 			h2 := i.head
 			i.head = head
 			i.token = TokenFieldAlias
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 			i.head = h2 + 1
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -4957,9 +5243,12 @@ SELECTION:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			i.expect = ExpectFieldName
-			// <name followed by fieldname>
+
+			/*<name>*/
+			// Followed by fieldname>
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
@@ -5054,25 +5343,35 @@ SELECTION:
 
 			// <ExpectFieldName after name>
 			i.token = TokenField
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 			goto AFTER_FIELD_NAME
 			// </ExpectFieldName after name>
 
-			// </name followed by fieldname>
+			/*</name>*/
+
 		}
 		i.head = head
 		i.token = TokenField
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		goto AFTER_FIELD_NAME
 		// </ExpectFieldNameOrAlias after name>
 
-		// </name followed by fieldname>
+		/*</name>*/
+
 	}
 
 	i.expect = ExpectFrag
@@ -5097,9 +5396,12 @@ SELECTION:
 
 	i.head += len("...")
 	goto SPREAD
+	/*</l_selection>*/
 
+	/*<l_spread>*/
 SPREAD:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -5179,7 +5481,8 @@ SPREAD:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head+1 >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -5187,18 +5490,26 @@ SPREAD:
 		goto COMMENT
 	} else if i.str[i.head] == '{' {
 		i.token, i.tail = TokenFragInline, -1
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.expect = ExpectSelSet
 		goto SELECTION_SET
 	} else if i.str[i.head] == '@' {
 		i.token, i.tail = TokenFragInline, -1
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
 		goto AFTER_DIR_NAME
 	} else if i.str[i.head+1] == 'n' &&
@@ -5221,7 +5532,9 @@ SPREAD:
 	}
 	// ...fragmentName
 	i.expect = ExpectSpreadName
-	// <name followed by spreadname>
+
+	/*<name>*/
+	// Followed by spreadname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -5316,18 +5629,26 @@ SPREAD:
 
 	// <ExpectSpreadName after name>
 	i.token = TokenNamedSpread
+	/*<callback>*/
+
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
 	}
+
+	/*</callback>*/
 	i.expect, dirOn = ExpectDirName, dirFragRef
 	goto AFTER_DIR_NAME
 	// </ExpectSpreadName after name>
 
-	// </name followed by spreadname>
+	/*</name>*/
 
+	/*</l_spread>*/
+
+	/*<l_after_decl_varname>*/
 AFTER_DECL_VAR_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -5407,7 +5728,8 @@ AFTER_DECL_VAR_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -5420,9 +5742,12 @@ AFTER_DECL_VAR_NAME:
 	i.head++
 	i.expect = ExpectVarType
 	goto VAR_TYPE
+	/*</l_after_decl_varname>*/
 
+	/*<l_var_type>*/
 VAR_TYPE:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -5502,7 +5827,8 @@ VAR_TYPE:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -5511,16 +5837,22 @@ VAR_TYPE:
 	} else if i.str[i.head] == '[' {
 		i.tail = -1
 		i.token = TokenVarTypeArr
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.head++
 		typeArrLvl++
 		goto VAR_TYPE
 	}
 	i.expect = ExpectVarType
-	// <name followed by vartype>
+
+	/*<name>*/
+	// Followed by vartype>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -5615,18 +5947,26 @@ VAR_TYPE:
 
 	// <ExpectVarType after name>
 	i.token = TokenVarTypeName
+	/*<callback>*/
+
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
 	}
+
+	/*</callback>*/
 	i.expect = ExpectAfterVarTypeName
 	goto AFTER_VAR_TYPE_NAME
 	// </ExpectVarType after name>
 
-	// </name followed by vartype>
+	/*</name>*/
 
+	/*</l_var_type>*/
+
+	/*<l_var_name>*/
 VAR_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -5706,14 +6046,17 @@ VAR_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	// <name followed by varname>
+
+	/*<name>*/
+	// Followed by varname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -5808,18 +6151,26 @@ VAR_NAME:
 
 	// <ExpectVarName after name>
 	i.token = TokenVarName
+	/*<callback>*/
+
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
 	}
+
+	/*</callback>*/
 	i.expect = ExpectColumnAfterVar
 	goto AFTER_DECL_VAR_NAME
 	// </ExpectVarName after name>
 
-	// </name followed by varname>
+	/*</name>*/
 
+	/*</l_var_name>*/
+
+	/*<l_var_ref>*/
 VAR_REF_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -5899,14 +6250,17 @@ VAR_REF_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	// <name followed by varrefname>
+
+	/*<name>*/
+	// Followed by varrefname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -6001,18 +6355,26 @@ VAR_REF_NAME:
 
 	// <ExpectVarRefName after name>
 	i.token = TokenVarRef
+	/*<callback>*/
+
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
 	}
+
+	/*</callback>*/
 	i.expect = ExpectAfterValue
 	goto AFTER_VALUE_COMMENT
 	// </ExpectVarRefName after name>
 
-	// </name followed by varrefname>
+	/*</name>*/
 
+	/*</l_var_ref>*/
+
+	/*<l_dir_name>*/
 DIR_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -6092,7 +6454,8 @@ DIR_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -6100,7 +6463,9 @@ DIR_NAME:
 		goto COMMENT
 	}
 	i.expect = ExpectDirName
-	// <name followed by dirname>
+
+	/*<name>*/
+	// Followed by dirname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -6195,17 +6560,25 @@ DIR_NAME:
 
 	// <ExpectDirName after name>
 	i.token = TokenDirName
+	/*<callback>*/
+
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
 	}
+
+	/*</callback>*/
 	goto AFTER_DIR_NAME
 	// </ExpectDirName after name>
 
-	// </name followed by dirname>
+	/*</name>*/
 
+	/*</l_dir_name>*/
+
+	/*<l_collumn_after_arg_name>*/
 COLUMN_AFTER_ARG_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -6285,7 +6658,8 @@ COLUMN_AFTER_ARG_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -6299,7 +6673,9 @@ COLUMN_AFTER_ARG_NAME:
 	i.stackReset()
 	i.expect = ExpectVal
 	goto VALUE
+	/*</l_collumn_after_arg_name>*/
 
+	/*<l_arg_list>*/
 ARG_LIST:
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
@@ -6307,7 +6683,9 @@ ARG_LIST:
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	// <name followed by argname>
+
+	/*<name>*/
+	// Followed by argname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -6402,11 +6780,16 @@ ARG_LIST:
 
 	// <ExpectArgName after name>
 	i.token = TokenArgName
+	/*<callback>*/
+
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
 	}
-	// <skip irrelevant>
+
+	/*</callback>*/
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -6486,15 +6869,20 @@ ARG_LIST:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	i.expect = ExpectColumnAfterArg
 	goto COLUMN_AFTER_ARG_NAME
 	// </ExpectArgName after name>
 
-	// </name followed by argname>
+	/*</name>*/
 
+	/*</l_arg_list>*/
+
+	/*<l_after_var_type_name>*/
 AFTER_VAR_TYPE_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -6574,20 +6962,28 @@ AFTER_VAR_TYPE_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head < len(i.str) && i.str[i.head] == '!' {
 		i.tail = -1
 		i.token = TokenVarTypeNotNull
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.head++
 	}
 	goto AFTER_VAR_TYPE_NOT_NULL
+	/*</l_after_var_type_name>*/
 
+	/*<l_after_var_type_not_null>*/
 AFTER_VAR_TYPE_NOT_NULL:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -6667,7 +7063,8 @@ AFTER_VAR_TYPE_NOT_NULL:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -6680,14 +7077,18 @@ AFTER_VAR_TYPE_NOT_NULL:
 		}
 		i.tail = -1
 		i.token = TokenVarTypeArrEnd
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.head++
 		typeArrLvl--
 
-		// <skip irrelevant>
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -6767,14 +7168,19 @@ AFTER_VAR_TYPE_NOT_NULL:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
+
 		if i.head < len(i.str) && i.str[i.head] == '!' {
 			i.tail = -1
 			i.token = TokenVarTypeNotNull
+			/*<callback>*/
+
 			if fn(i) {
 				i.errc = ErrCallbackFn
 				goto ERROR
 			}
+
+			/*</callback>*/
 			i.head++
 		}
 
@@ -6784,9 +7190,12 @@ AFTER_VAR_TYPE_NOT_NULL:
 	}
 	i.expect = ExpectAfterVarType
 	goto AFTER_VAR_TYPE
+	/*</l_after_var_type_not_null>*/
 
+	/*<l_after_field_name>*/
 AFTER_FIELD_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -6866,7 +7275,8 @@ AFTER_FIELD_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -6877,12 +7287,17 @@ AFTER_FIELD_NAME:
 		// Argument list
 		i.tail = -1
 		i.token = TokenArgList
+		/*<callback>*/
+
 		if fn(i) {
 			i.errc = ErrCallbackFn
 			goto ERROR
 		}
+
+		/*</callback>*/
 		i.head++
-		// <skip irrelevant>
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -6962,7 +7377,8 @@ AFTER_FIELD_NAME:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
+
 		i.expect = ExpectArgName
 		goto ARG_LIST
 	case '{':
@@ -6979,9 +7395,12 @@ AFTER_FIELD_NAME:
 	}
 	i.expect = ExpectAfterSelection
 	goto AFTER_SELECTION
+	/*</l_after_field_name>*/
 
+	/*<l_frag_keyword_on>*/
 FRAG_KEYWORD_ON:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -7061,7 +7480,8 @@ FRAG_KEYWORD_ON:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head+1 >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -7077,7 +7497,8 @@ FRAG_KEYWORD_ON:
 	goto FRAG_TYPE_COND
 
 FRAG_TYPE_COND:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -7157,14 +7578,17 @@ FRAG_TYPE_COND:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	// <name followed by fragtypecond>
+
+	/*<name>*/
+	// Followed by fragtypecond>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -7259,11 +7683,16 @@ FRAG_TYPE_COND:
 
 	// <ExpectFragTypeCond after name>
 	i.token = TokenFragTypeCond
+	/*<callback>*/
+
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
 	}
-	// <skip irrelevant>
+
+	/*</callback>*/
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -7343,7 +7772,8 @@ FRAG_TYPE_COND:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
 		goto ERROR
@@ -7355,10 +7785,14 @@ FRAG_TYPE_COND:
 	goto SELECTION_SET
 	// </ExpectFragTypeCond after name>
 
-	// </name followed by fragtypecond>
+	/*</name>*/
 
+	/*</l_frag_keyword_on>*/
+
+	/*<l_frag_inlined>*/
 FRAG_INLINED:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -7438,14 +7872,17 @@ FRAG_INLINED:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	// <name followed by fraginlined>
+
+	/*<name>*/
+	// Followed by fraginlined>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -7540,16 +7977,23 @@ FRAG_INLINED:
 
 	// <ExpectFragInlined after name>
 	i.token = TokenFragInline
+	/*<callback>*/
+
 	if fn(i) {
 		i.errc = ErrCallbackFn
 		goto ERROR
 	}
+
+	/*</callback>*/
 	i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
 	goto AFTER_DIR_NAME
 	// </ExpectFragInlined after name>
 
-	// </name followed by fraginlined>
+	/*</name>*/
 
+	/*</l_frag_inlined>*/
+
+	/*<l_comment>*/
 COMMENT:
 	i.head++
 	for {
@@ -7602,7 +8046,8 @@ COMMENT:
 		}
 	}
 	i.tail = -1
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -7682,7 +8127,8 @@ COMMENT:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	switch i.expect {
 	case ExpectVarRefName:
 		goto VAR_REF_NAME
@@ -7735,11 +8181,14 @@ COMMENT:
 	case ExpectAfterVarTypeName:
 		goto AFTER_VAR_TYPE_NAME
 	}
+	/*</l_comment>*/
 
+	/*<l_definition_end>*/
 DEFINITION_END:
 	i.levelSel, i.expect = 0, ExpectDef
 	// Expect end of file
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -7819,12 +8268,15 @@ DEFINITION_END:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head < len(i.str) {
 		goto DEFINITION
 	}
 	return Error{}
+	/*</l_definition_end>*/
 
+	/*<l_error>*/
 ERROR:
 	{
 		var atIndex rune
@@ -7838,6 +8290,10 @@ ERROR:
 			Expectation: i.expect,
 		}
 	}
+	/*</l_error>*/
+
+	/*</scan_body>*/
+
 }
 
 // ScanAll calls fn for every token it scans in str.
@@ -7848,6 +8304,8 @@ ERROR:
 // used after ScanAll returns because it's returned to the pool
 // and may be acquired by another call to ScanAll!
 func ScanAll(str []byte, fn func(*Iterator)) Error {
+
+	/*<scan_body>*/
 	i := iteratorPool.Get().(*Iterator)
 	i.stackReset()
 	i.expect = ExpectDef
@@ -7863,7 +8321,7 @@ func ScanAll(str []byte, fn func(*Iterator)) Error {
 	var typeArrLvl int
 	var dirOn dirTarget
 
-	// <skip irrelevant>
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -7943,7 +8401,7 @@ func ScanAll(str []byte, fn func(*Iterator)) Error {
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
 
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
@@ -7951,6 +8409,7 @@ func ScanAll(str []byte, fn func(*Iterator)) Error {
 		goto ERROR
 	}
 
+	/*<l_definition>*/
 DEFINITION:
 	if i.head >= len(i.str) {
 		goto DEFINITION_END
@@ -7959,27 +8418,43 @@ DEFINITION:
 		goto COMMENT
 	} else if i.str[i.head] == '{' {
 		i.token = TokenDefQry
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.expect = ExpectSelSet
 		goto SELECTION_SET
 	} else if i.isHeadKeywordQuery() {
 		// Query
 		i.token = TokenDefQry
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.head += len("query")
 		i.expect = ExpectAfterDefKeyword
 		goto AFTER_DEF_KEYWORD
 	} else if i.isHeadKeywordMutation() {
 		// Mutation
 		i.token = TokenDefMut
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.head += len("mutation")
 		i.expect = ExpectAfterDefKeyword
 		goto AFTER_DEF_KEYWORD
 	} else if i.isHeadKeywordSubscription() {
 		// Subscription
 		i.token = TokenDefSub
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.head += len("subscription")
 		i.expect = ExpectAfterDefKeyword
 		goto AFTER_DEF_KEYWORD
@@ -7987,7 +8462,11 @@ DEFINITION:
 		// Fragment
 		i.tail = -1
 		i.token = TokenDefFrag
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.head += len("fragment")
 		i.expect = ExpectFragName
 		goto AFTER_KEYWORD_FRAGMENT
@@ -7996,9 +8475,12 @@ DEFINITION:
 	i.errc = ErrUnexpToken
 	i.expect = ExpectDef
 	goto ERROR
+	/*</l_definition>*/
 
+	/*<l_after_def_keyword>*/
 AFTER_DEF_KEYWORD:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -8078,7 +8560,8 @@ AFTER_DEF_KEYWORD:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -8093,7 +8576,11 @@ AFTER_DEF_KEYWORD:
 		// Variable list
 		i.tail = -1
 		i.token = TokenVarList
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.head++
 		i.expect = ExpectVar
 		goto OPR_VAR
@@ -8103,7 +8590,9 @@ AFTER_DEF_KEYWORD:
 		goto DIR_NAME
 	}
 	i.expect = ExpectOprName
-	// <name followed by oprname>
+
+	/*<name>*/
+	// Followed by oprname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -8198,8 +8687,13 @@ AFTER_DEF_KEYWORD:
 
 	// <ExpectOprName after name>
 	i.token = TokenOprName
+	/*<callback>*/
+
 	fn(i)
-	// <skip irrelevant>
+
+	/*</callback>*/
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -8279,7 +8773,7 @@ AFTER_DEF_KEYWORD:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
 
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
@@ -8294,7 +8788,11 @@ AFTER_DEF_KEYWORD:
 		// Variable list
 		i.tail = -1
 		i.token = TokenVarList
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.head++
 		i.expect = ExpectVar
 		goto OPR_VAR
@@ -8308,10 +8806,14 @@ AFTER_DEF_KEYWORD:
 	goto ERROR
 	// </ExpectOprName after name>
 
-	// </name followed by oprname>
+	/*</name>*/
 
+	/*</l_after_def_keyword>*/
+
+	/*<l_after_dir_name>*/
 AFTER_DIR_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -8391,7 +8893,8 @@ AFTER_DIR_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	switch dirOn {
 	case dirField:
 		if i.head >= len(i.str) {
@@ -8405,9 +8908,14 @@ AFTER_DIR_NAME:
 			// Directive argument list
 			i.tail = -1
 			i.token = TokenArgList
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -8487,7 +8995,8 @@ AFTER_DIR_NAME:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			i.expect = ExpectArgName
 			goto ARG_LIST
 		case '@':
@@ -8514,9 +9023,14 @@ AFTER_DIR_NAME:
 			// Directive argument list
 			i.tail = -1
 			i.token = TokenArgList
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -8596,7 +9110,8 @@ AFTER_DIR_NAME:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			i.expect = ExpectArgName
 			goto ARG_LIST
 		case '@':
@@ -8619,9 +9134,14 @@ AFTER_DIR_NAME:
 			// Directive argument list
 			i.tail = -1
 			i.token = TokenArgList
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -8701,7 +9221,8 @@ AFTER_DIR_NAME:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			i.expect = ExpectArgName
 			goto ARG_LIST
 		case '@':
@@ -8727,9 +9248,14 @@ AFTER_DIR_NAME:
 			// Directive argument list
 			i.tail = -1
 			i.token = TokenArgList
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -8809,7 +9335,8 @@ AFTER_DIR_NAME:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			i.expect = ExpectArgName
 			goto ARG_LIST
 		case '@':
@@ -8832,9 +9359,14 @@ AFTER_DIR_NAME:
 			// Directive argument list
 			i.tail = -1
 			i.token = TokenArgList
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -8914,7 +9446,8 @@ AFTER_DIR_NAME:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			i.expect = ExpectArgName
 			goto ARG_LIST
 		case '@':
@@ -8929,9 +9462,12 @@ AFTER_DIR_NAME:
 		// This line is only executed if we forgot to handle a dirOn case.
 		panic(fmt.Errorf("unhandled dirOn case: %#v", dirOn))
 	}
+	/*</l_after_dir_name>*/
 
+	/*<l_after_dir_args>*/
 AFTER_DIR_ARGS:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -9011,7 +9547,8 @@ AFTER_DIR_ARGS:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	switch dirOn {
 	case dirField:
 		if i.head >= len(i.str) {
@@ -9049,7 +9586,8 @@ AFTER_DIR_ARGS:
 			goto SELECTION_SET
 		}
 	case dirVar:
-		// <skip irrelevant>
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -9129,7 +9667,8 @@ AFTER_DIR_ARGS:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
+
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterVarType
 			goto ERROR
@@ -9181,9 +9720,12 @@ AFTER_DIR_ARGS:
 		// This line is only executed if we forgot to handle a dirOn case.
 		panic(fmt.Errorf("unhandled dirOn case: %#v", dirOn))
 	}
+	/*</l_after_dir_args>*/
 
+	/*<l_after_keyword_fragment>*/
 AFTER_KEYWORD_FRAGMENT:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -9263,14 +9805,17 @@ AFTER_KEYWORD_FRAGMENT:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	// <name followed by fragname>
+
+	/*<name>*/
+	// Followed by fragname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -9371,15 +9916,23 @@ AFTER_KEYWORD_FRAGMENT:
 		goto ERROR
 	}
 	i.token = TokenFragName
+	/*<callback>*/
+
 	fn(i)
+
+	/*</callback>*/
 	i.expect = ExpectFragKeywordOn
 	goto FRAG_KEYWORD_ON
 	// </ExpectFragName after name>
 
-	// </name followed by fragname>
+	/*</name>*/
 
+	/*</l_after_keyword_fragment>*/
+
+	/*<l_opr_var>*/
 OPR_VAR:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -9459,7 +10012,8 @@ OPR_VAR:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -9475,9 +10029,12 @@ OPR_VAR:
 	i.head++
 	i.expect = ExpectVarName
 	goto VAR_NAME
+	/*</l_opr_var>*/
 
+	/*<l_after_var_type>*/
 AFTER_VAR_TYPE:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -9557,7 +10114,8 @@ AFTER_VAR_TYPE:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -9574,7 +10132,8 @@ AFTER_VAR_TYPE:
 		goto DIR_NAME
 	} else if i.str[i.head] == '=' {
 		i.head++
-		// <skip irrelevant>
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -9654,7 +10213,8 @@ AFTER_VAR_TYPE:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
+
 		i.expect, inDefVal = ExpectVal, true
 		goto VALUE
 	} else if i.str[i.head] == ')' {
@@ -9662,13 +10222,20 @@ AFTER_VAR_TYPE:
 	}
 	i.expect = ExpectAfterVarType
 	goto OPR_VAR
+	/*</l_after_var_type>*/
 
+	/*<l_var_list_end>*/
 VAR_LIST_END:
 	i.tail = -1
 	i.token = TokenVarListEnd
+	/*<callback>*/
+
 	fn(i)
+
+	/*</callback>*/
 	i.head++
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -9748,7 +10315,8 @@ VAR_LIST_END:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	i.expect = ExpectSelSet
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
@@ -9762,9 +10330,12 @@ VAR_LIST_END:
 		goto DIR_NAME
 	}
 	goto SELECTION_SET
+	/*</l_var_list_end>*/
 
+	/*<l_selection_set>*/
 SELECTION_SET:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -9844,7 +10415,8 @@ SELECTION_SET:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if i.str[i.head] != '{' {
@@ -9853,14 +10425,21 @@ SELECTION_SET:
 	}
 	i.tail = -1
 	i.token = TokenSet
+	/*<callback>*/
+
 	fn(i)
+
+	/*</callback>*/
 	i.levelSel++
 	i.head++
 	i.expect = ExpectSel
 	goto SELECTION
+	/*</l_selection_set>*/
 
+	/*<l_after_selection>*/
 AFTER_SELECTION:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -9940,7 +10519,8 @@ AFTER_SELECTION:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -9951,14 +10531,21 @@ AFTER_SELECTION:
 	}
 	i.expect = ExpectSel
 	goto SELECTION
+	/*</l_after_selection>*/
 
+	/*<l_sel_end>*/
 SEL_END:
 	i.tail = -1
 	i.token = TokenSetEnd
+	/*<callback>*/
+
 	fn(i)
+
+	/*</callback>*/
 	i.levelSel--
 	i.head++
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -10038,14 +10625,18 @@ SEL_END:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.levelSel < 1 {
 		goto DEFINITION_END
 	}
 	goto AFTER_SELECTION
+	/*</l_sel_end>*/
 
+	/*<l_value>*/
 VALUE:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -10125,7 +10716,8 @@ VALUE:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -10133,15 +10725,21 @@ VALUE:
 	switch i.str[i.head] {
 	case '#':
 		goto COMMENT
+
 	case '{':
 		// Object begin
 		i.tail = -1
 		// Callback for argument
 		i.token = TokenObj
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.stackPush(TokenObj)
 		i.head++
-		// <skip irrelevant>
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -10221,10 +10819,12 @@ VALUE:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
 
 		i.expect = ExpectObjFieldName
-		// <name followed by objfieldname>
+
+		/*<name>*/
+		// Followed by objfieldname>
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
@@ -10319,8 +10919,13 @@ VALUE:
 
 		// <ExpectObjFieldName after name>
 		i.token = TokenObjField
+		/*<callback>*/
+
 		fn(i)
-		// <skip irrelevant>
+
+		/*</callback>*/
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -10400,7 +11005,8 @@ VALUE:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
+
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			i.expect = ExpectColObjFieldName
@@ -10411,7 +11017,8 @@ VALUE:
 			goto ERROR
 		}
 		i.head++
-		// <skip irrelevant>
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -10491,19 +11098,26 @@ VALUE:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
+
 		i.expect = ExpectVal
 		goto VALUE
 	// </ExpectObjFieldName after name>
 
-	// </name followed by objfieldname>
+	/*</name>*/
+
 	case '[':
 		i.tail = -1
 		// Callback for argument
 		i.token = TokenArr
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.head++
-		// <skip irrelevant>
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -10583,7 +11197,7 @@ VALUE:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
 
 		// Lookahead
 		if i.head >= len(i.str) {
@@ -10592,7 +11206,11 @@ VALUE:
 			goto ERROR
 		} else if i.str[i.head] == ']' {
 			i.token = TokenArrEnd
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 			i.head++
 			i.expect = ExpectAfterValue
 			goto AFTER_VALUE_COMMENT
@@ -10602,6 +11220,8 @@ VALUE:
 		goto AFTER_VALUE_COMMENT
 
 	case '"':
+
+		/*<str>*/
 		i.head++
 		i.tail = i.head
 
@@ -10771,9 +11391,15 @@ VALUE:
 	AFTER_STR_VAL:
 		// Callback for argument
 		i.token = TokenStr
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		// Advance head index to include the closing double-quotes
 		i.head++
+	/*</str>*/
+
 	case '$':
 		if inDefVal {
 			i.errc, i.expect = ErrUnexpToken, ExpectDefaultVarVal
@@ -10788,7 +11414,8 @@ VALUE:
 		goto VAR_REF_NAME
 
 	case 'n':
-		// Null
+
+		/*<null>*/
 		if i.head+4 < len(i.str) &&
 			i.str[i.head+3] == 'l' &&
 			i.str[i.head+2] == 'l' &&
@@ -10810,10 +11437,16 @@ VALUE:
 
 			// Callback for null value
 			i.token = TokenNull
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 		} else {
 			i.expect = ExpectValEnum
-			// <name followed by valenum>
+
+			/*<name>*/
+			// Followed by valenum>
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
@@ -10908,14 +11541,23 @@ VALUE:
 
 			// <ExpectValEnum after name>
 			i.token = TokenEnumVal
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 			i.expect = ExpectAfterValue
 			goto AFTER_VALUE_COMMENT
 			// </ExpectValEnum after name>
 
-			// </name followed by valenum>
+			/*</name>*/
+
 		}
+	/*</null>*/
+
 	case 't':
+
+		/*<true>*/
 		if i.head+4 < len(i.str) &&
 			i.str[i.head+3] == 'e' &&
 			i.str[i.head+2] == 'u' &&
@@ -10937,10 +11579,16 @@ VALUE:
 
 			// Callback for true value
 			i.token = TokenTrue
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 		} else {
 			i.expect = ExpectValEnum
-			// <name followed by valenum>
+
+			/*<name>*/
+			// Followed by valenum>
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
@@ -11035,15 +11683,23 @@ VALUE:
 
 			// <ExpectValEnum after name>
 			i.token = TokenEnumVal
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 			i.expect = ExpectAfterValue
 			goto AFTER_VALUE_COMMENT
 			// </ExpectValEnum after name>
 
-			// </name followed by valenum>
+			/*</name>*/
+
 		}
+	/*</true>*/
+
 	case 'f':
-		// False
+
+		/*<false>*/
 		if i.head+5 < len(i.str) &&
 			i.str[i.head+4] == 'e' &&
 			i.str[i.head+3] == 's' &&
@@ -11066,10 +11722,16 @@ VALUE:
 
 			// Callback for false value
 			i.token = TokenFalse
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 		} else {
 			i.expect = ExpectValEnum
-			// <name followed by valenum>
+
+			/*<name>*/
+			// Followed by valenum>
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
@@ -11164,14 +11826,23 @@ VALUE:
 
 			// <ExpectValEnum after name>
 			i.token = TokenEnumVal
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 			i.expect = ExpectAfterValue
 			goto AFTER_VALUE_COMMENT
 			// </ExpectValEnum after name>
 
-			// </name followed by valenum>
+			/*</name>*/
+
 		}
+	/*</false>*/
+
 	case '+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
+
+		/*<num>*/
 		// Number
 		i.tail = i.head
 
@@ -11314,11 +11985,19 @@ VALUE:
 
 	ON_NUM_VAL:
 		// Callback for argument
+		/*<callback>*/
+
 		fn(i)
+
+	/*</callback>*/
+	/*</num>*/
+
 	default:
 		// Invalid value
 		i.expect = ExpectValEnum
-		// <name followed by valenum>
+
+		/*<name>*/
+		// Followed by valenum>
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
@@ -11413,16 +12092,23 @@ VALUE:
 
 		// <ExpectValEnum after name>
 		i.token = TokenEnumVal
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.expect = ExpectAfterValue
 		goto AFTER_VALUE_COMMENT
 		// </ExpectValEnum after name>
 
-		// </name followed by valenum>
+		/*</name>*/
+
 	}
 	i.expect = ExpectAfterValue
 	goto AFTER_VALUE_COMMENT
+	/*</l_value>*/
 
+	/*<l_block_string>*/
 BLOCK_STRING:
 	i.expect = ExpectEndOfBlockString
 	for ; i.head < len(i.str); i.head++ {
@@ -11437,14 +12123,21 @@ BLOCK_STRING:
 			i.str[i.head+1] == '"' &&
 			i.str[i.head+2] == '"' {
 			i.token = TokenStrBlock
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 			i.head += 3
 			goto AFTER_VALUE_COMMENT
 		}
 	}
+	/*</l_block_string>*/
 
+	/*<l_after_value_comment>*/
 AFTER_VALUE_COMMENT:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -11524,7 +12217,8 @@ AFTER_VALUE_COMMENT:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -11538,9 +12232,14 @@ AFTER_VALUE_COMMENT:
 
 			// Callback for end of object
 			i.token = TokenObjEnd
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -11620,7 +12319,8 @@ AFTER_VALUE_COMMENT:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			if i.stackLen() > 0 {
 				i.expect = ExpectAfterValue
 				goto AFTER_VALUE_COMMENT
@@ -11628,7 +12328,9 @@ AFTER_VALUE_COMMENT:
 		} else {
 			// Proceed to next field in the object
 			i.expect = ExpectObjFieldName
-			// <name followed by objfieldname>
+
+			/*<name>*/
+			// Followed by objfieldname>
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
@@ -11723,8 +12425,13 @@ AFTER_VALUE_COMMENT:
 
 			// <ExpectObjFieldName after name>
 			i.token = TokenObjField
+			/*<callback>*/
+
 			fn(i)
-			// <skip irrelevant>
+
+			/*</callback>*/
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -11804,7 +12511,8 @@ AFTER_VALUE_COMMENT:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				i.expect = ExpectColObjFieldName
@@ -11815,7 +12523,8 @@ AFTER_VALUE_COMMENT:
 				goto ERROR
 			}
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -11895,12 +12604,14 @@ AFTER_VALUE_COMMENT:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			i.expect = ExpectVal
 			goto VALUE
 			// </ExpectObjFieldName after name>
 
-			// </name followed by objfieldname>
+			/*</name>*/
+
 		}
 	} else if t == TokenArr {
 		if i.str[i.head] == ']' {
@@ -11909,9 +12620,14 @@ AFTER_VALUE_COMMENT:
 
 			// Callback for end of array
 			i.token = TokenArrEnd
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 			i.head++
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -11991,7 +12707,8 @@ AFTER_VALUE_COMMENT:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			if i.stackLen() > 0 {
 				i.expect = ExpectAfterValue
 				goto AFTER_VALUE_COMMENT
@@ -12019,7 +12736,11 @@ AFTER_VALUE_COMMENT:
 		// End of argument list
 		i.tail = -1
 		i.token = TokenArgListEnd
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.head++
 		i.expect = ExpectAfterArgList
 		goto AFTER_ARG_LIST
@@ -12027,7 +12748,9 @@ AFTER_VALUE_COMMENT:
 
 	// Proceed to the next argument
 	i.expect = ExpectArgName
-	// <name followed by argname>
+
+	/*<name>*/
+	// Followed by argname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -12122,8 +12845,13 @@ AFTER_VALUE_COMMENT:
 
 	// <ExpectArgName after name>
 	i.token = TokenArgName
+	/*<callback>*/
+
 	fn(i)
-	// <skip irrelevant>
+
+	/*</callback>*/
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -12203,19 +12931,23 @@ AFTER_VALUE_COMMENT:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	i.expect = ExpectColumnAfterArg
 	goto COLUMN_AFTER_ARG_NAME
 	// </ExpectArgName after name>
 
-	// </name followed by argname>
+	/*</name>*/
 
+	/*</l_after_value_comment>*/
+
+	/*<l_after_arg_list>*/
 AFTER_ARG_LIST:
 	if dirOn != 0 {
 		goto AFTER_DIR_ARGS
 	}
 
-	// <skip irrelevant>
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -12295,7 +13027,7 @@ AFTER_ARG_LIST:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
 
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
@@ -12317,9 +13049,12 @@ AFTER_ARG_LIST:
 	}
 	i.expect = ExpectSel
 	goto SELECTION
+	/*</l_after_arg_list>*/
 
+	/*<l_selection>*/
 SELECTION:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -12399,7 +13134,8 @@ SELECTION:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		i.expect = ExpectSel
@@ -12410,7 +13146,9 @@ SELECTION:
 	} else if i.str[i.head] != '.' {
 		// Field selection
 		i.expect = ExpectFieldNameOrAlias
-		// <name followed by fieldnameoralias>
+
+		/*<name>*/
+		// Followed by fieldnameoralias>
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
@@ -12505,7 +13243,8 @@ SELECTION:
 
 		// <ExpectFieldNameOrAlias after name>
 		head := i.head
-		// <skip irrelevant>
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -12585,7 +13324,8 @@ SELECTION:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
+
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
@@ -12593,9 +13333,14 @@ SELECTION:
 			h2 := i.head
 			i.head = head
 			i.token = TokenFieldAlias
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 			i.head = h2 + 1
-			// <skip irrelevant>
+
+			/*<skip_irrelevant>*/
 			for {
 				if i.head+7 >= len(i.str) {
 					for i.head < len(i.str) {
@@ -12675,9 +13420,12 @@ SELECTION:
 				}
 				i.head++
 			}
-			// </skip irrelevant>
+			/*</skip_irrelevant>*/
+
 			i.expect = ExpectFieldName
-			// <name followed by fieldname>
+
+			/*<name>*/
+			// Followed by fieldname>
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
@@ -12772,19 +13520,29 @@ SELECTION:
 
 			// <ExpectFieldName after name>
 			i.token = TokenField
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 			goto AFTER_FIELD_NAME
 			// </ExpectFieldName after name>
 
-			// </name followed by fieldname>
+			/*</name>*/
+
 		}
 		i.head = head
 		i.token = TokenField
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		goto AFTER_FIELD_NAME
 		// </ExpectFieldNameOrAlias after name>
 
-		// </name followed by fieldname>
+		/*</name>*/
+
 	}
 
 	i.expect = ExpectFrag
@@ -12809,9 +13567,12 @@ SELECTION:
 
 	i.head += len("...")
 	goto SPREAD
+	/*</l_selection>*/
 
+	/*<l_spread>*/
 SPREAD:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -12891,7 +13652,8 @@ SPREAD:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head+1 >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -12899,12 +13661,20 @@ SPREAD:
 		goto COMMENT
 	} else if i.str[i.head] == '{' {
 		i.token, i.tail = TokenFragInline, -1
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.expect = ExpectSelSet
 		goto SELECTION_SET
 	} else if i.str[i.head] == '@' {
 		i.token, i.tail = TokenFragInline, -1
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
 		goto AFTER_DIR_NAME
 	} else if i.str[i.head+1] == 'n' &&
@@ -12927,7 +13697,9 @@ SPREAD:
 	}
 	// ...fragmentName
 	i.expect = ExpectSpreadName
-	// <name followed by spreadname>
+
+	/*<name>*/
+	// Followed by spreadname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -13022,15 +13794,23 @@ SPREAD:
 
 	// <ExpectSpreadName after name>
 	i.token = TokenNamedSpread
+	/*<callback>*/
+
 	fn(i)
+
+	/*</callback>*/
 	i.expect, dirOn = ExpectDirName, dirFragRef
 	goto AFTER_DIR_NAME
 	// </ExpectSpreadName after name>
 
-	// </name followed by spreadname>
+	/*</name>*/
 
+	/*</l_spread>*/
+
+	/*<l_after_decl_varname>*/
 AFTER_DECL_VAR_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -13110,7 +13890,8 @@ AFTER_DECL_VAR_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -13123,9 +13904,12 @@ AFTER_DECL_VAR_NAME:
 	i.head++
 	i.expect = ExpectVarType
 	goto VAR_TYPE
+	/*</l_after_decl_varname>*/
 
+	/*<l_var_type>*/
 VAR_TYPE:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -13205,7 +13989,8 @@ VAR_TYPE:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -13214,13 +13999,19 @@ VAR_TYPE:
 	} else if i.str[i.head] == '[' {
 		i.tail = -1
 		i.token = TokenVarTypeArr
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.head++
 		typeArrLvl++
 		goto VAR_TYPE
 	}
 	i.expect = ExpectVarType
-	// <name followed by vartype>
+
+	/*<name>*/
+	// Followed by vartype>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -13315,15 +14106,23 @@ VAR_TYPE:
 
 	// <ExpectVarType after name>
 	i.token = TokenVarTypeName
+	/*<callback>*/
+
 	fn(i)
+
+	/*</callback>*/
 	i.expect = ExpectAfterVarTypeName
 	goto AFTER_VAR_TYPE_NAME
 	// </ExpectVarType after name>
 
-	// </name followed by vartype>
+	/*</name>*/
 
+	/*</l_var_type>*/
+
+	/*<l_var_name>*/
 VAR_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -13403,14 +14202,17 @@ VAR_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	// <name followed by varname>
+
+	/*<name>*/
+	// Followed by varname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -13505,15 +14307,23 @@ VAR_NAME:
 
 	// <ExpectVarName after name>
 	i.token = TokenVarName
+	/*<callback>*/
+
 	fn(i)
+
+	/*</callback>*/
 	i.expect = ExpectColumnAfterVar
 	goto AFTER_DECL_VAR_NAME
 	// </ExpectVarName after name>
 
-	// </name followed by varname>
+	/*</name>*/
 
+	/*</l_var_name>*/
+
+	/*<l_var_ref>*/
 VAR_REF_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -13593,14 +14403,17 @@ VAR_REF_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	// <name followed by varrefname>
+
+	/*<name>*/
+	// Followed by varrefname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -13695,15 +14508,23 @@ VAR_REF_NAME:
 
 	// <ExpectVarRefName after name>
 	i.token = TokenVarRef
+	/*<callback>*/
+
 	fn(i)
+
+	/*</callback>*/
 	i.expect = ExpectAfterValue
 	goto AFTER_VALUE_COMMENT
 	// </ExpectVarRefName after name>
 
-	// </name followed by varrefname>
+	/*</name>*/
 
+	/*</l_var_ref>*/
+
+	/*<l_dir_name>*/
 DIR_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -13783,7 +14604,8 @@ DIR_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -13791,7 +14613,9 @@ DIR_NAME:
 		goto COMMENT
 	}
 	i.expect = ExpectDirName
-	// <name followed by dirname>
+
+	/*<name>*/
+	// Followed by dirname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -13886,14 +14710,22 @@ DIR_NAME:
 
 	// <ExpectDirName after name>
 	i.token = TokenDirName
+	/*<callback>*/
+
 	fn(i)
+
+	/*</callback>*/
 	goto AFTER_DIR_NAME
 	// </ExpectDirName after name>
 
-	// </name followed by dirname>
+	/*</name>*/
 
+	/*</l_dir_name>*/
+
+	/*<l_collumn_after_arg_name>*/
 COLUMN_AFTER_ARG_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -13973,7 +14805,8 @@ COLUMN_AFTER_ARG_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -13987,7 +14820,9 @@ COLUMN_AFTER_ARG_NAME:
 	i.stackReset()
 	i.expect = ExpectVal
 	goto VALUE
+	/*</l_collumn_after_arg_name>*/
 
+	/*<l_arg_list>*/
 ARG_LIST:
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
@@ -13995,7 +14830,9 @@ ARG_LIST:
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	// <name followed by argname>
+
+	/*<name>*/
+	// Followed by argname>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -14090,8 +14927,13 @@ ARG_LIST:
 
 	// <ExpectArgName after name>
 	i.token = TokenArgName
+	/*<callback>*/
+
 	fn(i)
-	// <skip irrelevant>
+
+	/*</callback>*/
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -14171,15 +15013,20 @@ ARG_LIST:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	i.expect = ExpectColumnAfterArg
 	goto COLUMN_AFTER_ARG_NAME
 	// </ExpectArgName after name>
 
-	// </name followed by argname>
+	/*</name>*/
 
+	/*</l_arg_list>*/
+
+	/*<l_after_var_type_name>*/
 AFTER_VAR_TYPE_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -14259,17 +15106,25 @@ AFTER_VAR_TYPE_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head < len(i.str) && i.str[i.head] == '!' {
 		i.tail = -1
 		i.token = TokenVarTypeNotNull
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.head++
 	}
 	goto AFTER_VAR_TYPE_NOT_NULL
+	/*</l_after_var_type_name>*/
 
+	/*<l_after_var_type_not_null>*/
 AFTER_VAR_TYPE_NOT_NULL:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -14349,7 +15204,8 @@ AFTER_VAR_TYPE_NOT_NULL:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -14362,11 +15218,15 @@ AFTER_VAR_TYPE_NOT_NULL:
 		}
 		i.tail = -1
 		i.token = TokenVarTypeArrEnd
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.head++
 		typeArrLvl--
 
-		// <skip irrelevant>
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -14446,11 +15306,16 @@ AFTER_VAR_TYPE_NOT_NULL:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
+
 		if i.head < len(i.str) && i.str[i.head] == '!' {
 			i.tail = -1
 			i.token = TokenVarTypeNotNull
+			/*<callback>*/
+
 			fn(i)
+
+			/*</callback>*/
 			i.head++
 		}
 
@@ -14460,9 +15325,12 @@ AFTER_VAR_TYPE_NOT_NULL:
 	}
 	i.expect = ExpectAfterVarType
 	goto AFTER_VAR_TYPE
+	/*</l_after_var_type_not_null>*/
 
+	/*<l_after_field_name>*/
 AFTER_FIELD_NAME:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -14542,7 +15410,8 @@ AFTER_FIELD_NAME:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -14553,9 +15422,14 @@ AFTER_FIELD_NAME:
 		// Argument list
 		i.tail = -1
 		i.token = TokenArgList
+		/*<callback>*/
+
 		fn(i)
+
+		/*</callback>*/
 		i.head++
-		// <skip irrelevant>
+
+		/*<skip_irrelevant>*/
 		for {
 			if i.head+7 >= len(i.str) {
 				for i.head < len(i.str) {
@@ -14635,7 +15509,8 @@ AFTER_FIELD_NAME:
 			}
 			i.head++
 		}
-		// </skip irrelevant>
+		/*</skip_irrelevant>*/
+
 		i.expect = ExpectArgName
 		goto ARG_LIST
 	case '{':
@@ -14652,9 +15527,12 @@ AFTER_FIELD_NAME:
 	}
 	i.expect = ExpectAfterSelection
 	goto AFTER_SELECTION
+	/*</l_after_field_name>*/
 
+	/*<l_frag_keyword_on>*/
 FRAG_KEYWORD_ON:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -14734,7 +15612,8 @@ FRAG_KEYWORD_ON:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head+1 >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -14750,7 +15629,8 @@ FRAG_KEYWORD_ON:
 	goto FRAG_TYPE_COND
 
 FRAG_TYPE_COND:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -14830,14 +15710,17 @@ FRAG_TYPE_COND:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	// <name followed by fragtypecond>
+
+	/*<name>*/
+	// Followed by fragtypecond>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -14932,8 +15815,13 @@ FRAG_TYPE_COND:
 
 	// <ExpectFragTypeCond after name>
 	i.token = TokenFragTypeCond
+	/*<callback>*/
+
 	fn(i)
-	// <skip irrelevant>
+
+	/*</callback>*/
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -15013,7 +15901,8 @@ FRAG_TYPE_COND:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
 		goto ERROR
@@ -15025,10 +15914,14 @@ FRAG_TYPE_COND:
 	goto SELECTION_SET
 	// </ExpectFragTypeCond after name>
 
-	// </name followed by fragtypecond>
+	/*</name>*/
 
+	/*</l_frag_keyword_on>*/
+
+	/*<l_frag_inlined>*/
 FRAG_INLINED:
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -15108,14 +16001,17 @@ FRAG_INLINED:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	} else if i.str[i.head] == '#' {
 		goto COMMENT
 	}
-	// <name followed by fraginlined>
+
+	/*<name>*/
+	// Followed by fraginlined>
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
@@ -15210,13 +16106,20 @@ FRAG_INLINED:
 
 	// <ExpectFragInlined after name>
 	i.token = TokenFragInline
+	/*<callback>*/
+
 	fn(i)
+
+	/*</callback>*/
 	i.expect, dirOn = ExpectDirName, dirFragInlineOrDef
 	goto AFTER_DIR_NAME
 	// </ExpectFragInlined after name>
 
-	// </name followed by fraginlined>
+	/*</name>*/
 
+	/*</l_frag_inlined>*/
+
+	/*<l_comment>*/
 COMMENT:
 	i.head++
 	for {
@@ -15269,7 +16172,8 @@ COMMENT:
 		}
 	}
 	i.tail = -1
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -15349,7 +16253,8 @@ COMMENT:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	switch i.expect {
 	case ExpectVarRefName:
 		goto VAR_REF_NAME
@@ -15402,11 +16307,14 @@ COMMENT:
 	case ExpectAfterVarTypeName:
 		goto AFTER_VAR_TYPE_NAME
 	}
+	/*</l_comment>*/
 
+	/*<l_definition_end>*/
 DEFINITION_END:
 	i.levelSel, i.expect = 0, ExpectDef
 	// Expect end of file
-	// <skip irrelevant>
+
+	/*<skip_irrelevant>*/
 	for {
 		if i.head+7 >= len(i.str) {
 			for i.head < len(i.str) {
@@ -15486,12 +16394,15 @@ DEFINITION_END:
 		}
 		i.head++
 	}
-	// </skip irrelevant>
+	/*</skip_irrelevant>*/
+
 	if i.head < len(i.str) {
 		goto DEFINITION
 	}
 	return Error{}
+	/*</l_definition_end>*/
 
+	/*<l_error>*/
 ERROR:
 	{
 		var atIndex rune
@@ -15505,6 +16416,10 @@ ERROR:
 			Expectation: i.expect,
 		}
 	}
+	/*</l_error>*/
+
+	/*</scan_body>*/
+
 }
 
 // Iterator is a GraphQL iterator for lexical analysis.

@@ -1,0 +1,13 @@
+ERROR:
+{
+	var atIndex rune
+	if i.head < len(i.str) {
+		atIndex, _ = utf8.DecodeRune(i.str[i.head:])
+	}
+	return Error{
+		Index:       i.head,
+		AtIndex:     atIndex,
+		Code:        i.errc,
+		Expectation: i.expect,
+	}
+}

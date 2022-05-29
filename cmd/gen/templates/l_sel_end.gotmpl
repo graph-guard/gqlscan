@@ -1,0 +1,11 @@
+SEL_END:
+i.tail = -1
+i.token = TokenSetEnd
+{{- template "callback" . -}}
+i.levelSel--
+i.head++
+{{ template "skip_irrelevant" }}
+if i.levelSel < 1 {
+	goto DEFINITION_END
+}
+goto AFTER_SELECTION

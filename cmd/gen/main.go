@@ -2,31 +2,23 @@ package main
 
 import (
 	"bytes"
+	"embed"
 	_ "embed"
 	"flag"
+	"fmt"
 	"go/format"
 	"io/fs"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
 )
 
-//go:embed gqlscan.gotmpl
-var tmplGqlscan string
-
-//go:embed scan_body.gotmpl
-var tmplScanBody string
-
-//go:embed callback.gotmpl
-var tmplCallback string
-
-//go:embed skip_irrelevant.gotmpl
-var tmplSkipIrrelevant string
-
-//go:embed name.gotmpl
-var tmplName string
+//go:embed templates
+var tmpls embed.FS
 
 func main() {
 	var fOutPath string
@@ -48,23 +40,42 @@ func main() {
 	}
 	defer fl.Close()
 
-	t, err := template.New("gqlscan").
-		Funcs(sprig.TxtFuncMap()).
-		Parse(tmplGqlscan)
-	if err != nil {
-		log.Fatalf("parsing main template: %v", err)
-	}
-	for _, r := range []struct {
-		Name, Source string
-	}{
-		{"skip_irrelevant", tmplSkipIrrelevant},
-		{"scan_body", tmplScanBody},
-		{"callback", tmplCallback},
-		{"name", tmplName},
-	} {
-		if _, err := t.New(r.Name).Parse(r.Source); err != nil {
-			log.Fatalf("parsing template %q: %v", r.Name, err)
-		}
+	t := template.New("").Funcs(sprig.TxtFuncMap())
+	if err := fs.WalkDir(
+		tmpls,
+		".",
+		func(path string, d fs.DirEntry, err error) error {
+			if err != nil {
+				return err
+			}
+			fileName := filepath.Base(path)
+			if !strings.HasSuffix(fileName, ".gotmpl") {
+				return nil
+			}
+			name := fileName[:len(fileName)-len(".gotmpl")]
+
+			c, err := fs.ReadFile(tmpls, path)
+			if err != nil {
+				return fmt.Errorf("reading template (%s): %w", path, err)
+			}
+
+			if name != "gqlscan" {
+				c = append([]byte(fmt.Sprintf("\n/*<%s>*/\n", name)), c...)
+				if c[len(c)-1] != '\n' {
+					c = append(c, '\n')
+				}
+				c = append(c, []byte(fmt.Sprintf("/*</%s>*/\n", name))...)
+			}
+
+			if _, err := t.New(name).
+				Funcs(sprig.TxtFuncMap()).
+				Parse(string(c)); err != nil {
+				return fmt.Errorf("parsing template (%s): %w", path, err)
+			}
+			return nil
+		},
+	); err != nil {
+		log.Fatalf("walking templates: %v", err)
 	}
 
 	var buf bytes.Buffer

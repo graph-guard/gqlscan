@@ -1,0 +1,86 @@
+i := iteratorPool.Get().(*Iterator)
+i.stackReset()
+i.expect = ExpectDef
+i.tail, i.head = -1, 0
+i.str = str
+i.levelSel = 0
+i.errc = 0
+defer iteratorPool.Put(i)
+
+// inDefVal triggers different expectations after values
+// when the iterator is in a variable default value definition.
+var inDefVal bool
+var typeArrLvl int
+var dirOn dirTarget
+
+{{ template "skip_irrelevant" }}
+
+if i.head >= len(i.str) {
+	i.errc = ErrUnexpEOF
+	i.expect = ExpectDef
+	goto ERROR
+}
+
+{{ template "l_definition" . }}
+
+{{ template "l_after_def_keyword" . }}
+
+{{ template "l_after_dir_name" . }}
+
+{{ template "l_after_dir_args" . }}
+
+{{ template "l_after_keyword_fragment" . }}
+
+{{ template "l_opr_var" . }}
+
+{{ template "l_after_var_type" . }}
+
+{{ template "l_var_list_end" . }}
+
+{{ template "l_selection_set" . }}
+
+{{ template "l_after_selection" . }}
+
+{{ template "l_sel_end" . }}
+
+{{ template "l_value" . }}
+
+{{ template "l_block_string" . }}
+
+{{ template "l_after_value_comment" . }}
+
+{{ template "l_after_arg_list" . }}
+
+{{ template "l_selection" . }}
+
+{{ template "l_spread" . }}
+
+{{ template "l_after_decl_varname" . }}
+
+{{ template "l_var_type" . }}
+
+{{ template "l_var_name" . }}
+
+{{ template "l_var_ref" . }}
+
+{{ template "l_dir_name" . }}
+
+{{ template "l_collumn_after_arg_name" . }}
+
+{{ template "l_arg_list" . }}
+
+{{ template "l_after_var_type_name" . }}
+
+{{ template "l_after_var_type_not_null" . }}
+
+{{ template "l_after_field_name" . }}
+
+{{ template "l_frag_keyword_on" . }}
+
+{{ template "l_frag_inlined" . }}
+
+{{ template "l_comment" . }}
+
+{{ template "l_definition_end" . }}
+
+{{ template "l_error" . }}

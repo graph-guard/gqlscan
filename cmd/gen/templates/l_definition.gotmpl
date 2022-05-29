@@ -1,0 +1,45 @@
+DEFINITION:
+if i.head >= len(i.str) {
+	goto DEFINITION_END
+} else if i.str[i.head] == '#' {
+	i.expect = ExpectDef
+	goto COMMENT
+} else if i.str[i.head] == '{' {
+	i.token = TokenDefQry
+	{{- template "callback" . -}}
+	i.expect = ExpectSelSet
+	goto SELECTION_SET
+} else if i.isHeadKeywordQuery() {
+	// Query
+	i.token = TokenDefQry
+	{{- template "callback" . -}}
+	i.head += len("query")
+	i.expect = ExpectAfterDefKeyword
+	goto AFTER_DEF_KEYWORD
+} else if i.isHeadKeywordMutation() {
+	// Mutation
+	i.token = TokenDefMut
+	{{- template "callback" . -}}
+	i.head += len("mutation")
+	i.expect = ExpectAfterDefKeyword
+	goto AFTER_DEF_KEYWORD
+} else if i.isHeadKeywordSubscription() {
+	// Subscription
+	i.token = TokenDefSub
+	{{- template "callback" . -}}
+	i.head += len("subscription")
+	i.expect = ExpectAfterDefKeyword
+	goto AFTER_DEF_KEYWORD
+} else if i.isHeadKeywordFragment() {
+	// Fragment
+	i.tail = -1
+	i.token = TokenDefFrag
+	{{- template "callback" . -}}
+	i.head += len("fragment")
+	i.expect = ExpectFragName
+	goto AFTER_KEYWORD_FRAGMENT
+}
+
+i.errc = ErrUnexpToken
+i.expect = ExpectDef
+goto ERROR

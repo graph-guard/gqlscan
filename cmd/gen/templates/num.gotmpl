@@ -1,0 +1,143 @@
+// Number
+i.tail = i.head
+
+var s int
+
+switch i.str[i.head] {
+case '-':
+	// Signed
+	i.head++
+	if i.head >= len(i.str) {
+		// Expected at least one digit
+		i.errc = ErrUnexpEOF
+		i.expect = ExpectVal
+		goto ERROR
+	}
+case '0':
+	// Leading zero
+	i.head++
+	if len(i.str) > i.head {
+		if i.str[i.head] == '.' {
+			i.head++
+			goto FRACTION
+		} else if i.str[i.head] == 'e' || i.str[i.head] == 'E' {
+			i.head++
+			goto EXPONENT_SIGN
+		} else if i.isHeadNumEnd() {
+			i.token = TokenInt
+			goto ON_NUM_VAL
+		} else {
+			i.errc = ErrInvalNum
+			i.expect = ExpectVal
+			goto ERROR
+		}
+	}
+}
+
+// Integer
+for s = i.head; i.head < len(i.str); i.head++ {
+	if i.isHeadDigit() {
+		continue
+	} else if i.str[i.head] == '.' {
+		i.head++
+		goto FRACTION
+	} else if i.isHeadNumEnd() {
+		if i.head == s {
+			// Expected at least one digit
+			i.errc = ErrInvalNum
+			i.expect = ExpectVal
+			goto ERROR
+		}
+		// Integer
+		i.token = TokenInt
+		goto ON_NUM_VAL
+	} else if i.str[i.head] == 'e' || i.str[i.head] == 'E' {
+		i.head++
+		goto EXPONENT_SIGN
+	}
+
+	// Unexpected rune
+	i.errc = ErrInvalNum
+	i.expect = ExpectVal
+	goto ERROR
+}
+
+if i.head >= len(i.str) {
+	// Integer without exponent
+	i.token = TokenInt
+	goto ON_NUM_VAL
+}
+// Continue to fraction
+
+FRACTION:
+_ = 0 // Make code coverage count the label above
+for s = i.head; i.head < len(i.str); i.head++ {
+	if i.isHeadDigit() {
+		continue
+	} else if i.isHeadNumEnd() {
+		if i.head == s {
+			// Expected at least one digit
+			i.errc = ErrInvalNum
+			i.expect = ExpectVal
+			goto ERROR
+		}
+		// Number with fraction
+		i.token = TokenFloat
+		goto ON_NUM_VAL
+	} else if i.str[i.head] == 'e' || i.str[i.head] == 'E' {
+		i.head++
+		goto EXPONENT_SIGN
+	}
+
+	// Unexpected rune
+	i.errc = ErrInvalNum
+	i.expect = ExpectVal
+	goto ERROR
+}
+if s == i.head {
+	// Unexpected end of number
+	i.errc = ErrUnexpEOF
+	i.expect = ExpectVal
+	goto ERROR
+}
+
+if i.head >= len(i.str) {
+	// Number (with fraction but) without exponent
+	i.token = TokenFloat
+	goto ON_NUM_VAL
+}
+
+EXPONENT_SIGN:
+if i.head >= len(i.str) {
+	// Missing exponent value
+	i.errc = ErrUnexpEOF
+	i.expect = ExpectVal
+	goto ERROR
+}
+if i.str[i.head] == '-' || i.str[i.head] == '+' {
+	i.head++
+}
+for s = i.head; i.head < len(i.str); i.head++ {
+	if i.isHeadDigit() {
+		continue
+	} else if i.isHeadNumEnd() {
+		if i.head == s {
+			// Expected at least one digit
+			i.errc = ErrInvalNum
+			i.expect = ExpectVal
+			goto ERROR
+		}
+		// Number with (fraction and) exponent
+		i.token = TokenFloat
+		goto ON_NUM_VAL
+	}
+	break
+}
+// Unexpected rune
+i.errc = ErrInvalNum
+i.expect = ExpectVal
+goto ERROR
+
+ON_NUM_VAL:
+// Callback for argument
+{{- template "callback" . -}}

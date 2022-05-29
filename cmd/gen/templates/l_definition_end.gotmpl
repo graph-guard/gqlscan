@@ -1,0 +1,8 @@
+DEFINITION_END:
+i.levelSel, i.expect = 0, ExpectDef
+// Expect end of file
+{{ template "skip_irrelevant" }}
+if i.head < len(i.str) {
+	goto DEFINITION
+}
+return Error{}

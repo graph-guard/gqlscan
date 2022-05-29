@@ -1,0 +1,31 @@
+AFTER_FIELD_NAME:
+{{ template "skip_irrelevant" }}
+if i.head >= len(i.str) {
+	i.errc = ErrUnexpEOF
+	goto ERROR
+}
+// Lookahead
+switch i.str[i.head] {
+case '(':
+	// Argument list
+	i.tail = -1
+	i.token = TokenArgList
+	{{- template "callback" . -}}
+	i.head++
+	{{ template "skip_irrelevant" }}
+	i.expect = ExpectArgName
+	goto ARG_LIST
+case '{':
+	// Field selector expands without arguments
+	i.expect = ExpectSelSet
+	goto SELECTION_SET
+case '#':
+	i.expect = ExpectAfterFieldName
+	goto COMMENT
+case '@':
+	i.head++
+	dirOn, i.expect = dirField, ExpectDir
+	goto DIR_NAME
+}
+i.expect = ExpectAfterSelection
+goto AFTER_SELECTION

@@ -1,0 +1,15 @@
+COLUMN_AFTER_ARG_NAME:
+{{ template "skip_irrelevant" }}
+if i.head >= len(i.str) {
+	i.errc = ErrUnexpEOF
+	goto ERROR
+} else if i.str[i.head] == '#' {
+	goto COMMENT
+} else if i.str[i.head] != ':' {
+	i.errc = ErrUnexpToken
+	goto ERROR
+}
+i.head++
+i.stackReset()
+i.expect = ExpectVal
+goto VALUE

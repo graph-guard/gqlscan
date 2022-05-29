@@ -1,0 +1,19 @@
+VAR_LIST_END:
+i.tail = -1
+i.token = TokenVarListEnd
+{{- template "callback" . -}}
+i.head++
+{{ template "skip_irrelevant" }}
+i.expect = ExpectSelSet
+if i.head >= len(i.str) {
+	i.errc = ErrUnexpEOF
+	goto ERROR
+} else if i.str[i.head] == '#' {
+	dirOn, i.expect = dirOpr, ExpectDirName
+	goto AFTER_DIR_NAME
+} else if i.str[i.head] == '@' {
+	i.head++
+	dirOn, i.expect = dirOpr, ExpectDir
+	goto DIR_NAME
+}
+goto SELECTION_SET

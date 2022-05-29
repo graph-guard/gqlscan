@@ -1,0 +1,37 @@
+SELECTION:
+{{ template "skip_irrelevant" }}
+if i.head >= len(i.str) {
+	i.errc = ErrUnexpEOF
+	i.expect = ExpectSel
+	goto ERROR
+} else if i.str[i.head] == '#' {
+	i.expect = ExpectSel
+	goto COMMENT
+} else if i.str[i.head] != '.' {
+	// Field selection
+	i.expect = ExpectFieldNameOrAlias
+	{{ template "name" set . "aftername" "fieldnameoralias"}}
+}
+
+i.expect = ExpectFrag
+if i.head+2 >= len(i.str) {
+	i.errc = ErrUnexpEOF
+	if i.head+1 >= len(i.str) {
+		i.head++
+	} else {
+		i.head += 2
+	}
+	goto ERROR
+} else if i.str[i.head+2] != '.' ||
+	i.str[i.head+1] != '.' {
+	i.errc = ErrUnexpToken
+	if i.str[i.head+1] != '.' {
+		i.head += 1
+	} else if i.str[i.head+2] != '.' {
+		i.head += 2
+	}
+	goto ERROR
+}
+
+i.head += len("...")
+goto SPREAD

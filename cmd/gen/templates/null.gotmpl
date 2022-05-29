@@ -1,0 +1,26 @@
+if i.head+4 < len(i.str) &&
+	i.str[i.head+3] == 'l' &&
+	i.str[i.head+2] == 'l' &&
+	i.str[i.head+1] == 'u' &&
+	i.str[i.head] == 'n' &&
+	(i.str[i.head+4] == ' ' ||
+		i.str[i.head+4] == '\t' ||
+		i.str[i.head+4] == '\r' ||
+		i.str[i.head+4] == '\n' ||
+		i.str[i.head+4] == ',' ||
+		i.str[i.head+4] == ')' ||
+		i.str[i.head+4] == '}' ||
+		i.str[i.head+4] == '{' ||
+		i.str[i.head+4] == ']' ||
+		i.str[i.head+4] == '[' ||
+		i.str[i.head+4] == '#') {
+	i.tail = -1
+	i.head += len("null")
+
+	// Callback for null value
+	i.token = TokenNull
+	{{- template "callback" . -}}
+} else {
+	i.expect = ExpectValEnum
+	{{ template "name" set . "aftername" "valenum" }}
+}

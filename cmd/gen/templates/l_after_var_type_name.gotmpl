@@ -1,0 +1,9 @@
+AFTER_VAR_TYPE_NAME:
+{{ template "skip_irrelevant" }}
+if i.head < len(i.str) && i.str[i.head] == '!' {
+	i.tail = -1
+	i.token = TokenVarTypeNotNull
+	{{- template "callback" . -}}
+	i.head++
+}
+goto AFTER_VAR_TYPE_NOT_NULL

@@ -1,0 +1,8 @@
+ARG_LIST:
+if i.head >= len(i.str) {
+	i.errc = ErrUnexpEOF
+	goto ERROR
+} else if i.str[i.head] == '#' {
+	goto COMMENT
+}
+{{ template "name" set . "aftername" "argname" }}

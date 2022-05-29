@@ -1,0 +1,74 @@
+AFTER_VALUE_COMMENT:
+{{ template "skip_irrelevant" }}
+if i.head >= len(i.str) {
+	i.errc = ErrUnexpEOF
+	goto ERROR
+} else if i.str[i.head] == '#' {
+	goto COMMENT
+}
+if t := i.stackTop(); t == TokenObj {
+	if i.str[i.head] == '}' {
+		i.tail = -1
+		i.stackPop()
+
+		// Callback for end of object
+		i.token = TokenObjEnd
+		{{- template "callback" . -}}
+
+		i.head++
+		{{ template "skip_irrelevant" }}
+		if i.stackLen() > 0 {
+			i.expect = ExpectAfterValue
+			goto AFTER_VALUE_COMMENT
+		}
+	} else {
+		// Proceed to next field in the object
+		i.expect = ExpectObjFieldName
+		{{ template "name" set . "aftername" "objfieldname" }}
+	}
+} else if t == TokenArr {
+	if i.str[i.head] == ']' {
+		i.tail = -1
+		i.stackPop()
+
+		// Callback for end of array
+		i.token = TokenArrEnd
+		{{- template "callback" . -}}
+		i.head++
+		{{ template "skip_irrelevant" }}
+		if i.stackLen() > 0 {
+			i.expect = ExpectAfterValue
+			goto AFTER_VALUE_COMMENT
+		}
+	} else {
+		// Proceed to next value in the array
+		goto VALUE
+	}
+}
+
+if inDefVal {
+	inDefVal = false
+	if i.str[i.head] == ')' {
+		goto VAR_LIST_END
+	} else if i.str[i.head] == '@' {
+		i.head++
+		dirOn, i.expect = dirVar, ExpectDir
+		goto DIR_NAME
+	}
+	i.expect = ExpectVar
+	goto OPR_VAR
+}
+
+if i.str[i.head] == ')' {
+	// End of argument list
+	i.tail = -1
+	i.token = TokenArgListEnd
+	{{- template "callback" . -}}
+	i.head++
+	i.expect = ExpectAfterArgList
+	goto AFTER_ARG_LIST
+}
+
+// Proceed to the next argument
+i.expect = ExpectArgName
+{{ template "name" set . "aftername" "argname" }}

@@ -1,0 +1,105 @@
+COMMENT:
+i.head++
+for {
+	if i.head+7 >= len(i.str) {
+		for ; i.head < len(i.str) && i.str[i.head] != '\n'; i.head++ {
+		}
+		break
+	}
+	if i.str[i.head] != '\n' &&
+		i.str[i.head+1] != '\n' &&
+		i.str[i.head+2] != '\n' &&
+		i.str[i.head+3] != '\n' &&
+		i.str[i.head+4] != '\n' &&
+		i.str[i.head+5] != '\n' &&
+		i.str[i.head+6] != '\n' &&
+		i.str[i.head+7] != '\n' {
+		i.head += 8
+		continue
+	}
+	if i.str[i.head] == '\n' {
+		break
+	}
+	i.head++
+	if i.str[i.head] == '\n' {
+		break
+	}
+	i.head++
+	if i.str[i.head] == '\n' {
+		break
+	}
+	i.head++
+	if i.str[i.head] == '\n' {
+		break
+	}
+	i.head++
+	if i.str[i.head] == '\n' {
+		break
+	}
+	i.head++
+	if i.str[i.head] == '\n' {
+		break
+	}
+	i.head++
+	if i.str[i.head] == '\n' {
+		break
+	}
+	i.head++
+	if i.str[i.head] == '\n' {
+		break
+	}
+}
+i.tail = -1
+{{ template "skip_irrelevant" }}
+switch i.expect {
+case ExpectVarRefName:
+	goto VAR_REF_NAME
+case ExpectVarName:
+	goto VAR_NAME
+case ExpectDef:
+	goto DEFINITION
+case ExpectDir:
+	goto DIR_NAME
+case ExpectDirName:
+	goto AFTER_DIR_NAME
+case ExpectSelSet:
+	goto SELECTION_SET
+case ExpectSel:
+	goto SELECTION
+case ExpectAfterSelection:
+	goto AFTER_SELECTION
+case ExpectVar:
+	goto OPR_VAR
+case ExpectArgName:
+	goto ARG_LIST
+case ExpectColumnAfterArg:
+	goto COLUMN_AFTER_ARG_NAME
+case ExpectVal:
+	goto VALUE
+case ExpectAfterFieldName:
+	goto AFTER_FIELD_NAME
+case ExpectAfterValue:
+	goto AFTER_VALUE_COMMENT
+case ExpectAfterArgList:
+	goto AFTER_ARG_LIST
+case ExpectAfterDefKeyword:
+	goto AFTER_DEF_KEYWORD
+case ExpectFragName:
+	goto AFTER_KEYWORD_FRAGMENT
+case ExpectFragKeywordOn:
+	goto FRAG_KEYWORD_ON
+case ExpectFragInlined:
+	goto FRAG_INLINED
+case ExpectFragTypeCond:
+	goto FRAG_TYPE_COND
+case ExpectFrag:
+	goto SPREAD
+case ExpectColumnAfterVar:
+	goto AFTER_DECL_VAR_NAME
+case ExpectVarType:
+	goto VAR_TYPE
+case ExpectAfterVarType:
+	goto AFTER_VAR_TYPE
+case ExpectAfterVarTypeName:
+	goto AFTER_VAR_TYPE_NAME
+}
