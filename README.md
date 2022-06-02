@@ -41,23 +41,27 @@ go run cmd/bench/main.go -i cmd/bench/inputs
 
 Single core:
 ```console
-gathered 2 input file(s):
- cmd/bench/inputs/big.graphql: 1.8 kB
- cmd/bench/inputs/small.graphql: 28 B
+gathered 4 input file(s):
+ inputs/complex.graphql: 2.2 kB
+ inputs/longstr.graphql: 3.8 kB
+ inputs/longstr_blk.graphql: 4.4 kB
+ inputs/small.graphql: 28 B
 running 1 parallel goroutine(s) for 1m0s
-finished (1m0.0000245s)
-total processed: 45 GB (753 MB/s; 5.61 gbit/s)
+finished (1m0.000025417s)
+total processed: 72 GB (1.2 GB/s; 8.96 gbit/s)
 total errors: 0
 ```
 
 Multicore:
 ```console
-gathered 2 input file(s):
- cmd/bench/inputs/big.graphql: 1.8 kB
- cmd/bench/inputs/small.graphql: 28 B
+gathered 4 input file(s):
+ inputs/complex.graphql: 2.2 kB
+ inputs/longstr.graphql: 3.8 kB
+ inputs/longstr_blk.graphql: 4.4 kB
+ inputs/small.graphql: 28 B
 running 10 parallel goroutine(s) for 1m0s
-finished (1m0.000032583s)
-total processed: 345 GB (5.8 GB/s; 42.86 gbit/s)
+finished (1m0.000055208s)
+total processed: 593 GB (9.9 GB/s; 73.66 gbit/s)
 total errors: 0
 ```
 
@@ -75,9 +79,9 @@ goarch: arm64
 pkg: github.com/graph-guard/gqlscan
 BenchmarkScanAll
 BenchmarkScanAll/gqlscan_test.go:29
-BenchmarkScanAll/gqlscan_test.go:29-10         	210567658	        28.62 ns/op	       0 B/op	       0 allocs/op
-BenchmarkScanAll/gqlscan_test.go:212
-BenchmarkScanAll/gqlscan_test.go:212-10        	 2415644	      2479 ns/op	       0 B/op	       0 allocs/op
+BenchmarkScanAll/gqlscan_test.go:29-10         	370445240	        32.39 ns/op	       0 B/op	       0 allocs/op
+BenchmarkScanAll/gqlscan_test.go:263
+BenchmarkScanAll/gqlscan_test.go:263-10        	 5368155	      2236 ns/o       0 B/op	       0 allocs/op
 PASS
-ok  	github.com/graph-guard/gqlscan	17.708s
+ok  	github.com/graph-guard/gqlscan	29.850s
 ```

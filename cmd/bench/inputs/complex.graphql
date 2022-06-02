@@ -1,7 +1,10 @@
-query Q(
+# Q is a named query operation
+query Q
+(
     $variable: Foo,
-    $ v: [ [ Bar ] ] = [[{f:0}] null [null]]
-) {
+    $ v: [ [ Bar ] ] = [[{f:0}] null [null]] # Variable with default value
+) # Variable declaration list
+{
     foo_alias: foo(x: null) {
         foobar_alias: foo_bar
     }
@@ -12,25 +15,28 @@ query Q(
                 baz_fuzz_taz_A
                 ...namedFragment1
                 ... namedFragment2
-            }
+            } # Inlined fragment
             ... on B {
                 baz_fuzz_taz_B
-            }
-            baz_fuzz_taz1(bool: false)
-            baz_fuzz_taz2(bool: true)
-            baz_fuzz_taz3(string: "okay")
-            baz_fuzz_taz4(array: [])
-            baz_fuzz_taz5(variable: $variable)
-            baz_fuzz_taz6(variable: $v)
+            } # Inlined fragment
+            baz_fuzz_taz1(bool: false) # Boolean argument
+            baz_fuzz_taz2(bool: true) # Boolean argument
+            baz_fuzz_taz3(string: "okay") # String argument
+            baz_fuzz_taz4(array: []) # Array argument
+            baz_fuzz_taz5(variable: $variable) # Variable
+            baz_fuzz_taz6(variable: $v) # Variable
             baz_fuzz_taz7(object: {
                 number0: 0
                 number1: 2
                 number2: 123456789.1234e2
+                number3: -123
                 arr0: [[] [{x:null}]]
-            })
+            }) # Input object argument
         }
     }
 }
+
+# M is a named mutation operation
 mutation M($variable: Foo={f:2}, $v: [ [ Bar ] ]) {
     foo(x: null) {
         foo_bar
@@ -62,12 +68,18 @@ mutation M($variable: Foo={f:2}, $v: [ [ Bar ] ]) {
     }
 }
 fragment f1 on Query { todos { ...f2 } }
+
+# Todos is a named query operation
 query Todos { ...f1 }
+
+# f2 is a fragment for Todo
 fragment f2 on Todo { id text(
     foo: 2,
     bar: "ok",
     baz: null,
 ) done }
+
+# S is a named subscription operation
 subscription S($v:Input!){
     sub(i: $v) {f}
 }
