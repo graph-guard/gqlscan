@@ -75,10 +75,8 @@ for {
 		}
 		i.head++
 	}
-	if i.head >= len(i.str) {
-		i.errc = ErrUnexpEOF
-		goto ERROR
-	} else if i.str[i.head] == '\\' &&
+	{{ template "check_eof" }}
+	if i.str[i.head] == '\\' &&
 		i.str[i.head+3] == '"' &&
 		i.str[i.head+2] == '"' &&
 		i.str[i.head+1] == '"' {

@@ -5,10 +5,8 @@ i.token = TokenVarListEnd
 i.head++
 {{ template "skip_irrelevant" }}
 i.expect = ExpectSelSet
-if i.head >= len(i.str) {
-	i.errc = ErrUnexpEOF
-	goto ERROR
-} else if i.str[i.head] == '#' {
+{{ template "check_eof" }}
+if i.str[i.head] == '#' {
 	dirOn, i.expect = dirOpr, ExpectDirName
 	goto AFTER_DIR_NAME
 } else if i.str[i.head] == '@' {

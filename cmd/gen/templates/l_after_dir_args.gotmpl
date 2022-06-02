@@ -2,10 +2,7 @@ AFTER_DIR_ARGS:
 {{ template "skip_irrelevant" }}
 switch dirOn {
 case dirField:
-	if i.head >= len(i.str) {
-		i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
-		goto ERROR
-	}
+	{{ template "check_eof" set . "expect" "ExpectAfterFieldName" }}
 	switch i.str[i.head] {
 	case '#':
 		goto COMMENT
@@ -21,10 +18,7 @@ case dirField:
 		goto AFTER_SELECTION
 	}
 case dirOpr:
-	if i.head >= len(i.str) {
-		i.errc, i.expect = ErrUnexpEOF, ExpectAfterDefKeyword
-		goto ERROR
-	}
+	{{ template "check_eof" set . "expect" "ExpectAfterDefKeyword" }}
 	switch i.str[i.head] {
 	case '#':
 		goto COMMENT
@@ -38,10 +32,7 @@ case dirOpr:
 	}
 case dirVar:
 	{{ template "skip_irrelevant" }}
-	if i.head >= len(i.str) {
-		i.errc, i.expect = ErrUnexpEOF, ExpectAfterVarType
-		goto ERROR
-	}
+	{{ template "check_eof" set . "expect" "ExpectAfterVarType" }}
 	switch i.str[i.head] {
 	case '#':
 		goto COMMENT
@@ -54,10 +45,7 @@ case dirVar:
 		goto OPR_VAR
 	}
 case dirFragRef:
-	if i.head >= len(i.str) {
-		i.errc, i.expect = ErrUnexpEOF, ExpectAfterSelection
-		goto ERROR
-	}
+	{{ template "check_eof" set . "expect" "ExpectAfterSelection" }}
 	switch i.str[i.head] {
 	case '#':
 		goto COMMENT
@@ -70,10 +58,7 @@ case dirFragRef:
 		goto AFTER_SELECTION
 	}
 case dirFragInlineOrDef:
-	if i.head >= len(i.str) {
-		i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
-		goto ERROR
-	}
+	{{ template "check_eof" set . "expect" "ExpectSelSet" }}
 	switch i.str[i.head] {
 	case '#':
 		goto COMMENT

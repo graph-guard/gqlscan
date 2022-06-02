@@ -1,9 +1,6 @@
 AFTER_FIELD_NAME:
 {{ template "skip_irrelevant" }}
-if i.head >= len(i.str) {
-	i.errc = ErrUnexpEOF
-	goto ERROR
-}
+{{ template "check_eof" }}
 // Lookahead
 switch i.str[i.head] {
 case '(':

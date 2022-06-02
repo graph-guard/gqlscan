@@ -1,9 +1,6 @@
 AFTER_VALUE_OUTER:
 
-if i.head >= len(i.str) {
-	i.errc = ErrUnexpEOF
-	goto ERROR
-}
+{{ template "check_eof" }}
 
 if inDefVal {
 	switch i.str[i.head] {

@@ -1,8 +1,5 @@
 // Followed by {{ get . "aftername" }}>
-if i.head >= len(i.str) {
-	i.errc = ErrUnexpEOF
-	goto ERROR
-}
+{{ template "check_eof" }}
 i.tail = i.head
 if i.str[i.head] != '_' &&
 	(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -105,10 +102,8 @@ goto AFTER_VALUE_INNER
 // <ExpectFieldNameOrAlias after name>
 head := i.head
 {{ template "skip_irrelevant" }}
-if i.head >= len(i.str) {
-	i.errc = ErrUnexpEOF
-	goto ERROR
-} else if i.str[i.head] == ':' {
+{{ template "check_eof" }}
+if i.str[i.head] == ':' {
 	h2 := i.head
 	i.head = head
 	i.token = TokenFieldAlias
@@ -158,11 +153,8 @@ i.token = TokenObjField
 {{- template "callback" . -}}
 
 {{ template "skip_irrelevant" }}
-if i.head >= len(i.str) {
-	i.errc = ErrUnexpEOF
-	i.expect = ExpectColObjFieldName
-	goto ERROR
-} else if i.str[i.head] != ':' {
+{{ template "check_eof" set . "expect" "ExpectColObjFieldName" }}
+if i.str[i.head] != ':' {
 	i.errc = ErrUnexpToken
 	i.expect = ExpectColObjFieldName
 	goto ERROR
@@ -249,10 +241,8 @@ i.token = TokenFragTypeCond
 {{- template "callback" . -}}
 
 {{ template "skip_irrelevant" }}
-if i.head >= len(i.str) {
-	i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
-	goto ERROR
-} else if i.str[i.head] == '@' {
+{{ template "check_eof" set . "expect" "ExpectSelSet" }}
+if i.str[i.head] == '@' {
 	dirOn = dirFragInlineOrDef
 	goto AFTER_DIR_NAME
 }

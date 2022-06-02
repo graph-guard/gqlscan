@@ -1,10 +1,6 @@
 AFTER_OPR_NAME:
 {{ template "skip_irrelevant" }}
-if i.head >= len(i.str) {
-	i.expect = ExpectSelSet
-	i.errc = ErrUnexpEOF
-	goto ERROR
-}
+{{ template "check_eof" set . "expect" "ExpectSelSet" }}
 switch i.str[i.head] {
 case '#':
 	goto COMMENT

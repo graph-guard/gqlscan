@@ -1,0 +1,8 @@
+if i.head >= len(i.str) {
+    {{- if not (eq "" (get . "expect")) -}}
+    i.errc, i.expect = ErrUnexpEOF, {{ get . "expect" }}
+    {{ else }}
+	i.errc = ErrUnexpEOF
+    {{ end -}}
+	goto ERROR
+}

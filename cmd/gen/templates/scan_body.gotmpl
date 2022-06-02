@@ -15,11 +15,7 @@ var dirOn dirTarget
 
 {{ template "skip_irrelevant" }}
 
-if i.head >= len(i.str) {
-	i.errc = ErrUnexpEOF
-	i.expect = ExpectDef
-	goto ERROR
-}
+{{ template "check_eof" set . "expect" "ExpectDef" }}
 
 {{ template "l_definition" . }}
 

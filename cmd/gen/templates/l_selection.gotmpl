@@ -1,10 +1,7 @@
 SELECTION:
 {{ template "skip_irrelevant" }}
-if i.head >= len(i.str) {
-	i.errc = ErrUnexpEOF
-	i.expect = ExpectSel
-	goto ERROR
-} else if i.str[i.head] == '#' {
+{{ template "check_eof" set . "expect" "ExpectSel" }}
+if i.str[i.head] == '#' {
 	i.expect = ExpectSel
 	goto COMMENT
 } else if i.str[i.head] != '.' {

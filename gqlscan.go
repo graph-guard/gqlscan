@@ -118,11 +118,12 @@ func Scan(str []byte, fn func(*Iterator) (err bool)) Error {
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
-		i.errc = ErrUnexpEOF
-		i.expect = ExpectDef
+		i.errc, i.expect = ErrUnexpEOF, ExpectDef
 		goto ERROR
 	}
+	/*</check_eof>*/
 
 	/*<l_definition>*/
 DEFINITION:
@@ -292,10 +293,13 @@ AFTER_DEF_KEYWORD:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	switch i.str[i.head] {
 	case '#':
 		goto COMMENT
@@ -326,10 +330,14 @@ AFTER_DEF_KEYWORD:
 
 	/*<name>*/
 	// Followed by oprname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -605,10 +613,14 @@ AFTER_DIR_NAME:
 
 	switch dirOn {
 	case dirField:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -723,10 +735,14 @@ AFTER_DIR_NAME:
 			goto AFTER_SELECTION
 		}
 	case dirOpr:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterDefKeyword
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -837,10 +853,14 @@ AFTER_DIR_NAME:
 			goto SELECTION_SET
 		}
 	case dirVar:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterVarType
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -954,10 +974,14 @@ AFTER_DIR_NAME:
 			goto OPR_VAR
 		}
 	case dirFragRef:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterSelection
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -1068,10 +1092,14 @@ AFTER_DIR_NAME:
 			goto AFTER_SELECTION
 		}
 	case dirFragInlineOrDef:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -1274,10 +1302,14 @@ AFTER_DIR_ARGS:
 
 	switch dirOn {
 	case dirField:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -1293,10 +1325,14 @@ AFTER_DIR_ARGS:
 			goto AFTER_SELECTION
 		}
 	case dirOpr:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterDefKeyword
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -1392,10 +1428,13 @@ AFTER_DIR_ARGS:
 		}
 		/*</skip_irrelevant>*/
 
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterVarType
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -1408,10 +1447,14 @@ AFTER_DIR_ARGS:
 			goto OPR_VAR
 		}
 	case dirFragRef:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterSelection
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -1424,10 +1467,14 @@ AFTER_DIR_ARGS:
 			goto AFTER_SELECTION
 		}
 	case dirFragInlineOrDef:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -1530,19 +1577,27 @@ AFTER_KEYWORD_FRAGMENT:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
 	/*<name>*/
 	// Followed by fragname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -1740,10 +1795,14 @@ OPR_VAR:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
@@ -1842,10 +1901,14 @@ AFTER_VAR_TYPE:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if typeArrLvl != 0 {
 		i.head--
@@ -2047,10 +2110,15 @@ VAR_LIST_END:
 	/*</skip_irrelevant>*/
 
 	i.expect = ExpectSelSet
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		dirOn, i.expect = dirOpr, ExpectDirName
 		goto AFTER_DIR_NAME
 	} else if i.str[i.head] == '@' {
@@ -2253,10 +2321,14 @@ AFTER_SELECTION:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if i.str[i.head] == '}' {
 		goto SEL_END
@@ -2453,10 +2525,13 @@ VALUE:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	switch i.str[i.head] {
 	case '#':
 		goto COMMENT
@@ -2563,10 +2638,14 @@ VALUE:
 
 		/*<name>*/
 		// Followed by objfieldname>
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		i.tail = i.head
 		if i.str[i.head] != '_' &&
 			(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -2748,11 +2827,14 @@ VALUE:
 		}
 		/*</skip_irrelevant>*/
 
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
-			i.errc = ErrUnexpEOF
-			i.expect = ExpectColObjFieldName
+			i.errc, i.expect = ErrUnexpEOF, ExpectColObjFieldName
 			goto ERROR
-		} else if i.str[i.head] != ':' {
+		}
+		/*</check_eof>*/
+
+		if i.str[i.head] != ':' {
 			i.errc = ErrUnexpToken
 			i.expect = ExpectColObjFieldName
 			goto ERROR
@@ -2944,11 +3026,15 @@ VALUE:
 		/*</skip_irrelevant>*/
 
 		// Lookahead
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
-			i.errc = ErrUnexpEOF
-			i.expect = ExpectVal
+			i.errc, i.expect = ErrUnexpEOF, ExpectVal
 			goto ERROR
-		} else if i.str[i.head] == ']' {
+		}
+		/*</check_eof>*/
+
+		if i.str[i.head] == ']' {
 			i.token = TokenArrEnd
 			/*<callback>*/
 
@@ -3074,44 +3160,56 @@ VALUE:
 				case 'u':
 					// Unicode sequence
 					i.head++
+
+					/*<check_eof>*/
 					if i.head >= len(i.str) {
-						i.errc = ErrUnexpEOF
-						i.expect = ExpectEscapedUnicodeSequence
+						i.errc, i.expect = ErrUnexpEOF, ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
+					/*</check_eof>*/
+
 					if !i.isHeadHexDigit() {
 						i.errc = ErrUnexpToken
 						i.expect = ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
 					i.head++
+
+					/*<check_eof>*/
 					if i.head >= len(i.str) {
-						i.errc = ErrUnexpEOF
-						i.expect = ExpectEscapedUnicodeSequence
+						i.errc, i.expect = ErrUnexpEOF, ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
+					/*</check_eof>*/
+
 					if !i.isHeadHexDigit() {
 						i.errc = ErrUnexpToken
 						i.expect = ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
 					i.head++
+
+					/*<check_eof>*/
 					if i.head >= len(i.str) {
-						i.errc = ErrUnexpEOF
-						i.expect = ExpectEscapedUnicodeSequence
+						i.errc, i.expect = ErrUnexpEOF, ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
+					/*</check_eof>*/
+
 					if !i.isHeadHexDigit() {
 						i.errc = ErrUnexpToken
 						i.expect = ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
 					i.head++
+
+					/*<check_eof>*/
 					if i.head >= len(i.str) {
-						i.errc = ErrUnexpEOF
-						i.expect = ExpectEscapedUnicodeSequence
+						i.errc, i.expect = ErrUnexpEOF, ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
+					/*</check_eof>*/
+
 					if !i.isHeadHexDigit() {
 						i.errc = ErrUnexpToken
 						i.expect = ExpectEscapedUnicodeSequence
@@ -3140,7 +3238,10 @@ VALUE:
 		i.token = TokenStr
 		/*<callback>*/
 
-		fn(i)
+		if fn(i) {
+			i.errc = ErrCallbackFn
+			goto ERROR
+		}
 
 		/*</callback>*/
 		// Advance head index to include the closing double-quotes
@@ -3197,10 +3298,14 @@ VALUE:
 
 			/*<name>*/
 			// Followed by valenum>
+
+			/*<check_eof>*/
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
 			}
+			/*</check_eof>*/
+
 			i.tail = i.head
 			if i.str[i.head] != '_' &&
 				(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -3345,10 +3450,14 @@ VALUE:
 
 			/*<name>*/
 			// Followed by valenum>
+
+			/*<check_eof>*/
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
 			}
+			/*</check_eof>*/
+
 			i.tail = i.head
 			if i.str[i.head] != '_' &&
 				(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -3494,10 +3603,14 @@ VALUE:
 
 			/*<name>*/
 			// Followed by valenum>
+
+			/*<check_eof>*/
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
 			}
+			/*</check_eof>*/
+
 			i.tail = i.head
 			if i.str[i.head] != '_' &&
 				(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -3617,12 +3730,14 @@ VALUE:
 		case '-':
 			// Signed
 			i.head++
+
+			/*<check_eof>*/
 			if i.head >= len(i.str) {
-				// Expected at least one digit
-				i.errc = ErrUnexpEOF
-				i.expect = ExpectVal
+				i.errc, i.expect = ErrUnexpEOF, ExpectVal
 				goto ERROR
 			}
+		/*</check_eof>*/
+
 		case '0':
 			// Leading zero
 			i.head++
@@ -3718,12 +3833,14 @@ VALUE:
 		}
 
 	EXPONENT_SIGN:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
-			// Missing exponent value
-			i.errc = ErrUnexpEOF
-			i.expect = ExpectVal
+			i.errc, i.expect = ErrUnexpEOF, ExpectVal
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		if i.str[i.head] == '-' || i.str[i.head] == '+' {
 			i.head++
 		}
@@ -3766,10 +3883,14 @@ VALUE:
 
 		/*<name>*/
 		// Followed by valenum>
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		i.tail = i.head
 		if i.str[i.head] != '_' &&
 			(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -3957,10 +4078,15 @@ BLOCK_STRING:
 			}
 			i.head++
 		}
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
-		} else if i.str[i.head] == '\\' &&
+		}
+		/*</check_eof>*/
+
+		if i.str[i.head] == '\\' &&
 			i.str[i.head+3] == '"' &&
 			i.str[i.head+2] == '"' &&
 			i.str[i.head+1] == '"' {
@@ -4076,10 +4202,14 @@ AFTER_VALUE_INNER:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 	if t := i.stackTop(); t == TokenObj {
@@ -4191,10 +4321,14 @@ AFTER_VALUE_INNER:
 
 			/*<name>*/
 			// Followed by objfieldname>
+
+			/*<check_eof>*/
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
 			}
+			/*</check_eof>*/
+
 			i.tail = i.head
 			if i.str[i.head] != '_' &&
 				(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -4376,11 +4510,14 @@ AFTER_VALUE_INNER:
 			}
 			/*</skip_irrelevant>*/
 
+			/*<check_eof>*/
 			if i.head >= len(i.str) {
-				i.errc = ErrUnexpEOF
-				i.expect = ExpectColObjFieldName
+				i.errc, i.expect = ErrUnexpEOF, ExpectColObjFieldName
 				goto ERROR
-			} else if i.str[i.head] != ':' {
+			}
+			/*</check_eof>*/
+
+			if i.str[i.head] != ':' {
 				i.errc = ErrUnexpToken
 				i.expect = ExpectColObjFieldName
 				goto ERROR
@@ -4590,10 +4727,12 @@ AFTER_VALUE_INNER:
 	/*<l_after_value_outer>*/
 AFTER_VALUE_OUTER:
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
 
 	if inDefVal {
 		switch i.str[i.head] {
@@ -4635,10 +4774,14 @@ AFTER_VALUE_OUTER:
 
 	/*<name>*/
 	// Followed by argname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -4916,10 +5059,14 @@ AFTER_ARG_LIST:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
@@ -5023,11 +5170,14 @@ SELECTION:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
-		i.errc = ErrUnexpEOF
-		i.expect = ExpectSel
+		i.errc, i.expect = ErrUnexpEOF, ExpectSel
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		i.expect = ExpectSel
 		goto COMMENT
 	} else if i.str[i.head] != '.' {
@@ -5036,10 +5186,14 @@ SELECTION:
 
 		/*<name>*/
 		// Followed by fieldnameoralias>
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		i.tail = i.head
 		if i.str[i.head] != '_' &&
 			(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -5213,10 +5367,14 @@ SELECTION:
 		}
 		/*</skip_irrelevant>*/
 
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
-		} else if i.str[i.head] == ':' {
+		}
+		/*</check_eof>*/
+
+		if i.str[i.head] == ':' {
 			h2 := i.head
 			i.head = head
 			i.token = TokenFieldAlias
@@ -5316,10 +5474,14 @@ SELECTION:
 
 			/*<name>*/
 			// Followed by fieldname>
+
+			/*<check_eof>*/
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
 			}
+			/*</check_eof>*/
+
 			i.tail = i.head
 			if i.str[i.head] != '_' &&
 				(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -5602,10 +5764,14 @@ SPREAD:
 
 	/*<name>*/
 	// Followed by spreadname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -5797,10 +5963,14 @@ AFTER_DECL_VAR_NAME:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if i.str[i.head] != ':' {
 		i.errc = ErrUnexpToken
@@ -5896,10 +6066,14 @@ VAR_TYPE:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if i.str[i.head] == '[' {
 		i.tail = -1
@@ -5920,10 +6094,14 @@ VAR_TYPE:
 
 	/*<name>*/
 	// Followed by vartype>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -6115,19 +6293,27 @@ VAR_NAME:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
 	/*<name>*/
 	// Followed by varname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -6319,19 +6505,27 @@ VAR_REF_NAME:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
 	/*<name>*/
 	// Followed by varrefname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -6523,20 +6717,28 @@ DIR_NAME:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 	i.expect = ExpectDirName
 
 	/*<name>*/
 	// Followed by dirname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -6727,10 +6929,14 @@ COLUMN_AFTER_ARG_NAME:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if i.str[i.head] != ':' {
 		i.errc = ErrUnexpToken
@@ -6744,19 +6950,28 @@ COLUMN_AFTER_ARG_NAME:
 
 	/*<l_arg_list>*/
 ARG_LIST:
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
 	/*<name>*/
 	// Followed by argname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -7132,10 +7347,14 @@ AFTER_VAR_TYPE_NOT_NULL:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if i.str[i.head] == ']' {
 		if typeArrLvl < 1 {
@@ -7344,10 +7563,13 @@ AFTER_FIELD_NAME:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	// Lookahead
 	switch i.str[i.head] {
 	case '(':
@@ -7549,11 +7771,13 @@ AFTER_OPR_NAME:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
-		i.expect = ExpectSelSet
-		i.errc = ErrUnexpEOF
+		i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	switch i.str[i.head] {
 	case '#':
 		goto COMMENT
@@ -7768,19 +7992,27 @@ FRAG_TYPE_COND:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
 	/*<name>*/
 	// Followed by fragtypecond>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -7962,10 +8194,14 @@ FRAG_TYPE_COND:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
 		goto ERROR
-	} else if i.str[i.head] == '@' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '@' {
 		dirOn = dirFragInlineOrDef
 		goto AFTER_DIR_NAME
 	}
@@ -8062,19 +8298,27 @@ FRAG_INLINED:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
 	/*<name>*/
 	// Followed by fraginlined>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -8595,11 +8839,12 @@ func ScanAll(str []byte, fn func(*Iterator)) Error {
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
-		i.errc = ErrUnexpEOF
-		i.expect = ExpectDef
+		i.errc, i.expect = ErrUnexpEOF, ExpectDef
 		goto ERROR
 	}
+	/*</check_eof>*/
 
 	/*<l_definition>*/
 DEFINITION:
@@ -8754,10 +8999,13 @@ AFTER_DEF_KEYWORD:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	switch i.str[i.head] {
 	case '#':
 		goto COMMENT
@@ -8785,10 +9033,14 @@ AFTER_DEF_KEYWORD:
 
 	/*<name>*/
 	// Followed by oprname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -9061,10 +9313,14 @@ AFTER_DIR_NAME:
 
 	switch dirOn {
 	case dirField:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -9176,10 +9432,14 @@ AFTER_DIR_NAME:
 			goto AFTER_SELECTION
 		}
 	case dirOpr:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterDefKeyword
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -9287,10 +9547,14 @@ AFTER_DIR_NAME:
 			goto SELECTION_SET
 		}
 	case dirVar:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterVarType
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -9401,10 +9665,14 @@ AFTER_DIR_NAME:
 			goto OPR_VAR
 		}
 	case dirFragRef:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterSelection
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -9512,10 +9780,14 @@ AFTER_DIR_NAME:
 			goto AFTER_SELECTION
 		}
 	case dirFragInlineOrDef:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -9715,10 +9987,14 @@ AFTER_DIR_ARGS:
 
 	switch dirOn {
 	case dirField:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterFieldName
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -9734,10 +10010,14 @@ AFTER_DIR_ARGS:
 			goto AFTER_SELECTION
 		}
 	case dirOpr:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterDefKeyword
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -9833,10 +10113,13 @@ AFTER_DIR_ARGS:
 		}
 		/*</skip_irrelevant>*/
 
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterVarType
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -9849,10 +10132,14 @@ AFTER_DIR_ARGS:
 			goto OPR_VAR
 		}
 	case dirFragRef:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectAfterSelection
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -9865,10 +10152,14 @@ AFTER_DIR_ARGS:
 			goto AFTER_SELECTION
 		}
 	case dirFragInlineOrDef:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		switch i.str[i.head] {
 		case '#':
 			goto COMMENT
@@ -9971,19 +10262,27 @@ AFTER_KEYWORD_FRAGMENT:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
 	/*<name>*/
 	// Followed by fragname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -10178,10 +10477,14 @@ OPR_VAR:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
@@ -10280,10 +10583,14 @@ AFTER_VAR_TYPE:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if typeArrLvl != 0 {
 		i.head--
@@ -10482,10 +10789,15 @@ VAR_LIST_END:
 	/*</skip_irrelevant>*/
 
 	i.expect = ExpectSelSet
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		dirOn, i.expect = dirOpr, ExpectDirName
 		goto AFTER_DIR_NAME
 	} else if i.str[i.head] == '@' {
@@ -10685,10 +10997,14 @@ AFTER_SELECTION:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if i.str[i.head] == '}' {
 		goto SEL_END
@@ -10882,10 +11198,13 @@ VALUE:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	switch i.str[i.head] {
 	case '#':
 		goto COMMENT
@@ -10989,10 +11308,14 @@ VALUE:
 
 		/*<name>*/
 		// Followed by objfieldname>
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		i.tail = i.head
 		if i.str[i.head] != '_' &&
 			(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -11171,11 +11494,14 @@ VALUE:
 		}
 		/*</skip_irrelevant>*/
 
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
-			i.errc = ErrUnexpEOF
-			i.expect = ExpectColObjFieldName
+			i.errc, i.expect = ErrUnexpEOF, ExpectColObjFieldName
 			goto ERROR
-		} else if i.str[i.head] != ':' {
+		}
+		/*</check_eof>*/
+
+		if i.str[i.head] != ':' {
 			i.errc = ErrUnexpToken
 			i.expect = ExpectColObjFieldName
 			goto ERROR
@@ -11364,11 +11690,15 @@ VALUE:
 		/*</skip_irrelevant>*/
 
 		// Lookahead
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
-			i.errc = ErrUnexpEOF
-			i.expect = ExpectVal
+			i.errc, i.expect = ErrUnexpEOF, ExpectVal
 			goto ERROR
-		} else if i.str[i.head] == ']' {
+		}
+		/*</check_eof>*/
+
+		if i.str[i.head] == ']' {
 			i.token = TokenArrEnd
 			/*<callback>*/
 
@@ -11491,44 +11821,56 @@ VALUE:
 				case 'u':
 					// Unicode sequence
 					i.head++
+
+					/*<check_eof>*/
 					if i.head >= len(i.str) {
-						i.errc = ErrUnexpEOF
-						i.expect = ExpectEscapedUnicodeSequence
+						i.errc, i.expect = ErrUnexpEOF, ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
+					/*</check_eof>*/
+
 					if !i.isHeadHexDigit() {
 						i.errc = ErrUnexpToken
 						i.expect = ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
 					i.head++
+
+					/*<check_eof>*/
 					if i.head >= len(i.str) {
-						i.errc = ErrUnexpEOF
-						i.expect = ExpectEscapedUnicodeSequence
+						i.errc, i.expect = ErrUnexpEOF, ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
+					/*</check_eof>*/
+
 					if !i.isHeadHexDigit() {
 						i.errc = ErrUnexpToken
 						i.expect = ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
 					i.head++
+
+					/*<check_eof>*/
 					if i.head >= len(i.str) {
-						i.errc = ErrUnexpEOF
-						i.expect = ExpectEscapedUnicodeSequence
+						i.errc, i.expect = ErrUnexpEOF, ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
+					/*</check_eof>*/
+
 					if !i.isHeadHexDigit() {
 						i.errc = ErrUnexpToken
 						i.expect = ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
 					i.head++
+
+					/*<check_eof>*/
 					if i.head >= len(i.str) {
-						i.errc = ErrUnexpEOF
-						i.expect = ExpectEscapedUnicodeSequence
+						i.errc, i.expect = ErrUnexpEOF, ExpectEscapedUnicodeSequence
 						goto ERROR
 					}
+					/*</check_eof>*/
+
 					if !i.isHeadHexDigit() {
 						i.errc = ErrUnexpToken
 						i.expect = ExpectEscapedUnicodeSequence
@@ -11611,10 +11953,14 @@ VALUE:
 
 			/*<name>*/
 			// Followed by valenum>
+
+			/*<check_eof>*/
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
 			}
+			/*</check_eof>*/
+
 			i.tail = i.head
 			if i.str[i.head] != '_' &&
 				(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -11753,10 +12099,14 @@ VALUE:
 
 			/*<name>*/
 			// Followed by valenum>
+
+			/*<check_eof>*/
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
 			}
+			/*</check_eof>*/
+
 			i.tail = i.head
 			if i.str[i.head] != '_' &&
 				(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -11896,10 +12246,14 @@ VALUE:
 
 			/*<name>*/
 			// Followed by valenum>
+
+			/*<check_eof>*/
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
 			}
+			/*</check_eof>*/
+
 			i.tail = i.head
 			if i.str[i.head] != '_' &&
 				(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -12016,12 +12370,14 @@ VALUE:
 		case '-':
 			// Signed
 			i.head++
+
+			/*<check_eof>*/
 			if i.head >= len(i.str) {
-				// Expected at least one digit
-				i.errc = ErrUnexpEOF
-				i.expect = ExpectVal
+				i.errc, i.expect = ErrUnexpEOF, ExpectVal
 				goto ERROR
 			}
+		/*</check_eof>*/
+
 		case '0':
 			// Leading zero
 			i.head++
@@ -12117,12 +12473,14 @@ VALUE:
 		}
 
 	EXPONENT_SIGN:
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
-			// Missing exponent value
-			i.errc = ErrUnexpEOF
-			i.expect = ExpectVal
+			i.errc, i.expect = ErrUnexpEOF, ExpectVal
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		if i.str[i.head] == '-' || i.str[i.head] == '+' {
 			i.head++
 		}
@@ -12162,10 +12520,14 @@ VALUE:
 
 		/*<name>*/
 		// Followed by valenum>
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		i.tail = i.head
 		if i.str[i.head] != '_' &&
 			(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -12350,10 +12712,15 @@ BLOCK_STRING:
 			}
 			i.head++
 		}
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
-		} else if i.str[i.head] == '\\' &&
+		}
+		/*</check_eof>*/
+
+		if i.str[i.head] == '\\' &&
 			i.str[i.head+3] == '"' &&
 			i.str[i.head+2] == '"' &&
 			i.str[i.head+1] == '"' {
@@ -12466,10 +12833,14 @@ AFTER_VALUE_INNER:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 	if t := i.stackTop(); t == TokenObj {
@@ -12578,10 +12949,14 @@ AFTER_VALUE_INNER:
 
 			/*<name>*/
 			// Followed by objfieldname>
+
+			/*<check_eof>*/
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
 			}
+			/*</check_eof>*/
+
 			i.tail = i.head
 			if i.str[i.head] != '_' &&
 				(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -12760,11 +13135,14 @@ AFTER_VALUE_INNER:
 			}
 			/*</skip_irrelevant>*/
 
+			/*<check_eof>*/
 			if i.head >= len(i.str) {
-				i.errc = ErrUnexpEOF
-				i.expect = ExpectColObjFieldName
+				i.errc, i.expect = ErrUnexpEOF, ExpectColObjFieldName
 				goto ERROR
-			} else if i.str[i.head] != ':' {
+			}
+			/*</check_eof>*/
+
+			if i.str[i.head] != ':' {
 				i.errc = ErrUnexpToken
 				i.expect = ExpectColObjFieldName
 				goto ERROR
@@ -12971,10 +13349,12 @@ AFTER_VALUE_INNER:
 	/*<l_after_value_outer>*/
 AFTER_VALUE_OUTER:
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
 
 	if inDefVal {
 		switch i.str[i.head] {
@@ -13013,10 +13393,14 @@ AFTER_VALUE_OUTER:
 
 	/*<name>*/
 	// Followed by argname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -13291,10 +13675,14 @@ AFTER_ARG_LIST:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
@@ -13398,11 +13786,14 @@ SELECTION:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
-		i.errc = ErrUnexpEOF
-		i.expect = ExpectSel
+		i.errc, i.expect = ErrUnexpEOF, ExpectSel
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		i.expect = ExpectSel
 		goto COMMENT
 	} else if i.str[i.head] != '.' {
@@ -13411,10 +13802,14 @@ SELECTION:
 
 		/*<name>*/
 		// Followed by fieldnameoralias>
+
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
 		}
+		/*</check_eof>*/
+
 		i.tail = i.head
 		if i.str[i.head] != '_' &&
 			(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -13588,10 +13983,14 @@ SELECTION:
 		}
 		/*</skip_irrelevant>*/
 
+		/*<check_eof>*/
 		if i.head >= len(i.str) {
 			i.errc = ErrUnexpEOF
 			goto ERROR
-		} else if i.str[i.head] == ':' {
+		}
+		/*</check_eof>*/
+
+		if i.str[i.head] == ':' {
 			h2 := i.head
 			i.head = head
 			i.token = TokenFieldAlias
@@ -13688,10 +14087,14 @@ SELECTION:
 
 			/*<name>*/
 			// Followed by fieldname>
+
+			/*<check_eof>*/
 			if i.head >= len(i.str) {
 				i.errc = ErrUnexpEOF
 				goto ERROR
 			}
+			/*</check_eof>*/
+
 			i.tail = i.head
 			if i.str[i.head] != '_' &&
 				(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -13962,10 +14365,14 @@ SPREAD:
 
 	/*<name>*/
 	// Followed by spreadname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -14154,10 +14561,14 @@ AFTER_DECL_VAR_NAME:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if i.str[i.head] != ':' {
 		i.errc = ErrUnexpToken
@@ -14253,10 +14664,14 @@ VAR_TYPE:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if i.str[i.head] == '[' {
 		i.tail = -1
@@ -14274,10 +14689,14 @@ VAR_TYPE:
 
 	/*<name>*/
 	// Followed by vartype>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -14466,19 +14885,27 @@ VAR_NAME:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
 	/*<name>*/
 	// Followed by varname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -14667,19 +15094,27 @@ VAR_REF_NAME:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
 	/*<name>*/
 	// Followed by varrefname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -14868,20 +15303,28 @@ DIR_NAME:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 	i.expect = ExpectDirName
 
 	/*<name>*/
 	// Followed by dirname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -15069,10 +15512,14 @@ COLUMN_AFTER_ARG_NAME:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if i.str[i.head] != ':' {
 		i.errc = ErrUnexpToken
@@ -15086,19 +15533,28 @@ COLUMN_AFTER_ARG_NAME:
 
 	/*<l_arg_list>*/
 ARG_LIST:
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
 	/*<name>*/
 	// Followed by argname>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -15468,10 +15924,14 @@ AFTER_VAR_TYPE_NOT_NULL:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	} else if i.str[i.head] == ']' {
 		if typeArrLvl < 1 {
@@ -15674,10 +16134,13 @@ AFTER_FIELD_NAME:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	// Lookahead
 	switch i.str[i.head] {
 	case '(':
@@ -15876,11 +16339,13 @@ AFTER_OPR_NAME:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
-		i.expect = ExpectSelSet
-		i.errc = ErrUnexpEOF
+		i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	switch i.str[i.head] {
 	case '#':
 		goto COMMENT
@@ -16092,19 +16557,27 @@ FRAG_TYPE_COND:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
 	/*<name>*/
 	// Followed by fragtypecond>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
@@ -16283,10 +16756,14 @@ FRAG_TYPE_COND:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc, i.expect = ErrUnexpEOF, ExpectSelSet
 		goto ERROR
-	} else if i.str[i.head] == '@' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '@' {
 		dirOn = dirFragInlineOrDef
 		goto AFTER_DIR_NAME
 	}
@@ -16383,19 +16860,27 @@ FRAG_INLINED:
 	}
 	/*</skip_irrelevant>*/
 
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
-	} else if i.str[i.head] == '#' {
+	}
+	/*</check_eof>*/
+
+	if i.str[i.head] == '#' {
 		goto COMMENT
 	}
 
 	/*<name>*/
 	// Followed by fraginlined>
+
+	/*<check_eof>*/
 	if i.head >= len(i.str) {
 		i.errc = ErrUnexpEOF
 		goto ERROR
 	}
+	/*</check_eof>*/
+
 	i.tail = i.head
 	if i.str[i.head] != '_' &&
 		(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&

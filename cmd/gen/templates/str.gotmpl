@@ -103,44 +103,28 @@ for {
 		case 'u':
 			// Unicode sequence
 			i.head++
-			if i.head >= len(i.str) {
-				i.errc = ErrUnexpEOF
-				i.expect = ExpectEscapedUnicodeSequence
-				goto ERROR
-			}
+			{{ template "check_eof" set . "expect" "ExpectEscapedUnicodeSequence" }}
 			if !i.isHeadHexDigit() {
 				i.errc = ErrUnexpToken
 				i.expect = ExpectEscapedUnicodeSequence
 				goto ERROR
 			}
 			i.head++
-			if i.head >= len(i.str) {
-				i.errc = ErrUnexpEOF
-				i.expect = ExpectEscapedUnicodeSequence
-				goto ERROR
-			}
+			{{ template "check_eof" set . "expect" "ExpectEscapedUnicodeSequence" }}
 			if !i.isHeadHexDigit() {
 				i.errc = ErrUnexpToken
 				i.expect = ExpectEscapedUnicodeSequence
 				goto ERROR
 			}
 			i.head++
-			if i.head >= len(i.str) {
-				i.errc = ErrUnexpEOF
-				i.expect = ExpectEscapedUnicodeSequence
-				goto ERROR
-			}
+			{{ template "check_eof" set . "expect" "ExpectEscapedUnicodeSequence" }}
 			if !i.isHeadHexDigit() {
 				i.errc = ErrUnexpToken
 				i.expect = ExpectEscapedUnicodeSequence
 				goto ERROR
 			}
 			i.head++
-			if i.head >= len(i.str) {
-				i.errc = ErrUnexpEOF
-				i.expect = ExpectEscapedUnicodeSequence
-				goto ERROR
-			}
+			{{ template "check_eof" set . "expect" "ExpectEscapedUnicodeSequence" }}
 			if !i.isHeadHexDigit() {
 				i.errc = ErrUnexpToken
 				i.expect = ExpectEscapedUnicodeSequence

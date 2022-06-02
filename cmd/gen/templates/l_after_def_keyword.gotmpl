@@ -1,9 +1,6 @@
 AFTER_DEF_KEYWORD:
 {{ template "skip_irrelevant" }}
-if i.head >= len(i.str) {
-	i.errc = ErrUnexpEOF
-	goto ERROR
-}
+{{ template "check_eof" }}
 switch i.str[i.head] {
 case '#':
 	goto COMMENT

@@ -1,9 +1,6 @@
 VALUE:
 {{ template "skip_irrelevant" }}
-if i.head >= len(i.str) {
-	i.errc = ErrUnexpEOF
-	goto ERROR
-}
+{{ template "check_eof" }}
 switch i.str[i.head] {
 case '#':
 	goto COMMENT
@@ -30,11 +27,8 @@ case '[':
 	{{ template "skip_irrelevant" }}
 
 	// Lookahead
-	if i.head >= len(i.str) {
-		i.errc = ErrUnexpEOF
-		i.expect = ExpectVal
-		goto ERROR
-	} else if i.str[i.head] == ']' {
+	{{ template "check_eof" set . "expect" "ExpectVal" }}
+	if i.str[i.head] == ']' {
 		i.token = TokenArrEnd
 		{{- template "callback" . -}}
 		i.head++
@@ -46,7 +40,7 @@ case '[':
 	goto AFTER_VALUE_INNER
 
 case '"':
-	{{ template "str" }}
+	{{ template "str" . }}
 
 case '$':
 	if inDefVal {

@@ -7,12 +7,7 @@ switch i.str[i.head] {
 case '-':
 	// Signed
 	i.head++
-	if i.head >= len(i.str) {
-		// Expected at least one digit
-		i.errc = ErrUnexpEOF
-		i.expect = ExpectVal
-		goto ERROR
-	}
+	{{ template "check_eof" set . "expect" "ExpectVal" }}
 case '0':
 	// Leading zero
 	i.head++
@@ -108,12 +103,7 @@ if i.head >= len(i.str) {
 }
 
 EXPONENT_SIGN:
-if i.head >= len(i.str) {
-	// Missing exponent value
-	i.errc = ErrUnexpEOF
-	i.expect = ExpectVal
-	goto ERROR
-}
+{{ template "check_eof" set . "expect" "ExpectVal" }}
 if i.str[i.head] == '-' || i.str[i.head] == '+' {
 	i.head++
 }

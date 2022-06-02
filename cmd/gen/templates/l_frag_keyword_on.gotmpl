@@ -16,10 +16,8 @@ goto FRAG_TYPE_COND
 
 FRAG_TYPE_COND:
 {{ template "skip_irrelevant" }}
-if i.head >= len(i.str) {
-	i.errc = ErrUnexpEOF
-	goto ERROR
-} else if i.str[i.head] == '#' {
+{{ template "check_eof" }}
+if i.str[i.head] == '#' {
 	goto COMMENT
 }
 {{ template "name" set . "aftername" "fragtypecond" }}
