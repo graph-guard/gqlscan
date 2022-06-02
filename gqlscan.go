@@ -3913,17 +3913,93 @@ VALUE:
 	/*<l_block_string>*/
 BLOCK_STRING:
 	i.expect = ExpectEndOfBlockString
-	for ; i.head < len(i.str); i.head++ {
-		if i.str[i.head] == '\\' &&
+	for {
+		for i.head+7 < len(i.str) {
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+		}
+		if i.head >= len(i.str) {
+			i.errc = ErrUnexpEOF
+			goto ERROR
+		} else if i.str[i.head] == '\\' &&
 			i.str[i.head+3] == '"' &&
 			i.str[i.head+2] == '"' &&
 			i.str[i.head+1] == '"' {
-			i.head += 3
+			i.head += len(`\"""`)
 			continue
-		}
-		if i.str[i.head] == '"' &&
-			i.str[i.head+1] == '"' &&
-			i.str[i.head+2] == '"' {
+		} else if i.str[i.head] == '"' &&
+			i.str[i.head+2] == '"' &&
+			i.str[i.head+1] == '"' {
 			i.token = TokenStrBlock
 			/*<callback>*/
 
@@ -3933,9 +4009,16 @@ BLOCK_STRING:
 			}
 
 			/*</callback>*/
-			i.head += 3
+			i.head += len(`"""`)
 			goto AFTER_VALUE_COMMENT
+		} else if i.str[i.head] < 0x20 &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\r' {
+			i.errc = ErrUnexpToken
+			goto ERROR
 		}
+		i.head++
 	}
 	/*</l_block_string>*/
 
@@ -12111,26 +12194,109 @@ VALUE:
 	/*<l_block_string>*/
 BLOCK_STRING:
 	i.expect = ExpectEndOfBlockString
-	for ; i.head < len(i.str); i.head++ {
-		if i.str[i.head] == '\\' &&
+	for {
+		for i.head+7 < len(i.str) {
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+			if i.str[i.head] == '\\' ||
+				i.str[i.head] == '"' ||
+				(i.str[i.head] < 0x20 &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\r') {
+				break
+			}
+			i.head++
+		}
+		if i.head >= len(i.str) {
+			i.errc = ErrUnexpEOF
+			goto ERROR
+		} else if i.str[i.head] == '\\' &&
 			i.str[i.head+3] == '"' &&
 			i.str[i.head+2] == '"' &&
 			i.str[i.head+1] == '"' {
-			i.head += 3
+			i.head += len(`\"""`)
 			continue
-		}
-		if i.str[i.head] == '"' &&
-			i.str[i.head+1] == '"' &&
-			i.str[i.head+2] == '"' {
+		} else if i.str[i.head] == '"' &&
+			i.str[i.head+2] == '"' &&
+			i.str[i.head+1] == '"' {
 			i.token = TokenStrBlock
 			/*<callback>*/
 
 			fn(i)
 
 			/*</callback>*/
-			i.head += 3
+			i.head += len(`"""`)
 			goto AFTER_VALUE_COMMENT
+		} else if i.str[i.head] < 0x20 &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\r' {
+			i.errc = ErrUnexpToken
+			goto ERROR
 		}
+		i.head++
 	}
 	/*</l_block_string>*/
 
