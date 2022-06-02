@@ -90,7 +90,7 @@ for {
 		i.token = TokenStrBlock
 		{{- template "callback" . -}}
 		i.head += len(`"""`)
-		goto AFTER_VALUE_COMMENT
+		goto AFTER_VALUE_INNER
 	} else if i.str[i.head] < 0x20 &&
 		i.str[i.head] != '\t' &&
 		i.str[i.head] != '\n' &&

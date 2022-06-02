@@ -38,12 +38,12 @@ case '[':
 		i.token = TokenArrEnd
 		{{- template "callback" . -}}
 		i.head++
-		i.expect = ExpectAfterValue
-		goto AFTER_VALUE_COMMENT
+		i.expect = ExpectAfterValueInner
+		goto AFTER_VALUE_INNER
 	}
 	i.stackPush(TokenArr)
-	i.expect = ExpectAfterValue
-	goto AFTER_VALUE_COMMENT
+	i.expect = ExpectAfterValueInner
+	goto AFTER_VALUE_INNER
 
 case '"':
 	{{ template "str" }}
@@ -78,5 +78,5 @@ default:
 	i.expect = ExpectValEnum
 	{{ template "name" set . "aftername" "valenum" }}
 }
-i.expect = ExpectAfterValue
-goto AFTER_VALUE_COMMENT
+i.expect = ExpectAfterValueInner
+goto AFTER_VALUE_INNER

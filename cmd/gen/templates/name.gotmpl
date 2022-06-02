@@ -96,8 +96,8 @@ for {
 // <ExpectValEnum after name>
 i.token = TokenEnumVal
 {{- template "callback" . -}}
-i.expect = ExpectAfterValue
-goto AFTER_VALUE_COMMENT
+i.expect = ExpectAfterValueInner
+goto AFTER_VALUE_INNER
 // </ExpectValEnum after name>
 
 {{ else if eq "fieldnameoralias" (get . "aftername") }}
@@ -178,8 +178,8 @@ goto VALUE
 // <ExpectVarRefName after name>
 i.token = TokenVarRef
 {{- template "callback" . -}}
-i.expect = ExpectAfterValue
-goto AFTER_VALUE_COMMENT
+i.expect = ExpectAfterValueInner
+goto AFTER_VALUE_INNER
 // </ExpectVarRefName after name>
 
 {{ else if eq "vartype" (get . "aftername") }}
@@ -206,32 +206,7 @@ goto AFTER_DECL_VAR_NAME
 i.token = TokenOprName
 {{- template "callback" . -}}
 {{ template "skip_irrelevant" }}
-
-if i.head >= len(i.str) {
-	i.errc = ErrUnexpEOF
-	i.expect = ExpectSelSet
-	goto ERROR
-}
-switch i.str[i.head] {
-case '{':
-	i.expect = ExpectSelSet
-	goto SELECTION_SET
-case '(':
-	// Variable list
-	i.tail = -1
-	i.token = TokenVarList
-	{{- template "callback" . -}}
-	i.head++
-	i.expect = ExpectVar
-	goto OPR_VAR
-case '@':
-	i.head++
-	dirOn, i.expect = dirOpr, ExpectDir
-	goto DIR_NAME
-}
-i.errc = ErrUnexpToken
-i.expect = ExpectSelSet
-goto ERROR
+goto AFTER_OPR_NAME
 // </ExpectOprName after name>
 
 {{ else if eq "fraginlined" (get . "aftername") }}

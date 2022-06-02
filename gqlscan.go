@@ -511,38 +511,7 @@ AFTER_DEF_KEYWORD:
 	}
 	/*</skip_irrelevant>*/
 
-	if i.head >= len(i.str) {
-		i.errc = ErrUnexpEOF
-		i.expect = ExpectSelSet
-		goto ERROR
-	}
-	switch i.str[i.head] {
-	case '{':
-		i.expect = ExpectSelSet
-		goto SELECTION_SET
-	case '(':
-		// Variable list
-		i.tail = -1
-		i.token = TokenVarList
-		/*<callback>*/
-
-		if fn(i) {
-			i.errc = ErrCallbackFn
-			goto ERROR
-		}
-
-		/*</callback>*/
-		i.head++
-		i.expect = ExpectVar
-		goto OPR_VAR
-	case '@':
-		i.head++
-		dirOn, i.expect = dirOpr, ExpectDir
-		goto DIR_NAME
-	}
-	i.errc = ErrUnexpToken
-	i.expect = ExpectSelSet
-	goto ERROR
+	goto AFTER_OPR_NAME
 	// </ExpectOprName after name>
 
 	/*</name>*/
@@ -2990,12 +2959,12 @@ VALUE:
 
 			/*</callback>*/
 			i.head++
-			i.expect = ExpectAfterValue
-			goto AFTER_VALUE_COMMENT
+			i.expect = ExpectAfterValueInner
+			goto AFTER_VALUE_INNER
 		}
 		i.stackPush(TokenArr)
-		i.expect = ExpectAfterValue
-		goto AFTER_VALUE_COMMENT
+		i.expect = ExpectAfterValueInner
+		goto AFTER_VALUE_INNER
 
 	case '"':
 
@@ -3330,8 +3299,8 @@ VALUE:
 			}
 
 			/*</callback>*/
-			i.expect = ExpectAfterValue
-			goto AFTER_VALUE_COMMENT
+			i.expect = ExpectAfterValueInner
+			goto AFTER_VALUE_INNER
 			// </ExpectValEnum after name>
 
 			/*</name>*/
@@ -3478,8 +3447,8 @@ VALUE:
 			}
 
 			/*</callback>*/
-			i.expect = ExpectAfterValue
-			goto AFTER_VALUE_COMMENT
+			i.expect = ExpectAfterValueInner
+			goto AFTER_VALUE_INNER
 			// </ExpectValEnum after name>
 
 			/*</name>*/
@@ -3627,8 +3596,8 @@ VALUE:
 			}
 
 			/*</callback>*/
-			i.expect = ExpectAfterValue
-			goto AFTER_VALUE_COMMENT
+			i.expect = ExpectAfterValueInner
+			goto AFTER_VALUE_INNER
 			// </ExpectValEnum after name>
 
 			/*</name>*/
@@ -3899,15 +3868,15 @@ VALUE:
 		}
 
 		/*</callback>*/
-		i.expect = ExpectAfterValue
-		goto AFTER_VALUE_COMMENT
+		i.expect = ExpectAfterValueInner
+		goto AFTER_VALUE_INNER
 		// </ExpectValEnum after name>
 
 		/*</name>*/
 
 	}
-	i.expect = ExpectAfterValue
-	goto AFTER_VALUE_COMMENT
+	i.expect = ExpectAfterValueInner
+	goto AFTER_VALUE_INNER
 	/*</l_value>*/
 
 	/*<l_block_string>*/
@@ -4010,7 +3979,7 @@ BLOCK_STRING:
 
 			/*</callback>*/
 			i.head += len(`"""`)
-			goto AFTER_VALUE_COMMENT
+			goto AFTER_VALUE_INNER
 		} else if i.str[i.head] < 0x20 &&
 			i.str[i.head] != '\t' &&
 			i.str[i.head] != '\n' &&
@@ -4022,8 +3991,8 @@ BLOCK_STRING:
 	}
 	/*</l_block_string>*/
 
-	/*<l_after_value_comment>*/
-AFTER_VALUE_COMMENT:
+	/*<l_after_value_inner>*/
+AFTER_VALUE_INNER:
 
 	/*<skip_irrelevant>*/
 	for {
@@ -4213,8 +4182,8 @@ AFTER_VALUE_COMMENT:
 			/*</skip_irrelevant>*/
 
 			if i.stackLen() > 0 {
-				i.expect = ExpectAfterValue
-				goto AFTER_VALUE_COMMENT
+				i.expect = ExpectAfterValueInner
+				goto AFTER_VALUE_INNER
 			}
 		} else {
 			// Proceed to next field in the object
@@ -4607,24 +4576,39 @@ AFTER_VALUE_COMMENT:
 			/*</skip_irrelevant>*/
 
 			if i.stackLen() > 0 {
-				i.expect = ExpectAfterValue
-				goto AFTER_VALUE_COMMENT
+				i.expect = ExpectAfterValueInner
+				goto AFTER_VALUE_INNER
 			}
 		} else {
 			// Proceed to next value in the array
 			goto VALUE
 		}
 	}
+	goto AFTER_VALUE_OUTER
+	/*</l_after_value_inner>*/
+
+	/*<l_after_value_outer>*/
+AFTER_VALUE_OUTER:
+
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
 
 	if inDefVal {
-		inDefVal = false
-		if i.str[i.head] == ')' {
+		switch i.str[i.head] {
+		case ')':
+			inDefVal = false
 			goto VAR_LIST_END
-		} else if i.str[i.head] == '@' {
+		case '@':
+			inDefVal = false
 			i.head++
 			dirOn, i.expect = dirVar, ExpectDir
 			goto DIR_NAME
+		case '#':
+			goto COMMENT
 		}
+		inDefVal = false
 		i.expect = ExpectVar
 		goto OPR_VAR
 	}
@@ -4842,7 +4826,7 @@ AFTER_VALUE_COMMENT:
 
 	/*</name>*/
 
-	/*</l_after_value_comment>*/
+	/*</l_after_value_outer>*/
 
 	/*<l_after_arg_list>*/
 AFTER_ARG_LIST:
@@ -6446,8 +6430,8 @@ VAR_REF_NAME:
 	}
 
 	/*</callback>*/
-	i.expect = ExpectAfterValue
-	goto AFTER_VALUE_COMMENT
+	i.expect = ExpectAfterValueInner
+	goto AFTER_VALUE_INNER
 	// </ExpectVarRefName after name>
 
 	/*</name>*/
@@ -7480,6 +7464,127 @@ AFTER_FIELD_NAME:
 	goto AFTER_SELECTION
 	/*</l_after_field_name>*/
 
+	/*<l_after_opr_name>*/
+AFTER_OPR_NAME:
+
+	/*<skip_irrelevant>*/
+	for {
+		if i.head+7 >= len(i.str) {
+			for i.head < len(i.str) {
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			break
+		}
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+	}
+	/*</skip_irrelevant>*/
+
+	if i.head >= len(i.str) {
+		i.expect = ExpectSelSet
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '{':
+		i.expect = ExpectSelSet
+		goto SELECTION_SET
+	case '(':
+		// Variable list
+		i.tail = -1
+		i.token = TokenVarList
+		/*<callback>*/
+
+		if fn(i) {
+			i.errc = ErrCallbackFn
+			goto ERROR
+		}
+
+		/*</callback>*/
+		i.head++
+		i.expect = ExpectVar
+		goto OPR_VAR
+	case '@':
+		i.head++
+		dirOn, i.expect = dirOpr, ExpectDir
+		goto DIR_NAME
+	}
+	i.errc = ErrUnexpToken
+	i.expect = ExpectSelSet
+	goto ERROR
+	/*</l_after_opr_name>*/
+
 	/*<l_frag_keyword_on>*/
 FRAG_KEYWORD_ON:
 
@@ -8213,6 +8318,8 @@ COMMENT:
 	/*</skip_irrelevant>*/
 
 	switch i.expect {
+	case ExpectOprName:
+		goto AFTER_OPR_NAME
 	case ExpectVarRefName:
 		goto VAR_REF_NAME
 	case ExpectVarName:
@@ -8239,8 +8346,10 @@ COMMENT:
 		goto VALUE
 	case ExpectAfterFieldName:
 		goto AFTER_FIELD_NAME
-	case ExpectAfterValue:
-		goto AFTER_VALUE_COMMENT
+	case ExpectAfterValueInner:
+		goto AFTER_VALUE_INNER
+	case ExpectAfterValueOuter:
+		goto AFTER_VALUE_OUTER
 	case ExpectAfterArgList:
 		goto AFTER_ARG_LIST
 	case ExpectAfterDefKeyword:
@@ -8858,35 +8967,7 @@ AFTER_DEF_KEYWORD:
 	}
 	/*</skip_irrelevant>*/
 
-	if i.head >= len(i.str) {
-		i.errc = ErrUnexpEOF
-		i.expect = ExpectSelSet
-		goto ERROR
-	}
-	switch i.str[i.head] {
-	case '{':
-		i.expect = ExpectSelSet
-		goto SELECTION_SET
-	case '(':
-		// Variable list
-		i.tail = -1
-		i.token = TokenVarList
-		/*<callback>*/
-
-		fn(i)
-
-		/*</callback>*/
-		i.head++
-		i.expect = ExpectVar
-		goto OPR_VAR
-	case '@':
-		i.head++
-		dirOn, i.expect = dirOpr, ExpectDir
-		goto DIR_NAME
-	}
-	i.errc = ErrUnexpToken
-	i.expect = ExpectSelSet
-	goto ERROR
+	goto AFTER_OPR_NAME
 	// </ExpectOprName after name>
 
 	/*</name>*/
@@ -11295,12 +11376,12 @@ VALUE:
 
 			/*</callback>*/
 			i.head++
-			i.expect = ExpectAfterValue
-			goto AFTER_VALUE_COMMENT
+			i.expect = ExpectAfterValueInner
+			goto AFTER_VALUE_INNER
 		}
 		i.stackPush(TokenArr)
-		i.expect = ExpectAfterValue
-		goto AFTER_VALUE_COMMENT
+		i.expect = ExpectAfterValueInner
+		goto AFTER_VALUE_INNER
 
 	case '"':
 
@@ -11629,8 +11710,8 @@ VALUE:
 			fn(i)
 
 			/*</callback>*/
-			i.expect = ExpectAfterValue
-			goto AFTER_VALUE_COMMENT
+			i.expect = ExpectAfterValueInner
+			goto AFTER_VALUE_INNER
 			// </ExpectValEnum after name>
 
 			/*</name>*/
@@ -11771,8 +11852,8 @@ VALUE:
 			fn(i)
 
 			/*</callback>*/
-			i.expect = ExpectAfterValue
-			goto AFTER_VALUE_COMMENT
+			i.expect = ExpectAfterValueInner
+			goto AFTER_VALUE_INNER
 			// </ExpectValEnum after name>
 
 			/*</name>*/
@@ -11914,8 +11995,8 @@ VALUE:
 			fn(i)
 
 			/*</callback>*/
-			i.expect = ExpectAfterValue
-			goto AFTER_VALUE_COMMENT
+			i.expect = ExpectAfterValueInner
+			goto AFTER_VALUE_INNER
 			// </ExpectValEnum after name>
 
 			/*</name>*/
@@ -12180,15 +12261,15 @@ VALUE:
 		fn(i)
 
 		/*</callback>*/
-		i.expect = ExpectAfterValue
-		goto AFTER_VALUE_COMMENT
+		i.expect = ExpectAfterValueInner
+		goto AFTER_VALUE_INNER
 		// </ExpectValEnum after name>
 
 		/*</name>*/
 
 	}
-	i.expect = ExpectAfterValue
-	goto AFTER_VALUE_COMMENT
+	i.expect = ExpectAfterValueInner
+	goto AFTER_VALUE_INNER
 	/*</l_value>*/
 
 	/*<l_block_string>*/
@@ -12288,7 +12369,7 @@ BLOCK_STRING:
 
 			/*</callback>*/
 			i.head += len(`"""`)
-			goto AFTER_VALUE_COMMENT
+			goto AFTER_VALUE_INNER
 		} else if i.str[i.head] < 0x20 &&
 			i.str[i.head] != '\t' &&
 			i.str[i.head] != '\n' &&
@@ -12300,8 +12381,8 @@ BLOCK_STRING:
 	}
 	/*</l_block_string>*/
 
-	/*<l_after_value_comment>*/
-AFTER_VALUE_COMMENT:
+	/*<l_after_value_inner>*/
+AFTER_VALUE_INNER:
 
 	/*<skip_irrelevant>*/
 	for {
@@ -12488,8 +12569,8 @@ AFTER_VALUE_COMMENT:
 			/*</skip_irrelevant>*/
 
 			if i.stackLen() > 0 {
-				i.expect = ExpectAfterValue
-				goto AFTER_VALUE_COMMENT
+				i.expect = ExpectAfterValueInner
+				goto AFTER_VALUE_INNER
 			}
 		} else {
 			// Proceed to next field in the object
@@ -12876,24 +12957,39 @@ AFTER_VALUE_COMMENT:
 			/*</skip_irrelevant>*/
 
 			if i.stackLen() > 0 {
-				i.expect = ExpectAfterValue
-				goto AFTER_VALUE_COMMENT
+				i.expect = ExpectAfterValueInner
+				goto AFTER_VALUE_INNER
 			}
 		} else {
 			// Proceed to next value in the array
 			goto VALUE
 		}
 	}
+	goto AFTER_VALUE_OUTER
+	/*</l_after_value_inner>*/
+
+	/*<l_after_value_outer>*/
+AFTER_VALUE_OUTER:
+
+	if i.head >= len(i.str) {
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
 
 	if inDefVal {
-		inDefVal = false
-		if i.str[i.head] == ')' {
+		switch i.str[i.head] {
+		case ')':
+			inDefVal = false
 			goto VAR_LIST_END
-		} else if i.str[i.head] == '@' {
+		case '@':
+			inDefVal = false
 			i.head++
 			dirOn, i.expect = dirVar, ExpectDir
 			goto DIR_NAME
+		case '#':
+			goto COMMENT
 		}
+		inDefVal = false
 		i.expect = ExpectVar
 		goto OPR_VAR
 	}
@@ -13105,7 +13201,7 @@ AFTER_VALUE_COMMENT:
 
 	/*</name>*/
 
-	/*</l_after_value_comment>*/
+	/*</l_after_value_outer>*/
 
 	/*<l_after_arg_list>*/
 AFTER_ARG_LIST:
@@ -14679,8 +14775,8 @@ VAR_REF_NAME:
 	fn(i)
 
 	/*</callback>*/
-	i.expect = ExpectAfterValue
-	goto AFTER_VALUE_COMMENT
+	i.expect = ExpectAfterValueInner
+	goto AFTER_VALUE_INNER
 	// </ExpectVarRefName after name>
 
 	/*</name>*/
@@ -15695,6 +15791,124 @@ AFTER_FIELD_NAME:
 	goto AFTER_SELECTION
 	/*</l_after_field_name>*/
 
+	/*<l_after_opr_name>*/
+AFTER_OPR_NAME:
+
+	/*<skip_irrelevant>*/
+	for {
+		if i.head+7 >= len(i.str) {
+			for i.head < len(i.str) {
+				if i.str[i.head] != ',' &&
+					i.str[i.head] != ' ' &&
+					i.str[i.head] != '\n' &&
+					i.str[i.head] != '\t' &&
+					i.str[i.head] != '\r' {
+					break
+				}
+				i.head++
+			}
+			break
+		}
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+		if i.str[i.head] != ',' &&
+			i.str[i.head] != ' ' &&
+			i.str[i.head] != '\n' &&
+			i.str[i.head] != '\t' &&
+			i.str[i.head] != '\r' {
+			break
+		}
+		i.head++
+	}
+	/*</skip_irrelevant>*/
+
+	if i.head >= len(i.str) {
+		i.expect = ExpectSelSet
+		i.errc = ErrUnexpEOF
+		goto ERROR
+	}
+	switch i.str[i.head] {
+	case '#':
+		goto COMMENT
+	case '{':
+		i.expect = ExpectSelSet
+		goto SELECTION_SET
+	case '(':
+		// Variable list
+		i.tail = -1
+		i.token = TokenVarList
+		/*<callback>*/
+
+		fn(i)
+
+		/*</callback>*/
+		i.head++
+		i.expect = ExpectVar
+		goto OPR_VAR
+	case '@':
+		i.head++
+		dirOn, i.expect = dirOpr, ExpectDir
+		goto DIR_NAME
+	}
+	i.errc = ErrUnexpToken
+	i.expect = ExpectSelSet
+	goto ERROR
+	/*</l_after_opr_name>*/
+
 	/*<l_frag_keyword_on>*/
 FRAG_KEYWORD_ON:
 
@@ -16422,6 +16636,8 @@ COMMENT:
 	/*</skip_irrelevant>*/
 
 	switch i.expect {
+	case ExpectOprName:
+		goto AFTER_OPR_NAME
 	case ExpectVarRefName:
 		goto VAR_REF_NAME
 	case ExpectVarName:
@@ -16448,8 +16664,10 @@ COMMENT:
 		goto VALUE
 	case ExpectAfterFieldName:
 		goto AFTER_FIELD_NAME
-	case ExpectAfterValue:
-		goto AFTER_VALUE_COMMENT
+	case ExpectAfterValueInner:
+		goto AFTER_VALUE_INNER
+	case ExpectAfterValueOuter:
+		goto AFTER_VALUE_OUTER
 	case ExpectAfterArgList:
 		goto AFTER_ARG_LIST
 	case ExpectAfterDefKeyword:
@@ -16943,7 +17161,8 @@ const (
 	ExpectFragInlined
 	ExpectAfterFieldName
 	ExpectAfterSelection
-	ExpectAfterValue
+	ExpectAfterValueInner
+	ExpectAfterValueOuter
 	ExpectAfterArgList
 	ExpectAfterDefKeyword
 	ExpectAfterVarType
@@ -17016,7 +17235,9 @@ func (e Expect) String() string {
 		return "selection, selection set or end of selection set"
 	case ExpectAfterSelection:
 		return "selection or end of selection set"
-	case ExpectAfterValue:
+	case ExpectAfterValueInner:
+		return "argument list closure or argument"
+	case ExpectAfterValueOuter:
 		return "argument list closure or argument"
 	case ExpectAfterArgList:
 		return "selection set or selection"

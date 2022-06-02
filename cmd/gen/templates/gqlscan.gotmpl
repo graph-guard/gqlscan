@@ -388,7 +388,8 @@ const (
 	ExpectFragInlined
 	ExpectAfterFieldName
 	ExpectAfterSelection
-	ExpectAfterValue
+	ExpectAfterValueInner
+	ExpectAfterValueOuter
 	ExpectAfterArgList
 	ExpectAfterDefKeyword
 	ExpectAfterVarType
@@ -461,7 +462,9 @@ func (e Expect) String() string {
 		return "selection, selection set or end of selection set"
 	case ExpectAfterSelection:
 		return "selection or end of selection set"
-	case ExpectAfterValue:
+	case ExpectAfterValueInner:
+		return "argument list closure or argument"
+	case ExpectAfterValueOuter:
 		return "argument list closure or argument"
 	case ExpectAfterArgList:
 		return "selection set or selection"

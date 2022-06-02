@@ -1458,7 +1458,46 @@ var testdata = []TestInput{
 		# sample comment text line
 		} # sample comment text line
 	} # sample comment text line
-	`,
+	# sample comment text line
+	query # sample comment text line
+	# sample comment text line
+	Q2 # sample comment text line
+	# sample comment text line
+	( # sample comment text line
+		# sample comment text line
+		$v # sample comment text line
+		# sample comment text line
+		: # sample comment text line
+		# sample comment text line
+		[ # sample comment text line
+		# sample comment text line
+		[ # sample comment text line
+		# sample comment text line
+		Int # sample comment text line
+		# sample comment text line
+		] # sample comment text line
+		# sample comment text line
+		] # sample comment text line
+		# sample comment text line
+		= # sample comment text line
+		# sample comment text line
+		[ # sample comment text line
+		# sample comment text line
+		[ # sample comment text line
+		# sample comment text line
+		null # sample comment text line
+		# sample comment text line
+		] # sample comment text line
+		# sample comment text line
+		] # sample comment text line
+		# sample comment text line
+		) # sample comment text line
+		# sample comment text line
+		{ # sample comment text line
+			# sample comment text line
+			x # sample comment text line
+		} # sample comment text line
+		# sample comment text line`,
 		Token(gqlscan.TokenDefQry),
 		Token(gqlscan.TokenSet),
 		Token(gqlscan.TokenField, "x"),
@@ -1532,6 +1571,24 @@ var testdata = []TestInput{
 		Token(gqlscan.TokenField, "x"),
 		Token(gqlscan.TokenSetEnd),
 		Token(gqlscan.TokenSetEnd),
+		Token(gqlscan.TokenSetEnd),
+		Token(gqlscan.TokenDefQry),
+		Token(gqlscan.TokenOprName, "Q2"),
+		Token(gqlscan.TokenVarList),
+		Token(gqlscan.TokenVarName, "v"),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeArr),
+		Token(gqlscan.TokenVarTypeName, "Int"),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenVarTypeArrEnd),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenArr),
+		Token(gqlscan.TokenNull),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenArrEnd),
+		Token(gqlscan.TokenVarListEnd),
+		Token(gqlscan.TokenSet),
+		Token(gqlscan.TokenField, "x"),
 		Token(gqlscan.TokenSetEnd),
 	),
 	Input(`{f}

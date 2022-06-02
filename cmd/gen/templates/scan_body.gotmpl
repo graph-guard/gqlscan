@@ -47,7 +47,9 @@ if i.head >= len(i.str) {
 
 {{ template "l_block_string" . }}
 
-{{ template "l_after_value_comment" . }}
+{{ template "l_after_value_inner" . }}
+
+{{ template "l_after_value_outer" . }}
 
 {{ template "l_after_arg_list" . }}
 
@@ -74,6 +76,8 @@ if i.head >= len(i.str) {
 {{ template "l_after_var_type_not_null" . }}
 
 {{ template "l_after_field_name" . }}
+
+{{ template "l_after_opr_name" . }}
 
 {{ template "l_frag_keyword_on" . }}
 

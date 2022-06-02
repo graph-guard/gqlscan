@@ -52,6 +52,8 @@ for {
 i.tail = -1
 {{ template "skip_irrelevant" }}
 switch i.expect {
+case ExpectOprName:
+	goto AFTER_OPR_NAME
 case ExpectVarRefName:
 	goto VAR_REF_NAME
 case ExpectVarName:
@@ -78,8 +80,10 @@ case ExpectVal:
 	goto VALUE
 case ExpectAfterFieldName:
 	goto AFTER_FIELD_NAME
-case ExpectAfterValue:
-	goto AFTER_VALUE_COMMENT
+case ExpectAfterValueInner:
+	goto AFTER_VALUE_INNER
+case ExpectAfterValueOuter:
+	goto AFTER_VALUE_OUTER
 case ExpectAfterArgList:
 	goto AFTER_ARG_LIST
 case ExpectAfterDefKeyword:

@@ -1,0 +1,38 @@
+AFTER_VALUE_OUTER:
+
+if i.head >= len(i.str) {
+	i.errc = ErrUnexpEOF
+	goto ERROR
+}
+
+if inDefVal {
+	switch i.str[i.head] {
+	case ')':
+		inDefVal = false
+		goto VAR_LIST_END
+	case '@':
+		inDefVal = false
+		i.head++
+		dirOn, i.expect = dirVar, ExpectDir
+		goto DIR_NAME
+	case '#':
+		goto COMMENT
+	}
+	inDefVal = false
+	i.expect = ExpectVar
+	goto OPR_VAR
+}
+
+if i.str[i.head] == ')' {
+	// End of argument list
+	i.tail = -1
+	i.token = TokenArgListEnd
+	{{- template "callback" . -}}
+	i.head++
+	i.expect = ExpectAfterArgList
+	goto AFTER_ARG_LIST
+}
+
+// Proceed to the next argument
+i.expect = ExpectArgName
+{{ template "name" set . "aftername" "argname" }}
