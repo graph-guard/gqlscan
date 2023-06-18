@@ -2358,13 +2358,13 @@ var testdata = []TestInput{
 	),
 }
 
-//go:embed t_s_2695b.txt
+//go:embed testdata/t_s_2695b.txt
 var string_2695b string
 
-//go:embed t_blks_2747b.graphql
+//go:embed testdata/t_blks_2747b.graphql
 var blockstring_2747b string
 
-//go:embed t_blks_2747b_expect.txt
+//go:embed testdata/t_blks_2747b_expect.txt
 var blockstring_2747b_expect string
 
 func TestScan(t *testing.T) {
