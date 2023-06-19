@@ -18,7 +18,7 @@ case '0':
 		} else if i.str[i.head] == 'e' || i.str[i.head] == 'E' {
 			i.head++
 			goto EXPONENT_SIGN
-		} else if i.isHeadNumEnd() {
+		} else if lutEndNum[i.str[i.head]] == 1 {
 			i.token = TokenInt
 			goto ON_NUM_VAL
 		} else {
@@ -31,12 +31,12 @@ case '0':
 
 // Integer
 for s = i.head; i.head < len(i.str); i.head++ {
-	if i.isHeadDigit() {
+	if lutName[i.str[i.head]] == 2 {
 		continue
 	} else if i.str[i.head] == '.' {
 		i.head++
 		goto FRACTION
-	} else if i.isHeadNumEnd() {
+	} else if lutEndNum[i.str[i.head]] == 1 {
 		if i.head == s {
 			// Expected at least one digit
 			i.errc = ErrInvalNum
@@ -67,9 +67,9 @@ if i.head >= len(i.str) {
 FRACTION:
 _ = 0 // Make code coverage count the label above
 for s = i.head; i.head < len(i.str); i.head++ {
-	if i.isHeadDigit() {
+	if lutName[i.str[i.head]] == 2 {
 		continue
-	} else if i.isHeadNumEnd() {
+	} else if lutEndNum[i.str[i.head]] == 1 {
 		if i.head == s {
 			// Expected at least one digit
 			i.errc = ErrInvalNum
@@ -108,9 +108,9 @@ if i.str[i.head] == '-' || i.str[i.head] == '+' {
 	i.head++
 }
 for s = i.head; i.head < len(i.str); i.head++ {
-	if i.isHeadDigit() {
+	if lutName[i.str[i.head]] == 2 {
 		continue
-	} else if i.isHeadNumEnd() {
+	} else if lutEndNum[i.str[i.head]] == 1 {
 		if i.head == s {
 			// Expected at least one digit
 			i.errc = ErrInvalNum

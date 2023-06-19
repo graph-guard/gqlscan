@@ -1,88 +1,83 @@
 BLOCK_STRING:
 i.expect = ExpectEndOfBlockString
 for {
-	for i.head+7 < len(i.str) {
-		if i.str[i.head] == '\\' ||
-			i.str[i.head] == '"' ||
-			(i.str[i.head] < 0x20 &&
-			i.str[i.head] != '\t' &&
-			i.str[i.head] != '\n' &&
-			i.str[i.head] != '\r') {
-			break
+	for i.head+15 < len(i.str) {
+		if lutStr[i.str[i.head]] == 1 {
+			goto CHECK_BLOCKSTR_CHARACTER
 		}
-		i.head++
-		if i.str[i.head] == '\\' ||
-			i.str[i.head] == '"' ||
-			(i.str[i.head] < 0x20 &&
-			i.str[i.head] != '\t' &&
-			i.str[i.head] != '\n' &&
-			i.str[i.head] != '\r') {
-			break
+		if lutStr[i.str[i.head+1]] == 1 {
+			i.head+=1
+			goto CHECK_BLOCKSTR_CHARACTER
 		}
-		i.head++
-		if i.str[i.head] == '\\' ||
-			i.str[i.head] == '"' ||
-			(i.str[i.head] < 0x20 &&
-			i.str[i.head] != '\t' &&
-			i.str[i.head] != '\n' &&
-			i.str[i.head] != '\r') {
-			break
+		if lutStr[i.str[i.head+2]] == 1 {
+			i.head+=2
+			goto CHECK_BLOCKSTR_CHARACTER
 		}
-		i.head++
-		if i.str[i.head] == '\\' ||
-			i.str[i.head] == '"' ||
-			(i.str[i.head] < 0x20 &&
-			i.str[i.head] != '\t' &&
-			i.str[i.head] != '\n' &&
-			i.str[i.head] != '\r') {
-			break
+		if lutStr[i.str[i.head+3]] == 1 {
+			i.head+=3
+			goto CHECK_BLOCKSTR_CHARACTER
 		}
-		i.head++
-		if i.str[i.head] == '\\' ||
-			i.str[i.head] == '"' ||
-			(i.str[i.head] < 0x20 &&
-			i.str[i.head] != '\t' &&
-			i.str[i.head] != '\n' &&
-			i.str[i.head] != '\r') {
-			break
+		if lutStr[i.str[i.head+4]] == 1 {
+			i.head+=4
+			goto CHECK_BLOCKSTR_CHARACTER
 		}
-		i.head++
-		if i.str[i.head] == '\\' ||
-			i.str[i.head] == '"' ||
-			(i.str[i.head] < 0x20 &&
-			i.str[i.head] != '\t' &&
-			i.str[i.head] != '\n' &&
-			i.str[i.head] != '\r') {
-			break
+		if lutStr[i.str[i.head+5]] == 1 {
+			i.head+=5
+			goto CHECK_BLOCKSTR_CHARACTER
 		}
-		i.head++
-		if i.str[i.head] == '\\' ||
-			i.str[i.head] == '"' ||
-			(i.str[i.head] < 0x20 &&
-			i.str[i.head] != '\t' &&
-			i.str[i.head] != '\n' &&
-			i.str[i.head] != '\r') {
-			break
+		if lutStr[i.str[i.head+6]] == 1 {
+			i.head+=6
+			goto CHECK_BLOCKSTR_CHARACTER
 		}
-		i.head++
-		if i.str[i.head] == '\\' ||
-			i.str[i.head] == '"' ||
-			(i.str[i.head] < 0x20 &&
-			i.str[i.head] != '\t' &&
-			i.str[i.head] != '\n' &&
-			i.str[i.head] != '\r') {
-			break
+		if lutStr[i.str[i.head+7]] == 1 {
+			i.head+=7
+			goto CHECK_BLOCKSTR_CHARACTER
 		}
-		i.head++
+		if lutStr[i.str[i.head+8]] == 1 {
+			i.head+=8
+			goto CHECK_BLOCKSTR_CHARACTER
+		}
+		if lutStr[i.str[i.head+9]] == 1 {
+			i.head+=9
+			goto CHECK_BLOCKSTR_CHARACTER
+		}
+		if lutStr[i.str[i.head+10]] == 1 {
+			i.head+=10
+			goto CHECK_BLOCKSTR_CHARACTER
+		}
+		if lutStr[i.str[i.head+11]] == 1 {
+			i.head+=11
+			goto CHECK_BLOCKSTR_CHARACTER
+		}
+		if lutStr[i.str[i.head+12]] == 1 {
+			i.head+=12
+			goto CHECK_BLOCKSTR_CHARACTER
+		}
+		if lutStr[i.str[i.head+13]] == 1 {
+			i.head+=13
+			goto CHECK_BLOCKSTR_CHARACTER
+		}
+		if lutStr[i.str[i.head+14]] == 1 {
+			i.head+=14
+			goto CHECK_BLOCKSTR_CHARACTER
+		}
+		if lutStr[i.str[i.head+15]] == 1 {
+			i.head+=15
+			goto CHECK_BLOCKSTR_CHARACTER
+		}
+		i.head+=16
 	}
 	{{ template "check_eof" }}
+CHECK_BLOCKSTR_CHARACTER:
 	if i.str[i.head] == '\\' &&
+		i.head+3 < len(i.str) &&
 		i.str[i.head+3] == '"' &&
 		i.str[i.head+2] == '"' &&
 		i.str[i.head+1] == '"' {
 		i.head += len(`\"""`)
 		continue
 	} else if i.str[i.head] == '"' &&
+		i.head+2 < len(i.str) &&
 		i.str[i.head+2] == '"' &&
 		i.str[i.head+1] == '"' {
 		i.token = TokenStrBlock
