@@ -115,21 +115,20 @@ func main() {
 	totalDur := timeEnd.Sub(timeStart)
 	tb, te := atomic.LoadUint64(&totalBytes), atomic.LoadUint64(&totalErrs)
 	bytesPerSec := math.Floor(float64(tb) / totalDur.Seconds())
-	var bps string
-	if mbps := bytesPerSec / 1024 / 1024 * 8; mbps >= 1000 {
-		bps = fmt.Sprintf("%.2f gbit/s", bytesPerSec/1024/1024/1024*8)
-	} else {
-		bps = fmt.Sprintf("%.2f mbit/s", mbps)
-	}
+	bps := fmt.Sprintf("%.2f gbit/s", gbits(float64(tb), totalDur.Seconds()))
 
 	fmt.Printf(
 		"finished (%s)\ntotal processed: %s (%s/s; %s)\ntotal errors: %s\n",
-		totalDur,
+		totalDur.String(),
 		humanize.Bytes(tb),
 		humanize.Bytes(uint64(bytesPerSec)),
 		bps,
 		humanize.Comma(int64(te)),
 	)
+}
+
+func gbits(totalBytes, seconds float64) float64 {
+	return ((totalBytes * 8) / 1e9) / seconds
 }
 
 func find(root, ext string, fn func(path string)) error {
