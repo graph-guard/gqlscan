@@ -1,20 +1,10 @@
 if i.head+5 < len(i.str) &&
+	lutEndVal[i.str[i.head+5]] == 1 &&
 	i.str[i.head+4] == 'e' &&
 	i.str[i.head+3] == 's' &&
 	i.str[i.head+2] == 'l' &&
 	i.str[i.head+1] == 'a' &&
-	i.str[i.head] == 'f' &&
-	(i.str[i.head+5] == ' ' ||
-		i.str[i.head+5] == '\t' ||
-		i.str[i.head+5] == '\r' ||
-		i.str[i.head+5] == '\n' ||
-		i.str[i.head+5] == ',' ||
-		i.str[i.head+5] == ')' ||
-		i.str[i.head+5] == '}' ||
-		i.str[i.head+5] == '{' ||
-		i.str[i.head+5] == ']' ||
-		i.str[i.head+5] == '[' ||
-		i.str[i.head+5] == '#') {
+	i.str[i.head] == 'f' {
 	i.tail = -1
 	i.head += len("false")
 

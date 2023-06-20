@@ -10,143 +10,149 @@ if i.head+1 < len(i.str) &&
 }
 
 // String value
-escaped := false
 if i.head < len(i.str) && i.str[i.head] == '"' {
 	goto AFTER_STR_VAL
 }
 for {
-	for !escaped && i.head+7 < len(i.str) {
+	if i.head+15 < len(i.str) {
 		// Fast path
-		if i.str[i.head] == '"' ||
-			i.str[i.head] == '\\' ||
-			i.str[i.head] < 0x20 {
-			break
+		if lutStr[i.str[i.head]] == 1 {
+			goto CHECK_STR_CHARACTER
 		}
-		i.head++
-		if i.str[i.head] == '"' ||
-			i.str[i.head] == '\\' ||
-			i.str[i.head] < 0x20 {
-			break
+		if lutStr[i.str[i.head+1]] == 1 {
+			i.head+=1
+			goto CHECK_STR_CHARACTER
 		}
-		i.head++
-		if i.str[i.head] == '"' ||
-			i.str[i.head] == '\\' ||
-			i.str[i.head] < 0x20 {
-			break
+		if lutStr[i.str[i.head+2]] == 1 {
+			i.head+=2
+			goto CHECK_STR_CHARACTER
 		}
-		i.head++
-		if i.str[i.head] == '"' ||
-			i.str[i.head] == '\\' ||
-			i.str[i.head] < 0x20 {
-			break
+		if lutStr[i.str[i.head+3]] == 1 {
+			i.head+=3
+			goto CHECK_STR_CHARACTER
 		}
-		i.head++
-		if i.str[i.head] == '"' ||
-			i.str[i.head] == '\\' ||
-			i.str[i.head] < 0x20 {
-			break
+		if lutStr[i.str[i.head+4]] == 1 {
+			i.head+=4
+			goto CHECK_STR_CHARACTER
 		}
-		i.head++
-		if i.str[i.head] == '"' ||
-			i.str[i.head] == '\\' ||
-			i.str[i.head] < 0x20 {
-			break
+		if lutStr[i.str[i.head+5]] == 1 {
+			i.head+=5
+			goto CHECK_STR_CHARACTER
 		}
-		i.head++
-		if i.str[i.head] == '"' ||
-			i.str[i.head] == '\\' ||
-			i.str[i.head] < 0x20 {
-			break
+		if lutStr[i.str[i.head+6]] == 1 {
+			i.head+=6
+			goto CHECK_STR_CHARACTER
 		}
-		i.head++
-		if i.str[i.head] == '"' ||
-			i.str[i.head] == '\\' ||
-			i.str[i.head] < 0x20 {
-			break
+		if lutStr[i.str[i.head+7]] == 1 {
+			i.head+=7
+			goto CHECK_STR_CHARACTER
 		}
-		i.head++
+		if lutStr[i.str[i.head+8]] == 1 {
+			i.head+=8
+			goto CHECK_STR_CHARACTER
+		}
+		if lutStr[i.str[i.head+9]] == 1 {
+			i.head+=9
+			goto CHECK_STR_CHARACTER
+		}
+		if lutStr[i.str[i.head+10]] == 1 {
+			i.head+=10
+			goto CHECK_STR_CHARACTER
+		}
+		if lutStr[i.str[i.head+11]] == 1 {
+			i.head+=11
+			goto CHECK_STR_CHARACTER
+		}
+		if lutStr[i.str[i.head+12]] == 1 {
+			i.head+=12
+			goto CHECK_STR_CHARACTER
+		}
+		if lutStr[i.str[i.head+13]] == 1 {
+			i.head+=13
+			goto CHECK_STR_CHARACTER
+		}
+		if lutStr[i.str[i.head+14]] == 1 {
+			i.head+=14
+			goto CHECK_STR_CHARACTER
+		}
+		if lutStr[i.str[i.head+15]] == 1 {
+			i.head+=15
+			goto CHECK_STR_CHARACTER
+		}
+		i.head += 16
 	}
 	if i.head >= len(i.str) {
-		break
-	}
-	if i.str[i.head] < 0x20 {
-		i.errc = ErrUnexpToken
-		i.expect = ExpectEndOfString
+		i.errc, i.expect = ErrUnexpEOF, ExpectEndOfString
 		goto ERROR
 	}
-	if escaped {
-		switch i.str[i.head] {
-		case '\\':
-			// Backslash
-			i.head++
-		case '/':
-			// Solidus
-			i.head++
-		case '"':
-			// Double-quotes
-			i.head++
-		case 'b':
-			// Backspace
-			i.head++
-		case 'f':
-			// Form-feed
-			i.head++
-		case 'r':
-			// Carriage-return
-			i.head++
-		case 'n':
-			// Line-break
-			i.head++
-		case 't':
-			// Tab
-			i.head++
-		case 'u':
-			// Unicode sequence
-			i.head++
-			{{ template "check_eof" set . "expect" "ExpectEscapedUnicodeSequence" }}
-			if !i.isHeadHexDigit() {
-				i.errc = ErrUnexpToken
-				i.expect = ExpectEscapedUnicodeSequence
-				goto ERROR
-			}
-			i.head++
-			{{ template "check_eof" set . "expect" "ExpectEscapedUnicodeSequence" }}
-			if !i.isHeadHexDigit() {
-				i.errc = ErrUnexpToken
-				i.expect = ExpectEscapedUnicodeSequence
-				goto ERROR
-			}
-			i.head++
-			{{ template "check_eof" set . "expect" "ExpectEscapedUnicodeSequence" }}
-			if !i.isHeadHexDigit() {
-				i.errc = ErrUnexpToken
-				i.expect = ExpectEscapedUnicodeSequence
-				goto ERROR
-			}
-			i.head++
-			{{ template "check_eof" set . "expect" "ExpectEscapedUnicodeSequence" }}
-			if !i.isHeadHexDigit() {
-				i.errc = ErrUnexpToken
-				i.expect = ExpectEscapedUnicodeSequence
-				goto ERROR
-			}
-		default:
-			i.errc = ErrUnexpToken
-			i.expect = ExpectEscapedSequence
+CHECK_STR_CHARACTER:
+	switch i.str[i.head] {
+	case '"':
+		// i.head++
+		goto AFTER_STR_VAL
+	case '\\':
+		i.head++
+		if i.head >= len(i.str) {
+			i.errc, i.expect = ErrUnexpEOF, ExpectEscapedSequence
 			goto ERROR
 		}
-		escaped = false
+		switch i.str[i.head] {
+		case '\\', '/', '"', 'b', 'f', 'r', 'n', 't':
+			i.head++
+		case 'u':
+			if i.head+4 >= len(i.str) {
+				switch {
+				case i.head+1 < len(i.str) && lutHex[i.str[i.head+1]] != 2:
+					i.head++
+					i.errc, i.expect = ErrUnexpToken, ExpectEscapedUnicodeSequence
+					goto ERROR
+				case i.head+2 < len(i.str) &&lutHex[i.str[i.head+2]] != 2:
+					i.head+=2
+					i.errc, i.expect = ErrUnexpToken, ExpectEscapedUnicodeSequence
+					goto ERROR
+				case i.head+3 < len(i.str) &&lutHex[i.str[i.head+3]] != 2:
+					i.head+=3
+					i.errc, i.expect = ErrUnexpToken, ExpectEscapedUnicodeSequence
+					goto ERROR
+				case i.head+4 < len(i.str) && lutHex[i.str[i.head+4]] != 2:
+					i.head+=4
+					i.errc, i.expect = ErrUnexpToken, ExpectEscapedUnicodeSequence
+					goto ERROR
+				}
+				i.head = len(i.str)
+				i.errc, i.expect = ErrUnexpEOF, ExpectEscapedUnicodeSequence
+				goto ERROR
+			}
+			if lutHex[i.str[i.head+4]] != 2 ||
+				lutHex[i.str[i.head+3]] != 2 ||
+				lutHex[i.str[i.head+2]] != 2 ||
+				lutHex[i.str[i.head+1]] != 2 {
+				switch {
+				case lutHex[i.str[i.head+1]] != 2:
+					i.head++
+				case lutHex[i.str[i.head+2]] != 2:
+					i.head+=2
+				case lutHex[i.str[i.head+3]] != 2:
+					i.head+=3
+				case lutHex[i.str[i.head+4]] != 2:
+					i.head+=4
+				}
+				i.errc, i.expect = ErrUnexpToken, ExpectEscapedUnicodeSequence
+				goto ERROR
+			}
+			i.head+=4
+		default:
+			i.errc, i.expect = ErrUnexpToken, ExpectEscapedSequence
+			goto ERROR
+		}
 		continue
-	} else if i.str[i.head] == '"' {
-		goto AFTER_STR_VAL
-	} else if i.str[i.head] == '\\' {
-		escaped = true
+	}
+	if i.str[i.head] < 0x20 {
+		i.errc, i.expect = ErrUnexpToken, ExpectEndOfString
+		goto ERROR
 	}
 	i.head++
 }
-i.errc = ErrUnexpEOF
-i.expect = ExpectEndOfString
-goto ERROR
 
 AFTER_STR_VAL:
 // Callback for argument

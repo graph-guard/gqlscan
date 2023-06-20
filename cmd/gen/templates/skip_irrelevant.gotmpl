@@ -1,79 +1,75 @@
 for {
-	if i.head+7 >= len(i.str) {
+	if i.head+15 >= len(i.str) {
 		for i.head < len(i.str) {
-			if i.str[i.head] != ',' &&
-				i.str[i.head] != ' ' &&
-				i.str[i.head] != '\n' &&
-				i.str[i.head] != '\t' &&
-				i.str[i.head] != '\r' {
+			if lutIrrel[i.str[i.head]] != 1 {
 				break
 			}
 			i.head++
 		}
 		break
 	}
-	if i.str[i.head] != ',' &&
-		i.str[i.head] != ' ' &&
-		i.str[i.head] != '\n' &&
-		i.str[i.head] != '\t' &&
-		i.str[i.head] != '\r' {
+	if lutIrrel[i.str[i.head]] != 1 {
 		break
 	}
-	i.head++
-	if i.str[i.head] != ',' &&
-		i.str[i.head] != ' ' &&
-		i.str[i.head] != '\n' &&
-		i.str[i.head] != '\t' &&
-		i.str[i.head] != '\r' {
+	if lutIrrel[i.str[i.head+1]] != 1 {
+		i.head += 1
 		break
 	}
-	i.head++
-	if i.str[i.head] != ',' &&
-		i.str[i.head] != ' ' &&
-		i.str[i.head] != '\n' &&
-		i.str[i.head] != '\t' &&
-		i.str[i.head] != '\r' {
+	if lutIrrel[i.str[i.head+2]] != 1 {
+		i.head += 2
 		break
 	}
-	i.head++
-	if i.str[i.head] != ',' &&
-		i.str[i.head] != ' ' &&
-		i.str[i.head] != '\n' &&
-		i.str[i.head] != '\t' &&
-		i.str[i.head] != '\r' {
+	if lutIrrel[i.str[i.head+3]] != 1 {
+		i.head += 3
 		break
 	}
-	i.head++
-	if i.str[i.head] != ',' &&
-		i.str[i.head] != ' ' &&
-		i.str[i.head] != '\n' &&
-		i.str[i.head] != '\t' &&
-		i.str[i.head] != '\r' {
+	if lutIrrel[i.str[i.head+4]] != 1 {
+		i.head += 4
 		break
 	}
-	i.head++
-	if i.str[i.head] != ',' &&
-		i.str[i.head] != ' ' &&
-		i.str[i.head] != '\n' &&
-		i.str[i.head] != '\t' &&
-		i.str[i.head] != '\r' {
+	if lutIrrel[i.str[i.head+5]] != 1 {
+		i.head += 5
 		break
 	}
-	i.head++
-	if i.str[i.head] != ',' &&
-		i.str[i.head] != ' ' &&
-		i.str[i.head] != '\n' &&
-		i.str[i.head] != '\t' &&
-		i.str[i.head] != '\r' {
+	if lutIrrel[i.str[i.head+6]] != 1 {
+		i.head += 6
 		break
 	}
-	i.head++
-	if i.str[i.head] != ',' &&
-		i.str[i.head] != ' ' &&
-		i.str[i.head] != '\n' &&
-		i.str[i.head] != '\t' &&
-		i.str[i.head] != '\r' {
+	if lutIrrel[i.str[i.head+7]] != 1 {
+		i.head += 7
 		break
 	}
-	i.head++
+	if lutIrrel[i.str[i.head+8]] != 1 {
+		i.head += 8
+		break
+	}
+	if lutIrrel[i.str[i.head+9]] != 1 {
+		i.head += 9
+		break
+	}
+	if lutIrrel[i.str[i.head+10]] != 1 {
+		i.head += 10
+		break
+	}
+	if lutIrrel[i.str[i.head+11]] != 1 {
+		i.head += 11
+		break
+	}
+	if lutIrrel[i.str[i.head+12]] != 1 {
+		i.head += 12
+		break
+	}
+	if lutIrrel[i.str[i.head+13]] != 1 {
+		i.head += 13
+		break
+	}
+	if lutIrrel[i.str[i.head+14]] != 1 {
+		i.head += 14
+		break
+	}
+	if lutIrrel[i.str[i.head+15]] != 1 {
+		i.head += 15
+		break
+	}
+	i.head += 16
 }

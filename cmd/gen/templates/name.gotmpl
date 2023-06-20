@@ -1,91 +1,88 @@
 // Followed by {{ get . "aftername" }}>
 {{ template "check_eof" }}
 i.tail = i.head
-if i.str[i.head] != '_' &&
-	(i.str[i.head] < 'a' || i.str[i.head] > 'z') &&
-	(i.str[i.head] < 'A' || i.str[i.head] > 'Z') {
+if lutName[i.str[i.head]] != 1 {
 	i.errc = ErrUnexpToken
 	goto ERROR
 }
 i.head++
 for {
-	if i.head+7 >= len(i.str) {
+	if i.head+15 >= len(i.str) {
 		for ; i.head < len(i.str); i.head++ {
-			if i.str[i.head] == '_' ||
-				(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
-				(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
-				(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z') {
-				continue
-			} else if i.str[i.head] == ' ' ||
-				i.str[i.head] == '\n' ||
-				i.str[i.head] == '\r' ||
-				i.str[i.head] == '\t' ||
-				i.str[i.head] == ',' {
+			if lutName[i.str[i.head]] > 2 {
+				if lutName[i.str[i.head]] == 5 {
+					i.errc = ErrUnexpToken
+					goto ERROR
+				}
 				break
-			} else if i.str[i.head] < 0x20 {
-				i.errc = ErrUnexpToken
-				goto ERROR
 			}
-			break
 		}
 		break
 	}
-	if !(i.str[i.head] == '_' ||
-		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
-		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
-		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
+	if lutName[i.str[i.head]] > 2 {
 		break
 	}
-	i.head++
-	if !(i.str[i.head] == '_' ||
-		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
-		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
-		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
+	if lutName[i.str[i.head+1]] > 2 {
+		i.head+=1
 		break
 	}
-	i.head++
-	if !(i.str[i.head] == '_' ||
-		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
-		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
-		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
+	if lutName[i.str[i.head+2]] > 2 {
+		i.head+=2
 		break
 	}
-	i.head++
-	if !(i.str[i.head] == '_' ||
-		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
-		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
-		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
+	if lutName[i.str[i.head+3]] > 2 {
+		i.head+=3
 		break
 	}
-	i.head++
-	if !(i.str[i.head] == '_' ||
-		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
-		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
-		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
+	if lutName[i.str[i.head+4]] > 2 {
+		i.head+=4
 		break
 	}
-	i.head++
-	if !(i.str[i.head] == '_' ||
-		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
-		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
-		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
+	if lutName[i.str[i.head+5]] > 2 {
+		i.head+=5
 		break
 	}
-	i.head++
-	if !(i.str[i.head] == '_' ||
-		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
-		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
-		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
+	if lutName[i.str[i.head+6]] > 2 {
+		i.head+=6
 		break
 	}
-	i.head++
-	if !(i.str[i.head] == '_' ||
-		(i.str[i.head] >= '0' && i.str[i.head] <= '9') ||
-		(i.str[i.head] >= 'a' && i.str[i.head] <= 'z') ||
-		(i.str[i.head] >= 'A' && i.str[i.head] <= 'Z')) {
+	if lutName[i.str[i.head+7]] > 2 {
+		i.head+=7
 		break
 	}
-	i.head++
+	if lutName[i.str[i.head+8]] > 2 {
+		i.head+=8
+		break
+	}
+	if lutName[i.str[i.head+9]] > 2 {
+		i.head+=9
+		break
+	}
+	if lutName[i.str[i.head+10]] > 2 {
+		i.head+=10
+		break
+	}
+	if lutName[i.str[i.head+11]] > 2 {
+		i.head+=11
+		break
+	}
+	if lutName[i.str[i.head+12]] > 2 {
+		i.head+=12
+		break
+	}
+	if lutName[i.str[i.head+13]] > 2 {
+		i.head+=13
+		break
+	}
+	if lutName[i.str[i.head+14]] > 2 {
+		i.head+=14
+		break
+	}
+	if lutName[i.str[i.head+15]] > 2 {
+		i.head+=15
+		break
+	}
+	i.head+=16
 }
 
 {{ if eq "valenum" (get . "aftername") }}

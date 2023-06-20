@@ -1,53 +1,75 @@
 COMMENT:
 i.head++
 for {
-	if i.head+7 >= len(i.str) {
+	if i.head+15 >= len(i.str) {
 		for ; i.head < len(i.str) && i.str[i.head] != '\n'; i.head++ {
 		}
 		break
 	}
-	if i.str[i.head] != '\n' &&
-		i.str[i.head+1] != '\n' &&
-		i.str[i.head+2] != '\n' &&
-		i.str[i.head+3] != '\n' &&
-		i.str[i.head+4] != '\n' &&
-		i.str[i.head+5] != '\n' &&
-		i.str[i.head+6] != '\n' &&
-		i.str[i.head+7] != '\n' {
-		i.head += 8
-		continue
-	}
 	if i.str[i.head] == '\n' {
 		break
 	}
-	i.head++
-	if i.str[i.head] == '\n' {
+	if i.str[i.head+1] == '\n' {
+		i.head+=1
 		break
 	}
-	i.head++
-	if i.str[i.head] == '\n' {
+	if i.str[i.head+2] == '\n' {
+		i.head+=2
 		break
 	}
-	i.head++
-	if i.str[i.head] == '\n' {
+	if i.str[i.head+3] == '\n' {
+		i.head+=3
 		break
 	}
-	i.head++
-	if i.str[i.head] == '\n' {
+	if i.str[i.head+4] == '\n' {
+		i.head+=4
 		break
 	}
-	i.head++
-	if i.str[i.head] == '\n' {
+	if i.str[i.head+5] == '\n' {
+		i.head+=5
 		break
 	}
-	i.head++
-	if i.str[i.head] == '\n' {
+	if i.str[i.head+6] == '\n' {
+		i.head+=6
 		break
 	}
-	i.head++
-	if i.str[i.head] == '\n' {
+	if i.str[i.head+7] == '\n' {
+		i.head+=7
 		break
 	}
+	if i.str[i.head+8] == '\n' {
+		i.head+=8
+		break
+	}
+	if i.str[i.head+9] == '\n' {
+		i.head+=9
+		break
+	}
+	if i.str[i.head+10] == '\n' {
+		i.head+=10
+		break
+	}
+	if i.str[i.head+11] == '\n' {
+		i.head+=11
+		break
+	}
+	if i.str[i.head+12] == '\n' {
+		i.head+=12
+		break
+	}
+	if i.str[i.head+13] == '\n' {
+		i.head+=13
+		break
+	}
+	if i.str[i.head+14] == '\n' {
+		i.head+=14
+		break
+	}
+	if i.str[i.head+15] == '\n' {
+		i.head+=15
+		break
+	}
+	i.head += 16
 }
 i.tail = -1
 {{ template "skip_irrelevant" }}

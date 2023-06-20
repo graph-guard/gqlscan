@@ -1,19 +1,9 @@
 if i.head+4 < len(i.str) &&
+	lutEndVal[i.str[i.head+4]] == 1 &&
 	i.str[i.head+3] == 'l' &&
 	i.str[i.head+2] == 'l' &&
 	i.str[i.head+1] == 'u' &&
-	i.str[i.head] == 'n' &&
-	(i.str[i.head+4] == ' ' ||
-		i.str[i.head+4] == '\t' ||
-		i.str[i.head+4] == '\r' ||
-		i.str[i.head+4] == '\n' ||
-		i.str[i.head+4] == ',' ||
-		i.str[i.head+4] == ')' ||
-		i.str[i.head+4] == '}' ||
-		i.str[i.head+4] == '{' ||
-		i.str[i.head+4] == ']' ||
-		i.str[i.head+4] == '[' ||
-		i.str[i.head+4] == '#') {
+	i.str[i.head] == 'n' {
 	i.tail = -1
 	i.head += len("null")
 
